@@ -2,6 +2,7 @@
 	import { Card, CardContent, CardHeader } from '$lib/components/ui/card';
 	import { UsersIcon } from '@lucide/svelte';
 	import AttendanceChart from './chart.svelte';
+	import LiveBadge from './LiveBadge.svelte';
 
 	type Props = {
 		data: {
@@ -26,11 +27,12 @@
 	const formatNumber = (num: number) => num.toLocaleString();
 </script>
 
-<Card class="w-full dark:bg-background dark:text-white h-full">
-	<CardHeader class="p-4 flex flex-row items-center justify-between bg-secondary rounded-t-md h-14">
+<Card class="h-full w-full dark:bg-background dark:text-white">
+	<CardHeader class="flex h-14 flex-row items-center justify-between rounded-t-md bg-secondary p-4">
 		<div class="flex items-center gap-2">
 			<UsersIcon class="h-5 w-5" />
 			<h3 class="font-medium">Attendance Tracking</h3>
+			<LiveBadge />
 		</div>
 		<div class="flex items-center gap-2 text-sm">
 			<span>{formatNumber(current)} / {formatNumber(data.max)}</span>
@@ -43,7 +45,7 @@
 			>
 		</div>
 	</CardHeader>
-	<CardContent class="grow flex items-center justify-center">
+	<CardContent class="flex grow items-center justify-center">
 		<AttendanceChart timeData={data.timeData} />
 	</CardContent>
 </Card>

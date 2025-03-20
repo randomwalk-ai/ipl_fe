@@ -15,7 +15,7 @@
 	<title>{pageState.actualTitle}</title>
 </svelte:head>
 <div
-	class="relative flex min-h-[100dvh] flex-col items-center bg-background"
+	class="font-plusJakarta relative flex min-h-[100dvh] flex-col items-center bg-background"
 	data-vaul-drawer-wrapper
 >
 	{@render children()}

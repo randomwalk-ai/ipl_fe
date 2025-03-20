@@ -1,5 +1,7 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar';
+	import { getPageState } from '$lib/stores/index.svelte';
+	const PageState = getPageState();
 </script>
 
 <header
@@ -7,6 +9,7 @@
 >
 	<div class="flex items-center gap-2">
 		<Sidebar.Trigger class="-ml-1" />
+		{PageState.title}
 	</div>
 	<div class="flex gap-2">
 	</div>

@@ -45,6 +45,7 @@
 	},
 	"dependencies": {
 		"@fontsource-variable/plus-jakarta-sans": "^5.2.5",
+		"apexcharts": "^4.5.0",
 		"better-auth": "^1.2.4",
 		"drizzle-orm": "^0.38.4",
 		"postgres": "^3.4.5",

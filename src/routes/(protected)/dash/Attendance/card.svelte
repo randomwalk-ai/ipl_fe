@@ -26,8 +26,8 @@
 	const formatNumber = (num: number) => num.toLocaleString();
 </script>
 
-<Card class="w-full max-w-xl dark:bg-background dark:text-white">
-	<CardHeader class="pb-2 flex flex-row items-center justify-between">
+<Card class="w-full dark:bg-background dark:text-white h-full">
+	<CardHeader class="p-4 flex flex-row items-center justify-between bg-secondary rounded-t-md h-14">
 		<div class="flex items-center gap-2">
 			<UsersIcon class="h-5 w-5" />
 			<h3 class="font-medium">Attendance Tracking</h3>
@@ -43,7 +43,7 @@
 			>
 		</div>
 	</CardHeader>
-	<CardContent>
+	<CardContent class="grow flex items-center justify-center">
 		<AttendanceChart timeData={data.timeData} />
 	</CardContent>
 </Card>

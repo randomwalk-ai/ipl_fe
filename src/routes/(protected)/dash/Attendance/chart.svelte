@@ -3,13 +3,10 @@
 	import type { ApexOptions } from 'apexcharts';
 	import { mode } from 'mode-watcher';
 	import { onDestroy, onMount } from 'svelte';
+	import type { AttendanceData } from '../../types';
 
 	type Props = {
-		timeData: {
-			times: string[];
-			incoming: number[];
-			outgoing: number[];
-		};
+		timeData: AttendanceData;
 	};
 
 	let { timeData }: Props = $props();
@@ -20,81 +17,83 @@
 			type: 'area',
 			height: 250,
 			toolbar: {
-				show: false,
+				show: false
 			},
 			background: 'transparent', // Always transparent for seamless switching
+			redrawOnParentResize: true,
+			redrawOnWindowResize: true
 		},
 		colors: ['#3b82f6', '#be185d'], // Colors don't change based on theme
 		dataLabels: {
-			enabled: false,
+			enabled: false
 		},
 		stroke: {
 			curve: 'smooth',
-			width: 2,
+			width: 2
 		},
 		series: [
 			{
 				name: 'Incoming',
-				data: timeData.incoming,
+				data: timeData.incoming
 			},
 			{
 				name: 'Outgoing',
-				data: timeData.outgoing,
-			},
+				data: timeData.outgoing
+			}
 		],
 		xaxis: {
 			categories: timeData.times,
 			labels: {
 				style: {
-					colors: $mode === 'dark' ? '#94a3b8' : '#475569', // Ternary for labels
-				},
+					colors: $mode === 'dark' ? '#94a3b8' : '#475569' // Ternary for labels
+				}
 			},
 			axisBorder: {
-				show: false,
+				show: false
 			},
 			axisTicks: {
-				show: false,
-			},
+				show: false
+			}
 		},
 		yaxis: {
 			labels: {
 				style: {
-					colors: $mode === 'dark' ? '#94a3b8' : '#475569', // Ternary for labels
-				},
+					colors: $mode === 'dark' ? '#94a3b8' : '#475569' // Ternary for labels
+				}
 			},
 			tickAmount: 4,
 			min: 0,
-			max: 20000,
+			max: 20000
 		},
 		grid: {
 			borderColor: $mode === 'dark' ? '#2d3748' : '#cbd5e1', // Ternary for grid
 			strokeDashArray: 4,
 			yaxis: {
 				lines: {
-					show: true,
-				},
+					show: true
+				}
 			},
 			xaxis: {
 				lines: {
-					show: false,
-				},
-			},
+					show: false
+				}
+			}
 		},
 		legend: {
 			labels: {
-				colors: $mode === 'dark' ? '#94a3b8' : '#475569', // Ternary for legend
-			},
+				colors: $mode === 'dark' ? '#94a3b8' : '#475569' // Ternary for legend
+			}
 		},
 		fill: {
 			type: 'gradient',
 			gradient: {
 				opacityFrom: 0.4,
-				opacityTo: 0.1,
-			},
+				opacityTo: 0.1
+			}
 		},
 		tooltip: {
-			theme: $mode === 'dark' ? 'dark' : 'light', // Ternary for tooltip
-		},
+			theme: $mode === 'dark' ? 'dark' : 'light' // Ternary for tooltip
+		}
 	}));
 
 	let ApexCharts: typeof import('apexcharts') | null = $state(null);
@@ -108,6 +107,7 @@
 
 	$effect(() => {
 		if (browser && chart && options) {
+			console.log('Updating chart');
 			chart.updateOptions(options, false, true);
 		}
 	});

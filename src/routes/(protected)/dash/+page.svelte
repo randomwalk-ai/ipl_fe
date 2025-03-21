@@ -84,7 +84,7 @@
 		attendance: {
 			total: data.attData.attendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
 			prevTotal: data.attData.oldAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
-			allTotal: data.attData.allAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0)
+			allTotal: data.attData.allAttendanceData[-1].totalUniqueCount
 		},
 		alerts: {
 			count: 8,

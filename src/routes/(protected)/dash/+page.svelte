@@ -11,7 +11,7 @@
 
 	// Mock data for testing
 	const attendanceData = {
-		max: 50000,
+		max: 38000,
 		timeData: {
 			times: data.attData.allAttendanceData.map((d) => new Date(d.minute).toLocaleTimeString()),
 			incoming: data.attData.allAttendanceData.map((d) => d.totalUniqueCount)

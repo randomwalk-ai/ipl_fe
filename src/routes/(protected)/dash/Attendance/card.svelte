@@ -10,7 +10,7 @@
 			timeData: {
 				times: string[];
 				incoming: number[];
-				outgoing: number[];
+				// outgoing: number[];
 			};
 		};
 	};
@@ -18,8 +18,8 @@
 
 	let current = $derived.by(
 		() =>
-			data.timeData.incoming.reduce((a, b) => a + b, 0) -
-			data.timeData.outgoing.reduce((a, b) => a + b, 0)
+			data.timeData.incoming.reduce((a, b) => a + b, 0) - 0
+			// data.timeData.outgoing.reduce((a, b) => a + b, 0)
 	);
 	let percentageFull = $derived.by(() => Math.round((current / data.max) * 100));
 

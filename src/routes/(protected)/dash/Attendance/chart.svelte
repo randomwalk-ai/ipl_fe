@@ -36,10 +36,10 @@
 				name: 'Incoming',
 				data: timeData.incoming
 			},
-			{
-				name: 'Outgoing',
-				data: timeData.outgoing
-			}
+			// {
+			// 	name: 'Outgoing',
+			// 	data: timeData.outgoing
+			// }
 		],
 		xaxis: {
 			categories: timeData.times,

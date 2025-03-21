@@ -41,5 +41,5 @@ export type AnalyticsData = {
 export type AttendanceData = {
 	times: string[];
 	incoming: number[];
-	outgoing: number[];
+	// outgoing: number[];
 };

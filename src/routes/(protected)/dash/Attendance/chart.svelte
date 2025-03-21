@@ -35,7 +35,7 @@
 			{
 				name: 'Incoming',
 				data: timeData.incoming
-			},
+			}
 			// {
 			// 	name: 'Outgoing',
 			// 	data: timeData.outgoing
@@ -59,11 +59,12 @@
 			labels: {
 				style: {
 					colors: $mode === 'dark' ? '#94a3b8' : '#475569' // Ternary for labels
-				}
+				},
+				formatter: (val: number) => val.toFixed(0)
 			},
 			tickAmount: 4,
 			min: 0,
-			max: 20000
+			max: 1.1 * Math.max(...timeData.incoming, 0)
 		},
 		grid: {
 			borderColor: $mode === 'dark' ? '#2d3748' : '#cbd5e1', // Ternary for grid

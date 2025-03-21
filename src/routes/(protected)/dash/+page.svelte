@@ -13,8 +13,8 @@
 	const attendanceData = {
 		max: 50000,
 		timeData: {
-			times: data.attData.attendanceData.map((d) => d.minute),
-			incoming: data.attData.attendanceData.map((d) => d.totalUniqueCount)
+			times: data.attData.allAttendanceData.map((d) => new Date(d.minute).toLocaleTimeString()),
+			incoming: data.attData.allAttendanceData.map((d) => d.totalUniqueCount)
 			// outgoing: [0, 500, 1000, 1500, 2000, 2500, 3500, 4500]
 		}
 	};
@@ -82,9 +82,10 @@
 	// Mock analytics data
 	const analyticsData: AnalyticsData = {
 		attendance: {
-			total: data.attData.attendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
-			prevTotal: data.attData.oldAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
-			allTotal: data.attData.allAttendanceData[-1].totalUniqueCount
+			total: (data.attData.attendanceData.at(-1) ?? { totalUniqueCount: 0 }).totalUniqueCount,
+			prevTotal: (data.attData.oldAttendanceData.at(-1) ?? { totalUniqueCount: 0 })
+				.totalUniqueCount,
+			allTotal: (data.attData.allAttendanceData.at(-1) ?? { totalUniqueCount: 0 }).totalUniqueCount
 		},
 		alerts: {
 			count: 8,
@@ -98,16 +99,18 @@
 			team1: {
 				name: 'CSK',
 				color: '#f59e0b', // Yellow
-				fans: data.attData.attendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
-				prevFans: data.attData.oldAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
-				allFans: data.attData.allAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0)
+				fans: (data.attData.attendanceData.at(-1) ?? { totalJerseyYellow: 0 }).totalJerseyYellow,
+				prevFans: (data.attData.oldAttendanceData.at(-1) ?? { totalJerseyYellow: 0 })
+					.totalJerseyYellow,
+				allFans: (data.attData.allAttendanceData.at(-1) ?? { totalJerseyYellow: 0 })
+					.totalJerseyYellow
 			},
 			team2: {
 				name: 'MI',
-				color: '#ef4444', // Red
-				fans: data.attData.attendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
-				prevFans: data.attData.oldAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
-				allFans: data.attData.allAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0)
+				color: '#3b82f6', // Blue
+				fans: (data.attData.attendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue,
+				prevFans: (data.attData.oldAttendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue,
+				allFans: (data.attData.allAttendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue
 			}
 		}
 	} as AnalyticsData;

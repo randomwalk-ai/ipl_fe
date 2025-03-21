@@ -4,6 +4,8 @@
 	import AttendanceCard from './Attendance';
 	import type { Alert as AlertType, AnalyticsData } from '../types';
 	import Grid from './Grid.svelte';
+	import { onMount } from 'svelte';
+	import { invalidateAll } from '$app/navigation';
 
 	let { data } = $props();
 
@@ -109,6 +111,12 @@
 
 	const PageState = getPageState();
 	PageState.title = 'Dashboard';
+
+	onMount(() => {
+		setInterval(() => {
+			invalidateAll();
+		}, 10000);
+	})
 </script>
 
 <Grid data={analyticsData} />

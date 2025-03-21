@@ -13,6 +13,7 @@ export type AnalyticsData = {
 	attendance: {
 		total: number;
 		prevTotal: number;
+		allTotal: number;
 	};
 	alerts: {
 		count: number;
@@ -28,12 +29,14 @@ export type AnalyticsData = {
 			color: string;
 			fans: number;
 			prevFans: number;
+			allFans: number;
 		};
 		team2: {
 			name: string;
 			color: string;
 			fans: number;
 			prevFans: number;
+			allFans: number;
 		};
 	};
 };

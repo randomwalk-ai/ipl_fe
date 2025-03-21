@@ -13,8 +13,8 @@
 	const attendanceData = {
 		max: 50000,
 		timeData: {
-			times: data.attData.attendanceData.map((d) => d.minute),	
-			incoming: data.attData.attendanceData.map((d)=>d.totalUniqueCount),
+			times: data.attData.attendanceData.map((d) => d.minute),
+			incoming: data.attData.attendanceData.map((d) => d.totalUniqueCount)
 			// outgoing: [0, 500, 1000, 1500, 2000, 2500, 3500, 4500]
 		}
 	};
@@ -83,7 +83,8 @@
 	const analyticsData: AnalyticsData = {
 		attendance: {
 			total: data.attData.attendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
-			prevTotal: data.attData.oldAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0)
+			prevTotal: data.attData.oldAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
+			allTotal: data.attData.allAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0)
 		},
 		alerts: {
 			count: 8,
@@ -98,13 +99,15 @@
 				name: 'CSK',
 				color: '#f59e0b', // Yellow
 				fans: data.attData.attendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
-				prevFans: data.attData.oldAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0)
+				prevFans: data.attData.oldAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
+				allFans: data.attData.allAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0)
 			},
 			team2: {
 				name: 'MI',
 				color: '#ef4444', // Red
 				fans: data.attData.attendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
-				prevFans: data.attData.oldAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0)
+				prevFans: data.attData.oldAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0),
+				allFans: data.attData.allAttendanceData.reduce((a, b) => a + b.totalUniqueCount, 0)
 			}
 		}
 	} as AnalyticsData;
@@ -116,7 +119,7 @@
 		setInterval(() => {
 			invalidateAll();
 		}, 10000);
-	})
+	});
 </script>
 
 <Grid data={analyticsData} />

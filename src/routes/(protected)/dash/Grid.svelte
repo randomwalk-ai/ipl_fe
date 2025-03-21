@@ -58,7 +58,7 @@
 				<Users2Icon class="h-4 w-4 text-blue-500" />
 			</div>
 			<div class="flex items-end justify-between">
-				<span class="text-2xl font-bold">{formatNumber(data.attendance.total)}</span>
+				<span class="text-2xl font-bold">{formatNumber(data.attendance.allTotal)}</span>
 				<div
 					class={[
 						'flex items-center gap-1',
@@ -131,7 +131,7 @@
 			</div>
 			<div class="flex items-end justify-between">
                 <!-- Assuming team1Fans exists on the data object.  If not, replace with the correct path -->
-				<span class="text-2xl font-bold">{formatNumber(data.teams.team1.fans)}</span>
+				<span class="text-2xl font-bold">{formatNumber(data.teams.team1.allFans)}</span>
                 <div
 					class={[
 						'flex items-center gap-1',
@@ -161,7 +161,7 @@
 			</div>
 			<div class="flex items-end justify-between">
               <!-- Assuming team2Fans exists on the data object. If not, replace with the correct path -->
-				<span class="text-2xl font-bold">{formatNumber(data.teams.team2.fans)}</span>
+				<span class="text-2xl font-bold">{formatNumber(data.teams.team2.allFans)}</span>
                 <div
 					class={[
 						'flex items-center gap-1',

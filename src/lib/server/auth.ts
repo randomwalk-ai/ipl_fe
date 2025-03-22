@@ -19,5 +19,7 @@ export const auth = betterAuth({
 		accountLinking: {
 			enabled: true
 		}
-	}
+	},
+	trustedOrigins: [
+		'http://localhost:5173', 'https://macalerts.randomwalk.ai']
 });

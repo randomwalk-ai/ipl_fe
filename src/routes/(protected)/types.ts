@@ -40,6 +40,16 @@ export interface Alert {
 	createdAt: string
 }
 
+export type AnomalyType = {
+    id: number;
+    cameraId: string;
+    startFrame: number;
+    endFrame: number;
+    anomalyCount: number;
+    createdAt: string ;
+    filePath: string;
+}
+
 
 
 // Analytics data type

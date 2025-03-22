@@ -54,15 +54,6 @@ export const alertNotifications = pgTable("alert_notifications", {
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }),
 });
 
-export const anomalies = pgTable("anomalies", {
-	id: serial().primaryKey().notNull(),
-	cameraId: varchar("camera_id", { length: 50 }).notNull(),
-	startFrame: integer("start_frame").notNull(),
-	endFrame: integer("end_frame").notNull(),
-	anomalyCount: integer("anomaly_count").notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-});
-
 export const anomaly = pgTable("anomaly", {
 	id: serial().primaryKey().notNull(),
 	cameraId: varchar("camera_id", { length: 50 }).notNull(),

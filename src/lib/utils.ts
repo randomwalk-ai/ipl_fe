@@ -35,6 +35,23 @@ export function parseUtcToIstTime(utcString: string): string {
 	}
 }
 
+// add 5.5 hours to convert UTC to IST
+export function addHoursToDate(date: string){
+	try {
+		let utcDate = dayjs.utc(date);
+
+		if (!utcDate.isValid()) {
+			throw new Error(`Invalid UTC date string: ${date}`);
+		}
+
+		let istDate = utcDate.add(5.5, 'hour');
+		return istDate.locale('en-US').toString();
+	} catch (error) {
+		console.error('Error parsing UTC to IST time:', error);
+		return 'Invalid Time'; // Or handle appropriately
+	}
+}
+
 export function timeAgo(utcDateString: string | Date | null | undefined): string {
 	if (!utcDateString) {
 		return "No date provided";

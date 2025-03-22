@@ -35,6 +35,14 @@
 			{
 				name: 'Incoming',
 				data: timeData.incoming
+			},
+			{
+				name: 'CSK',
+				data: timeData.team1
+			},
+			{
+				name: 'MI',
+				data: timeData.team2
 			}
 			// {
 			// 	name: 'Outgoing',

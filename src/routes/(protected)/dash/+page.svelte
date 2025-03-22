@@ -2,10 +2,11 @@
 	import { getPageState } from '$lib/stores/index.svelte';
 	import Alerts from './Alerts.svelte';
 	import AttendanceCard from './Attendance';
-	import type { Alert as AlertType, AnalyticsData } from '../types';
+	import type { Alert as AlertType, AnalyticsData, AttendanceData } from '../types';
 	import Grid from './Grid.svelte';
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
+	import { parseUtcToIstTime } from '$lib/utils';
 
 	let { data } = $props();
 
@@ -13,10 +14,11 @@
 	const attendanceData = {
 		max: 38000,
 		timeData: {
-			times: data.attData.allAttendanceData.map((d) => new Date(d.minute).toLocaleTimeString()),
-			incoming: data.attData.allAttendanceData.map((d) => d.totalUniqueCount)
-			// outgoing: [0, 500, 1000, 1500, 2000, 2500, 3500, 4500]
-		}
+			times: data.attData.allAttendanceData.map((d) => parseUtcToIstTime(d.minute)),
+			incoming: data.attData.allAttendanceData.map((d) => d.totalUniqueCount),
+			team1: data.attData.allAttendanceData.map((d) => d.totalJerseyYellow),
+			team2: data.attData.allAttendanceData.map((d) => d.totalJerseyBlue)
+		} as AttendanceData
 	};
 
 	onMount(() => {
@@ -24,7 +26,7 @@
 		const pageRefreshInterval = setInterval(() => {
 			invalidateAll();
 		}, 10000);
-		
+
 		return () => {
 			// Clean up interval when component is destroyed
 			clearInterval(pageRefreshInterval);
@@ -40,12 +42,11 @@
 			allTotal: (data.attData.allAttendanceData.at(-1) ?? { totalUniqueCount: 0 }).totalUniqueCount
 		},
 		alerts: {
-			count: 8,
-			prevCount: 18
+			count: data.alertNotifsCount
 		},
 		cameras: {
-			active: 24,
-			total: 26
+			active: data.activeCamCount,
+			total: 326
 		},
 		teams: {
 			team1: {

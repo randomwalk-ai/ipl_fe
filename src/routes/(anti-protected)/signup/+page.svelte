@@ -44,18 +44,23 @@
 		toast.loading('Signing up...', { id: 'signup' });
 		isLoading = true;
 		try {
-			// const { data, error } = await authClient.signUp.email({
-			// 	email: email.toString(),
-			// 	password: password.toString(),
-			// 	name: name.toString()
-			// });
-			// if (error) {
-			// 	console.error(error);
-			// 	toast.error(error.message ?? 'Failed to sign up', { id: 'signup' });
-			// 	isLoading = false;
-			// 	return;
-			// }
-			// toast.success('Signed up successfully!', { id: 'signup' });
+			console.log('Signing up...', {
+				email: email.toString(),
+				password: password.toString(),
+				name: name.toString()
+			});
+			const { data, error } = await authClient.signUp.email({
+				email: email.toString(),
+				password: password.toString(),
+				name: name.toString()
+			});
+			if (error) {
+				console.error(error);
+				toast.error(error.message ?? 'Failed to sign up', { id: 'signup' });
+				isLoading = false;
+				return;
+			}
+			toast.success('Signed up successfully!', { id: 'signup' });
 			goto('/dash');
 		} catch (err) {
 			console.error(err);

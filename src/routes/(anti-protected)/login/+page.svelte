@@ -94,19 +94,6 @@
 				<Button disabled={isLoading} type="button" onclick={handleLogin} class="w-full"
 					>Login</Button
 				>
-				<Button
-					disabled={isLoading}
-					type="button"
-					variant="outline"
-					class="w-full"
-					onclick={async (e) => {
-						e.preventDefault();
-						await authClient.signIn.social({
-							provider: 'github',
-							callbackURL: '/dash' //redirect to dashboard after sign in
-						});
-					}}>Login with Github</Button
-				>
 			</form>
 			<div class="mt-4 text-center text-sm">
 				Don't have an account?

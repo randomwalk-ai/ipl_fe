@@ -5,7 +5,7 @@
 	import type { Alert as AlertType } from '../types';
 	import { onMount, onDestroy } from 'svelte';
 	import SimpleDialog from './SimpleDialog.svelte';
-	import { X } from '@lucide/svelte';
+	import { timeAgo } from '$lib/utils';
 
 	// Remove the alerts prop since we'll fetch them internally
 	let alerts: AlertType[] = [];
@@ -72,47 +72,48 @@
 		info: 'bg-blue-500'
 	};
 
-	function timeAgo(date: Date): string {
-		const now = new Date();
-		const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+	// function timeAgo(date: Date): string {
+	// 	console.log('Date:', date);
+	// 	const now = new Date();
+	// 	const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-		if (seconds < 0) {
-			return 'in the future'; //Handle dates in the future gracefully.
-		}
+	// 	if (seconds < 0) {
+	// 		return 'in the future'; //Handle dates in the future gracefully.
+	// 	}
 
-		if (seconds < 60) {
-			return seconds === 1 ? '1 second ago' : `${seconds} seconds ago`;
-		}
+	// 	if (seconds < 60) {
+	// 		return seconds === 1 ? '1 second ago' : `${seconds} seconds ago`;
+	// 	}
 
-		const minutes = Math.floor(seconds / 60);
-		if (minutes < 60) {
-			return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`;
-		}
+	// 	const minutes = Math.floor(seconds / 60);
+	// 	if (minutes < 60) {
+	// 		return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`;
+	// 	}
 
-		const hours = Math.floor(minutes / 60);
-		if (hours < 24) {
-			return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
-		}
+	// 	const hours = Math.floor(minutes / 60);
+	// 	if (hours < 24) {
+	// 		return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+	// 	}
 
-		const days = Math.floor(hours / 24);
-		if (days < 7) {
-			return days === 1 ? '1 day ago' : `${days} days ago`;
-		}
+	// 	const days = Math.floor(hours / 24);
+	// 	if (days < 7) {
+	// 		return days === 1 ? '1 day ago' : `${days} days ago`;
+	// 	}
 
-		const weeks = Math.floor(days / 7);
-		if (weeks < 4) {
-			// Roughly 4 weeks in a month
-			return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
-		}
+	// 	const weeks = Math.floor(days / 7);
+	// 	if (weeks < 4) {
+	// 		// Roughly 4 weeks in a month
+	// 		return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+	// 	}
 
-		const months = Math.floor(days / 30); // Approximate months (consider using date-fns or similar for precise calculations)
-		if (months < 12) {
-			return months === 1 ? '1 month ago' : `${months} months ago`;
-		}
+	// 	const months = Math.floor(days / 30); // Approximate months (consider using date-fns or similar for precise calculations)
+	// 	if (months < 12) {
+	// 		return months === 1 ? '1 month ago' : `${months} months ago`;
+	// 	}
 
-		const years = Math.floor(days / 365); // Approximate years
-		return years === 1 ? '1 year ago' : `${years} years ago`;
-	}
+	// 	const years = Math.floor(days / 365); // Approximate years
+	// 	return years === 1 ? '1 year ago' : `${years} years ago`;
+	// }
 </script>
 
 <Card class="flex h-full w-full flex-col dark:bg-background dark:text-white">
@@ -135,12 +136,16 @@
 						tabindex="0"
 						on:keydown={(e) => e.key === 'Enter' && openAlertModal(alert)}
 					>
-						<div class="flex items-center gap-2">
+						<div class="flex items-center gap-2 justify-between">
 							<!-- svelte-ignore element_invalid_self_closing_tag -->
-							<span class={`h-2 w-2 rounded-full ${severityColorMap[alert.severity]}`} />
+							<!-- <span class={`h-2 w-2 rounded-full ${severityColorMap[alert.severity]}`} /> -->
+							<!-- {JSON.stringify(alert)} -->
 							<p class="text-sm font-medium leading-none">
 								Detected {alert.query}
 							</p>
+							<span class="text-xs">
+								{timeAgo((alert as any).created_at)}
+							</span>
 						</div>
 					</div>
 				{/each}

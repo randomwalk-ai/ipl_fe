@@ -4,8 +4,6 @@
 		Users2Icon,
 		BellIcon,
 		CameraIcon,
-		HashIcon,
-		MapPinIcon,
 		TrendingUpIcon,
 		TrendingDownIcon
 	} from '@lucide/svelte';
@@ -17,17 +15,17 @@
 
 	let { data }: Props = $props();
 
-	let attendancePercentage = $derived.by(() => {
-		if (data.attendance.prevTotal === 0) return 0;
-		return Math.round(
-			((data.attendance.total - data.attendance.prevTotal) / data.attendance.prevTotal) * 100
-		);
-	});
+	// let attendancePercentage = $derived.by(() => {
+	// 	if (data.attendance.prevTotal === 0) return 0;
+	// 	return Math.round(
+	// 		((data.attendance.total - data.attendance.prevTotal) / data.attendance.prevTotal) * 100
+	// 	);
+	// });
 
-	let alertsPercentage = $derived.by(() => {
-		if (data.alerts.prevCount === 0) return 0;
-		return Math.round(((data.alerts.count - data.alerts.prevCount) / data.alerts.prevCount) * 100);
-	});
+	// let alertsPercentage = $derived.by(() => {
+	// 	if (data.alerts.prevCount === 0) return 0;
+	// 	return Math.round(((data.alerts.count - data.alerts.prevCount) / data.alerts.prevCount) * 100);
+	// });
 
 	let team1FansPercentage = $derived.by(() => {
 		if (data.teams.team1.prevFans === 0) return 0;
@@ -59,24 +57,9 @@
 			</div>
 			<div class="flex items-end justify-between">
 				<span class="text-2xl font-bold">{formatNumber(data.attendance.allTotal)}</span>
-				<div
-					class={[
-						'flex items-center gap-1',
-						attendancePercentage > 0 ? 'text-emerald-500' : 'text-rose-500'
-					]}
-				>
-					<!-- <TrendingUpIcon class="h-4 w-4" />
-					<span class="text-sm">{data.attendance. -->
-					{#if attendancePercentage > 0}
-						<TrendingUpIcon class="h-4 w-4" />
-						<span class="text-sm">{attendancePercentage}%</span>
-					{:else}
-						<TrendingDownIcon class="h-4 w-4" />
-						<span class="text-sm">{Math.abs(attendancePercentage)}%</span>
-					{/if}
-				</div>
+				
 			</div>
-			<span class="text-xs text-muted-foreground">vs. previous match</span>
+			<!-- <span class="text-xs text-muted-foreground">vs. previous match</span> -->
 		</div>
 	</Card>
 
@@ -89,7 +72,7 @@
 			</div>
 			<div class="flex items-end justify-between">
 				<span class="text-2xl font-bold">{data.alerts.count}</span>
-				<div
+				<!-- <div
 					class={[
 						'flex items-center gap-1',
 						alertsPercentage > 0 ? 'text-rose-500' : 'text-emerald-500'
@@ -102,9 +85,9 @@
 						<TrendingDownIcon class="h-4 w-4" />
 						<span class="text-sm">{Math.abs(alertsPercentage)}%</span>
 					{/if}
-				</div>
+				</div> -->
 			</div>
-			<span class="text-xs text-muted-foreground">Last hour</span>
+			<!-- <span class="text-xs text-muted-foreground">Last hour</span> -->
 		</div>
 	</Card>
 

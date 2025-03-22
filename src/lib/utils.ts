@@ -17,13 +17,15 @@ export function cn(...inputs: ClassValue[]) {
 
 export function parseUtcToIstTime(utcString: string): string {
 	try {
-		const utcDate = dayjs.utc(utcString);
+		let utcDate = dayjs.utc(utcString);
 
 		if (!utcDate.isValid()) {
 			throw new Error(`Invalid UTC date string: ${utcString}`);
 		}
 
-		const istDate = utcDate.tz('Asia/Kolkata');
+		let istDate = utcDate.tz('Asia/Kolkata');
+		// subtract 5.5 hours to convert UTC to IST
+		istDate = istDate.subtract(5.5, 'hour');
 
 		// Use localized format 'LT' for time in en-US locale.
 		return istDate.locale('en-US').format('LT');

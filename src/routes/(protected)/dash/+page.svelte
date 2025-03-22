@@ -19,65 +19,17 @@
 		}
 	};
 
-	// Mock alerts data with more items to show scrolling
-	const alerts = [
-		{
-			id: 1,
-			title: 'Overcrowding detected at Gate B entrance',
-			location: 'Gate B',
-			timestamp: new Date('2025-01-01T12:00:00Z'),
-			severity: 'high'
-		},
-		{
-			id: 2,
-			title: 'Unusual movement pattern near south stand',
-			location: 'South Stand',
-			timestamp: new Date('2025-01-01T12:00:00Z'),
-			severity: 'medium'
-		},
-		{
-			id: 3,
-			title: 'Gate C attendance approaching capacity',
-			location: 'Gate C',
-			timestamp: new Date('2025-01-01T12:00:00Z'),
-			severity: 'info'
-		},
-		{
-			id: 4,
-			title: 'Social media threat detected',
-			location: 'Online',
-			timestamp: new Date('2025-01-01T12:00:00Z'),
-			severity: 'medium'
-		},
-		{
-			id: 5,
-			title: 'Suspicious package reported',
-			location: 'North Stand',
-			timestamp: new Date('2025-01-01T12:00:00Z'),
-			severity: 'high'
-		},
-		{
-			id: 6,
-			title: 'Weather alert: Heavy rain expected',
-			location: 'Stadium-wide',
-			timestamp: new Date('2025-01-01T12:00:00Z'),
-			severity: 'info'
-		},
-		{
-			id: 7,
-			title: 'Parking lot A reaching capacity',
-			location: 'Parking A',
-			timestamp: new Date('2025-01-01T12:00:00Z'),
-			severity: 'low'
-		},
-		{
-			id: 8,
-			title: 'Medical assistance requested',
-			location: 'Section 103',
-			timestamp: new Date('2025-01-01T12:00:00Z'),
-			severity: 'high'
-		}
-	] as AlertType[];
+	onMount(() => {
+		// Only keep the page refresh interval
+		const pageRefreshInterval = setInterval(() => {
+			invalidateAll();
+		}, 10000);
+		
+		return () => {
+			// Clean up interval when component is destroyed
+			clearInterval(pageRefreshInterval);
+		};
+	});
 
 	// Mock analytics data
 	const analyticsData: AnalyticsData = {
@@ -117,12 +69,6 @@
 
 	const PageState = getPageState();
 	PageState.title = 'Dashboard';
-
-	onMount(() => {
-		setInterval(() => {
-			invalidateAll();
-		}, 10000);
-	});
 </script>
 
 <Grid data={analyticsData} />
@@ -131,6 +77,6 @@
 		<AttendanceCard data={attendanceData} />
 	</div>
 	<div class="min-h-32 shrink-0 grow basis-1/3">
-		<Alerts {alerts} />
+		<Alerts />
 	</div>
 </div>

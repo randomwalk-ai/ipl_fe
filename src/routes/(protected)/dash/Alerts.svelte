@@ -2,16 +2,70 @@
 	import { BellRingIcon } from '@lucide/svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
-	import type { Alert } from '../types';
+	import type { Alert as AlertType } from '../types';
+	import { onMount, onDestroy } from 'svelte';
+	import SimpleDialog from './SimpleDialog.svelte';
+	import { X } from '@lucide/svelte';
 
-	type Props = {
-		alerts: Alert[];
-	};
+	// Remove the alerts prop since we'll fetch them internally
+	let alerts: AlertType[] = [];
+	let refreshInterval: ReturnType<typeof setInterval>;
+	
+	// Modal state
+	let showModal = false;
+	let selectedAlertUrl = '';
+	let selectedAlertTitle = '';
 
-	let { alerts }: Props = $props();
+	function openAlertModal(alert: AlertType) {
+		if (alert.redirect_url) {
+			selectedAlertUrl = alert.redirect_url;
+			selectedAlertTitle = alert.query || 'Alert Details';
+			showModal = true;
+		}
+	}
+
+	function closeModal() {
+		showModal = false;
+	}
+
+	// Function to fetch alerts data
+	async function fetchAlerts() {
+		try {
+			const res = await fetch('/api/alert-notifications');
+			const alertsData = await res.json();
+			console.log('Raw alerts data:', alertsData);
+			
+			// Make sure alertsData is an array
+			if (Array.isArray(alertsData)) {
+				alerts = alertsData;
+			} else if (alertsData && typeof alertsData === 'object') {
+				// If it's an object with a data property, use that
+				alerts = Array.isArray(alertsData.data) ? alertsData.data : [];
+			} else {
+				alerts = [];
+			}
+			console.log('Processed alerts for rendering:', alerts);
+		} catch (error) {
+			console.error('Failed to fetch alerts:', error);
+			alerts = []; // Ensure alerts is always an array
+		}
+	}
+
+	onMount(() => {
+		// Initial fetch
+		fetchAlerts();
+		
+		// Set up refresh interval (every 30 seconds)
+		refreshInterval = setInterval(fetchAlerts, 30000);
+	});
+
+	onDestroy(() => {
+		// Clean up interval when component is destroyed
+		if (refreshInterval) clearInterval(refreshInterval);
+	});
 
 	// Map severity to color classes
-	const severityColorMap: Record<Alert['severity'], string> = {
+	const severityColorMap: Record<AlertType['severity'], string> = {
 		high: 'bg-red-500',
 		medium: 'bg-orange-500',
 		low: 'bg-yellow-500',
@@ -70,22 +124,43 @@
 	</CardHeader>
 	<ScrollArea class="flex-1">
 		<CardContent class="grid gap-4 p-4">
-			{#each alerts as alert (alert.id)}
-				<div class="grid gap-1">
-					<div class="flex items-center gap-2">
-						<!-- svelte-ignore element_invalid_self_closing_tag -->
-						<span class={`h-2 w-2 rounded-full ${severityColorMap[alert.severity]}`} />
-						<p class="text-sm font-medium leading-none">
-							{alert.title}
-						</p>
+			{#if !alerts || alerts.length === 0}
+				<p class="text-gray-500 dark:text-gray-400">No alerts at this time</p>
+			{:else}
+				{#each alerts as alert (alert.id)}
+					<div 
+						class="grid gap-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-md transition-colors"
+						on:click={() => openAlertModal(alert)}
+						role="button"
+						tabindex="0"
+						on:keydown={(e) => e.key === 'Enter' && openAlertModal(alert)}
+					>
+						<div class="flex items-center gap-2">
+							<!-- svelte-ignore element_invalid_self_closing_tag -->
+							<span class={`h-2 w-2 rounded-full ${severityColorMap[alert.severity]}`} />
+							<p class="text-sm font-medium leading-none">
+								Detected {alert.query}
+							</p>
+						</div>
 					</div>
-					<div class="flex gap-2 text-xs text-slate-400">
-						<span>{alert.location}</span>
-						<span>•</span>
-						<span>{timeAgo(alert.timestamp)}</span>
-					</div>
-				</div>
-			{/each}
+				{/each}
+			{/if}
 		</CardContent>
 	</ScrollArea>
 </Card>
+
+<!-- Alert Modal with iframe -->
+<SimpleDialog bind:open={showModal} title={selectedAlertTitle} on:close={closeModal}>
+	<div class="w-full h-full">
+		{#if selectedAlertUrl}
+			<iframe 
+				src={selectedAlertUrl} 
+				title="Alert Details" 
+				class="w-full h-full border-0"
+				sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+			></iframe>
+		{:else}
+			<p class="text-center">No URL available for this alert.</p>
+		{/if}
+	</div>
+</SimpleDialog>

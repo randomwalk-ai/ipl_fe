@@ -22,17 +22,17 @@
 						{...props}
 					>
 						<Avatar.Root class="h-8 w-8 rounded-lg">
-							<Avatar.Image src={page.data.user.image} alt={page.data.user.name} />
+							<Avatar.Image src={page.data.user?.image} alt={page.data.user?.name} />
 							<Avatar.Fallback class="rounded-lg"
-								>{(page.data.user.name as string)
+								>{(page.data.user?.name as string)
 									.split(' ')
 									.map((name) => name[0])
 									.join('')}</Avatar.Fallback
 							>
 						</Avatar.Root>
 						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-semibold">{page.data.user.name}</span>
-							<span class="truncate text-xs">{page.data.user.email}</span>
+							<span class="truncate font-semibold">{page.data.user?.name}</span>
+							<span class="truncate text-xs">{page.data.user?.email}</span>
 						</div>
 						<ChevronsUpDown class="ml-auto size-4" />
 					</Sidebar.MenuButton>
@@ -47,17 +47,17 @@
 				<DropdownMenu.Label class="p-0 font-normal">
 					<div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 						<Avatar.Root class="h-8 w-8 rounded-lg">
-							<Avatar.Image src={page.data.user.image} alt={page.data.user.name} />
+							<Avatar.Image src={page.data.user?.image} alt={page.data.user?.name} />
 							<Avatar.Fallback class="rounded-lg"
-								>{(page.data.user.name as string)
+								>{(page.data.user?.name as string)
 									.split(' ')
 									.map((name) => name[0])
 									.join('')}</Avatar.Fallback
 							>
 						</Avatar.Root>
 						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-semibold">{page.data.user.name}</span>
-							<span class="truncate text-xs">{page.data.user.email}</span>
+							<span class="truncate font-semibold">{page.data.user?.name}</span>
+							<span class="truncate text-xs">{page.data.user?.email}</span>
 						</div>
 					</div>
 				</DropdownMenu.Label>

@@ -1,11 +1,13 @@
-export type AlertSeverity = "low" | "medium" | "high" | "info";
+export type AlertSeverity = 'low' | 'medium' | 'high' | 'info';
 
 export interface Alert {
-	id: number;
+	id: number | string;
 	title: string;
 	location: string;
-	timestamp: Date;
+	timestamp: Date | string;
 	severity: AlertSeverity;
+	query: string;
+	redirect_url?: string;
 }
 
 // Analytics data type

@@ -30,7 +30,7 @@
 	let tabVal: (typeof tabVals)[number]['value'] = $state('all');
 </script>
 
-<div>
+<!-- <div>
 	<Tabs.Root bind:value={tabVal} class="w-[400px]">
 		<Tabs.List>
 			{#each tabVals as { value, label }}
@@ -41,4 +41,5 @@
 </div>
 <div>
 	{tabVal}
-</div>
+</div> -->
+<iframe src="http://183.82.32.232:5010" class="w-full h-full"></iframe>

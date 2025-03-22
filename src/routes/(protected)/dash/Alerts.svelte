@@ -202,7 +202,7 @@
 		{#if selectedAnomalyUrl}
 			<!-- svelte-ignore a11y_media_has_caption -->
 			<video controls class="h-full w-full">
-				<source src={'https://29eu3i0mi1l4hg-8000.proxy.runpod.net'+selectedAnomalyUrl.slice(1)} type="video/mp4" />
+				<source src={'https://29eu3i0mi1l4hg-8090.proxy.runpod.net/'+selectedAnomalyUrl.slice(6)} type="video/mp4" />
 				Your browser does not support the video tag.
 			</video>
 		{:else}

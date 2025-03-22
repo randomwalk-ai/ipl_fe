@@ -129,7 +129,7 @@ export type AttendanceRetType = {
 }
 
 export const GET = async () => {
-    const data = await queryGateMonitoringData();
+    let data = await queryGateMonitoringData();
     // // remap all minute string data which is in UTC to local
     // data.forEach((d) => {
     //     d.minute = new Date(d.minute).toLocaleString('en-US', {
@@ -144,6 +144,8 @@ export const GET = async () => {
     const startTime2 = new Date(currentTime.getTime() - 2 * 60 * 60 * 1000);
     const startTime3 = new Date(currentTime.getTime() - 3 * 60 * 60 * 1000);
 
+    // filter out data from the future
+    data = data.filter((d) => new Date(d.minute) < currentTime);
     // slice data to last 1 hour
     const attendanceData = data.filter((d) => new Date(d.minute) >= startTime);
     const oldAttendanceData = data.filter((d) => new Date(d.minute) >= startTime2 && new Date(d.minute) < startTime);

@@ -150,7 +150,13 @@
 </Card>
 
 <!-- Alert Modal with iframe -->
-<SimpleDialog bind:open={showModal} title={selectedAlertTitle} on:close={closeModal}>
+<SimpleDialog 
+	bind:open={showModal} 
+	title={selectedAlertTitle} 
+	fullHeight={true}
+	fullWidth={true}
+	on:close={closeModal}
+>
 	<div class="w-full h-full">
 		{#if selectedAlertUrl}
 			<iframe 

@@ -6,7 +6,9 @@
 	import { Label } from '$lib/components/ui/label';
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
-	import { Loader2 } from '@lucide/svelte';
+	import { Loader2, Trash2, PauseCircle } from '@lucide/svelte';
+	import SimpleDialog from '../dash/SimpleDialog.svelte';
+	import { createEventDispatcher } from 'svelte';
 
 	// Page state
 	const PageState = getPageState();
@@ -22,10 +24,21 @@
 	// Alerts list state
 	let alerts = [];
 	let isLoading = true;
+	let isActionInProgress = false;
+
+	// Confirmation dialog state
+	let showDeleteConfirm = false;
+	let showStopConfirm = false;
+	let selectedAlertId = '';
+	let selectedAlertQuery = '';
+
+	// Create a dispatcher for events
+	const dispatch = createEventDispatcher();
 
 	// Fetch all alerts
 	async function fetchAlerts() {
 		isLoading = true;
+		errorMessage = '';
 		try {
 			const response = await fetch('/api/alerts');
 			if (!response.ok) {
@@ -85,10 +98,84 @@
 		}
 	}
 
+	// Stop an alert
+	async function stopAlert(id) {
+		isActionInProgress = true;
+		errorMessage = '';
+		successMessage = '';
+		
+		try {
+			const response = await fetch(`/api/alerts/${id}`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ action: 'stop' })
+			});
+
+			if (!response.ok) {
+				throw new Error(`Failed to stop alert: ${response.status}`);
+			}
+
+			successMessage = 'Alert stopped successfully!';
+			await fetchAlerts();
+		} catch (error) {
+			console.error('Error stopping alert:', error);
+			errorMessage = 'Failed to stop alert. Please try again.';
+		} finally {
+			isActionInProgress = false;
+			showStopConfirm = false;
+		}
+	}
+
+	// Delete an alert
+	async function deleteAlert(id) {
+		isActionInProgress = true;
+		errorMessage = '';
+		successMessage = '';
+		
+		try {
+			const response = await fetch(`/api/alerts/${id}`, {
+				method: 'DELETE'
+			});
+
+			if (!response.ok) {
+				throw new Error(`Failed to delete alert: ${response.status}`);
+			}
+
+			successMessage = 'Alert deleted successfully!';
+			await fetchAlerts();
+		} catch (error) {
+			console.error('Error deleting alert:', error);
+			errorMessage = 'Failed to delete alert. Please try again.';
+		} finally {
+			isActionInProgress = false;
+			showDeleteConfirm = false;
+		}
+	}
+
+	// Open confirmation dialogs
+	function confirmStopAlert(alert) {
+		selectedAlertId = alert.id;
+		selectedAlertQuery = alert.query;
+		showStopConfirm = true;
+	}
+
+	function confirmDeleteAlert(alert) {
+		selectedAlertId = alert.id;
+		selectedAlertQuery = alert.query;
+		showDeleteConfirm = true;
+	}
+
 	// Format date for display
 	function formatDate(dateString) {
 		const date = new Date(dateString);
 		return date.toLocaleString();
+	}
+
+	// Helper function to handle button clicks
+	function handleButtonClick(callback) {
+		return () => callback();
 	}
 
 	onMount(() => {
@@ -165,6 +252,7 @@
 								<th class="text-left p-2">Created</th>
 								<th class="text-left p-2">Status</th>
 								<th class="text-left p-2">Interval (s)</th>
+								<th class="text-left p-2">Actions</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -181,6 +269,28 @@
 										</span>
 									</td>
 									<td class="p-2">{alert.interval_seconds}</td>
+									<td class="p-2">
+										<div class="flex space-x-2">
+											{#if alert.status === 'active'}
+												<button 
+													class="flex items-center gap-1 h-8 px-2 text-amber-600 border rounded-md hover:bg-gray-100 disabled:opacity-50"
+													on:click={() => confirmStopAlert(alert)}
+													disabled={isActionInProgress}
+												>
+													<PauseCircle class="h-4 w-4" />
+													<span>Pause</span>
+												</button>
+											{/if}
+											<button 
+												class="flex items-center gap-1 h-8 px-2 text-red-600 border rounded-md hover:bg-gray-100 disabled:opacity-50"
+												on:click={() => confirmDeleteAlert(alert)}
+												disabled={isActionInProgress}
+											>
+												<Trash2 class="h-4 w-4" />
+												<span>Delete</span>
+											</button>
+										</div>
+									</td>
 								</tr>
 							{/each}
 						</tbody>
@@ -189,9 +299,76 @@
 			{/if}
 		</CardContent>
 		<CardFooter>
-			<Button variant="outline" class="ml-auto" on:click={fetchAlerts}>
-				Refresh List
-			</Button>
+			<button 
+				class="ml-auto flex items-center gap-1 px-4 py-2 border rounded-md hover:bg-gray-100 disabled:opacity-50"
+				on:click={() => fetchAlerts()}
+				disabled={isLoading}
+			>
+				{#if isLoading}
+					<Loader2 class="h-4 w-4 animate-spin" />
+				{/if}
+				<span>Refresh List</span>
+			</button>
 		</CardFooter>
 	</Card>
-</div> 
+</div>
+
+<!-- Stop Alert Confirmation Dialog -->
+<SimpleDialog bind:open={showStopConfirm} title="Pause Alert" size="sm" fullHeight={false}>
+	<div class="py-4">
+		<p>Are you sure you want to pause the alert for "{selectedAlertQuery}"?</p>
+		<p class="text-sm text-gray-500 mt-2">This will stop the alert from generating new notifications.</p>
+		
+		<div class="flex justify-end space-x-2 mt-6">
+			<button 
+				class="px-4 py-2 border rounded-md hover:bg-gray-100 disabled:opacity-50"
+				on:click={() => showStopConfirm = false}
+				disabled={isActionInProgress}
+			>
+				Cancel
+			</button>
+			<button 
+				class="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 disabled:opacity-50"
+				on:click={() => stopAlert(selectedAlertId)}
+				disabled={isActionInProgress}
+			>
+				{#if isActionInProgress}
+					<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+					Pausing...
+				{:else}
+					Pause Alert
+				{/if}
+			</button>
+		</div>
+	</div>
+</SimpleDialog>
+
+<!-- Delete Alert Confirmation Dialog -->
+<SimpleDialog bind:open={showDeleteConfirm} title="Delete Alert" size="sm" fullHeight={false}>
+	<div class="py-4">
+		<p>Are you sure you want to delete the alert for "{selectedAlertQuery}"?</p>
+		<p class="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
+		
+		<div class="flex justify-end space-x-2 mt-6">
+			<button 
+				class="px-4 py-2 border rounded-md hover:bg-gray-100 disabled:opacity-50"
+				on:click={() => showDeleteConfirm = false}
+				disabled={isActionInProgress}
+			>
+				Cancel
+			</button>
+			<button 
+				class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+				on:click={() => deleteAlert(selectedAlertId)}
+				disabled={isActionInProgress}
+			>
+				{#if isActionInProgress}
+					<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+					Deleting...
+				{:else}
+					Delete Alert
+				{/if}
+			</button>
+		</div>
+	</div>
+</SimpleDialog> 

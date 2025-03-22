@@ -5,6 +5,9 @@
 
   export let open = false;
   export let title = '';
+  export let size = "auto"; // Options: "auto", "sm", "md", "lg", "xl"
+  export let fullHeight = false; // Whether to use full height or adapt to content
+  export let fullWidth = false; // Whether to use full width (90vw) or size classes
 
   const dispatch = createEventDispatcher();
 
@@ -17,6 +20,15 @@
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape' && open) close();
   }
+
+  // Map size to CSS classes
+  const sizeClasses = {
+    auto: "w-auto max-w-[90vw]",
+    sm: "w-full max-w-sm",
+    md: "w-full max-w-md",
+    lg: "w-full max-w-lg",
+    xl: "w-full max-w-xl"
+  };
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -28,7 +40,7 @@
     on:click|self={close}
   >
     <div 
-      class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-[90vw] max-h-[90vh] h-[80vh] overflow-hidden"
+      class={`bg-white dark:bg-gray-800 rounded-lg shadow-lg ${fullWidth ? 'w-[90vw]' : sizeClasses[size]} overflow-hidden ${fullHeight ? 'max-h-[90vh] h-[80vh]' : ''}`}
       on:click|stopPropagation
     >
       <div class="flex justify-between items-center p-4 border-b">
@@ -41,7 +53,7 @@
           <span class="sr-only">Close</span>
         </button>
       </div>
-      <div class="p-4 h-[calc(100%-4rem)] overflow-auto">
+      <div class={`p-4 overflow-auto ${fullHeight ? 'h-[calc(100%-4rem)]' : ''}`}>
         <slot />
       </div>
     </div>

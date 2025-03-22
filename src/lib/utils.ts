@@ -1,5 +1,5 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -25,7 +25,7 @@ export function parseUtcToIstTime(utcString: string): string {
 
 		let istDate = utcDate.tz('Asia/Kolkata');
 		// subtract 5.5 hours to convert UTC to IST
-		istDate = istDate.subtract(5.5, 'hour');
+		// istDate = istDate.subtract(5.5, 'hour');
 
 		// Use localized format 'LT' for time in en-US locale.
 		return istDate.locale('en-US').format('LT');
@@ -37,12 +37,12 @@ export function parseUtcToIstTime(utcString: string): string {
 
 export function timeAgo(utcDateString: string | Date | null | undefined): string {
 	if (!utcDateString) {
-		return "No date provided";
+		return 'No date provided';
 	}
 
 	try {
-		let date = typeof utcDateString === 'string' ? dayjs.utc(utcDateString) : dayjs.utc(utcDateString);
-
+		let date =
+			typeof utcDateString === 'string' ? dayjs.utc(utcDateString) : dayjs.utc(utcDateString);
 
 		if (!date.isValid()) {
 			throw new Error(`Invalid date: ${utcDateString}`);
@@ -50,9 +50,8 @@ export function timeAgo(utcDateString: string | Date | null | undefined): string
 		// subtract 5.5 hours to convert UTC to IST
 		date = date.subtract(5.5, 'hour');
 		return date.fromNow(); // Calculates relative to now (in UTC)
-
 	} catch (error) {
-		console.error("Error in timeAgoFromUtc:", error);
-		return "Invalid date";
+		console.error('Error in timeAgoFromUtc:', error);
+		return 'Invalid date';
 	}
 }

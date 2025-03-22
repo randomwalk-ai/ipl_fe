@@ -11,7 +11,7 @@
 	let { data } = $props();
 
 	// Mock data for testing
-	const attendanceData = {
+	const attendanceData = $derived.by(() => ({
 		max: 38000,
 		timeData: {
 			times: data.attData.allAttendanceData.map((d) => parseUtcToIstTime(d.minute)),
@@ -19,7 +19,7 @@
 			team1: data.attData.allAttendanceData.map((d) => d.totalJerseyYellow),
 			team2: data.attData.allAttendanceData.map((d) => d.totalJerseyBlue)
 		} as AttendanceData
-	};
+	}));
 
 	onMount(() => {
 		// Only keep the page refresh interval
@@ -34,7 +34,7 @@
 	});
 
 	// Mock analytics data
-	const analyticsData: AnalyticsData = {
+	const analyticsData: AnalyticsData = $derived.by(() => ({
 		attendance: {
 			total: (data.attData.attendanceData.at(-1) ?? { totalUniqueCount: 0 }).totalUniqueCount,
 			prevTotal: (data.attData.oldAttendanceData.at(-1) ?? { totalUniqueCount: 0 })
@@ -66,7 +66,7 @@
 				allFans: (data.attData.allAttendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue
 			}
 		}
-	} as AnalyticsData;
+	} as AnalyticsData));
 
 	const PageState = getPageState();
 	PageState.title = 'Dashboard';

@@ -6,6 +6,32 @@
 	import Grid from './Grid.svelte';
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
+	import dayjs from 'dayjs';
+	import utc from 'dayjs/plugin/utc';
+	import timezone from 'dayjs/plugin/timezone';
+	import localizedFormat from 'dayjs/plugin/localizedFormat';
+
+	dayjs.extend(utc);
+	dayjs.extend(timezone);
+	dayjs.extend(localizedFormat);
+
+	function parseUtcToIstTime(utcString: string): string {
+		try {
+			const utcDate = dayjs.utc(utcString);
+
+			if (!utcDate.isValid()) {
+				throw new Error(`Invalid UTC date string: ${utcString}`);
+			}
+
+			const istDate = utcDate.tz('Asia/Kolkata');
+
+			// Use localized format 'LT' for time in en-US locale.
+			return istDate.locale('en-US').format('LT');
+		} catch (error) {
+			console.error('Error parsing UTC to IST time:', error);
+			return 'Invalid Time'; // Or handle appropriately
+		}
+	}
 
 	let { data } = $props();
 
@@ -13,7 +39,7 @@
 	const attendanceData = {
 		max: 38000,
 		timeData: {
-			times: data.attData.allAttendanceData.map((d) => new Date(d.minute).toLocaleTimeString()),
+			times: data.attData.allAttendanceData.map((d) => parseUtcToIstTime(d.minute)),
 			incoming: data.attData.allAttendanceData.map((d) => d.totalUniqueCount),
 			team1: data.attData.allAttendanceData.map((d) => d.totalJerseyYellow),
 			team2: data.attData.allAttendanceData.map((d) => d.totalJerseyBlue)
@@ -41,7 +67,7 @@
 			allTotal: (data.attData.allAttendanceData.at(-1) ?? { totalUniqueCount: 0 }).totalUniqueCount
 		},
 		alerts: {
-			count: data.alertNotifsCount,
+			count: data.alertNotifsCount
 		},
 		cameras: {
 			active: data.activeCamCount,

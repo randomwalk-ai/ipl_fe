@@ -130,29 +130,25 @@ export type AttendanceRetType = {
 
 export const GET = async () => {
     const data = await queryGateMonitoringData();
+    // // remap all minute string data which is in UTC to local
+    // data.forEach((d) => {
+    //     d.minute = new Date(d.minute).toLocaleString('en-US', {
+    //         hour: '2-digit',
+    //         minute: '2-digit',
+    //         hour12: true,
+    //         timeZone: 'Asia/Singapore'
+    //     })
+    // })
     const currentTime = new Date();
     const startTime = new Date(currentTime.getTime() - 60 * 60 * 1000);
     const startTime2 = new Date(currentTime.getTime() - 2 * 60 * 60 * 1000);
     const startTime3 = new Date(currentTime.getTime() - 3 * 60 * 60 * 1000);
-    const startTime48 = new Date(currentTime.getTime() - 48 * 60 * 60 * 1000);
 
     // slice data to last 1 hour
     const attendanceData = data.filter((d) => new Date(d.minute) >= startTime);
     const oldAttendanceData = data.filter((d) => new Date(d.minute) >= startTime2 && new Date(d.minute) < startTime);
     const chartData = data.filter((d) => new Date(d.minute) >= startTime3 && new Date(d.minute) < startTime2);
     const allAttendanceData = data;
-    // // 1 hours prior
-    // const startTime = new Date(currentTime.getTime() - 60 * 60 * 1000);
-    // // 2 hours prior
-    // const startTime2 = new Date(currentTime.getTime() - 2 * 60 * 60 * 1000);
-    // // 3 hours prior
-    // const startTime3 = new Date(currentTime.getTime() - 3 * 60 * 60 * 1000);
-    // // 48 hours prior
-    // const startTime48 = new Date(currentTime.getTime() - 48 * 60 * 60 * 1000);
-    // const attendanceData = await getGateMonitoringDataByMinute(startTime, currentTime);
-    // const oldAttendanceData = await getGateMonitoringDataByMinute(startTime2, currentTime);
-    // const allAttendanceData = await getGateMonitoringDataByMinute(startTime48, currentTime);
-    // const chartData = await getGateMonitoringDataByMinute(startTime3, currentTime);
     return json({
         attendanceData,
         oldAttendanceData,

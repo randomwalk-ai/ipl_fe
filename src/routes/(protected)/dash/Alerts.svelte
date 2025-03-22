@@ -5,7 +5,6 @@
 	import type { Alert as AlertType } from '../types';
 	import { onMount, onDestroy } from 'svelte';
 	import SimpleDialog from './SimpleDialog.svelte';
-	import { X } from '@lucide/svelte';
 
 	// Remove the alerts prop since we'll fetch them internally
 	let alerts: AlertType[] = [];
@@ -137,7 +136,8 @@
 					>
 						<div class="flex items-center gap-2">
 							<!-- svelte-ignore element_invalid_self_closing_tag -->
-							<span class={`h-2 w-2 rounded-full ${severityColorMap[alert.severity]}`} />
+							<!-- <span class={`h-2 w-2 rounded-full ${severityColorMap[alert.severity]}`} /> -->
+							<!-- {JSON.stringify(alert)} -->
 							<p class="text-sm font-medium leading-none">
 								Detected {alert.query}
 							</p>

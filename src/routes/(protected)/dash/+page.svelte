@@ -73,11 +73,11 @@
 </script>
 
 <Grid data={analyticsData} />
-<div class="flex h-96 w-full gap-2">
-	<div class="min-h-32 grow basis-2/3">
+<div class="flex min-h-96 grow w-full gap-2">
+	<div class="min-h-32 grow basis-1/2">
 		<AttendanceCard data={attendanceData} />
 	</div>
-	<div class="min-h-32 shrink-0 grow basis-1/3">
+	<div class="min-h-32 shrink-0 grow basis-1/2">
 		<Alerts />
 	</div>
 </div>

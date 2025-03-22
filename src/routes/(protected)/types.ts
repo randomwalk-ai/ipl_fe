@@ -1,14 +1,56 @@
 export type AlertSeverity = 'low' | 'medium' | 'high' | 'info';
 
-export interface Alert {
-	id: number | string;
-	title: string;
-	location: string;
-	timestamp: Date | string;
-	severity: AlertSeverity;
-	query: string;
-	redirect_url?: string;
+interface Results {
+	results: Result[]
+	redirect_url: string
 }
+
+interface Result {
+	id: string
+	data: Data
+	label: string
+	zones: any[]
+	camera: string
+	img_url: string
+	plus_id: any
+	end_time: number
+	has_clip: boolean
+	sub_label: any
+	thumbnail: string
+	top_score: any
+	start_time: number
+	thumb_path: string
+	has_snapshot: boolean
+	search_source: string
+	search_distance: number
+}
+
+interface Data {
+	type: string
+	score: number
+	top_score: number,
+	description?: string
+}
+
+export interface Alert {
+	id: string
+	alertId: string
+	query: string
+	results: Results
+	createdAt: string
+}
+
+export type AnomalyType = {
+    id: number;
+    cameraId: string;
+    startFrame: number;
+    endFrame: number;
+    anomalyCount: number;
+    createdAt: string ;
+    filePath: string;
+}
+
+
 
 // Analytics data type
 export type AnalyticsData = {

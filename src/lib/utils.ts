@@ -1,6 +1,32 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(localizedFormat);
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
+}
+
+export function parseUtcToIstTime(utcString: string): string {
+	try {
+		const utcDate = dayjs.utc(utcString);
+
+		if (!utcDate.isValid()) {
+			throw new Error(`Invalid UTC date string: ${utcString}`);
+		}
+
+		const istDate = utcDate.tz('Asia/Kolkata');
+
+		// Use localized format 'LT' for time in en-US locale.
+		return istDate.locale('en-US').format('LT');
+	} catch (error) {
+		console.error('Error parsing UTC to IST time:', error);
+		return 'Invalid Time'; // Or handle appropriately
+	}
 }

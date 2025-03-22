@@ -20,6 +20,87 @@
 	let isSubmitting = false;
 	let errorMessage = '';
 	let successMessage = '';
+	let selectedCameras: string[] = [];
+
+	// Camera categories and options
+	const cameraCategories = {
+		'Entry & Exit': {
+			'C Lower': ["CLower12", "CLower30"],
+			'C Upper': ["CUpper1", "CUpper2"],
+			'D Lower': ["DLower29"],
+			'D Upper': ["DUpper14", "DUpper15"],
+			'E Lower': ["ELower29"],
+			'E Upper': ["EUpper26", "EUpper27"],
+			'F Lower': ["FLower7"],
+			'F Upper': ["FUpper8", "FUpper9"],
+			'G Upper': ["GUpper23", "GUpper24"],
+			'H Lower': ["HLower5"],
+			'H Upper': ["HUpper1", "HUpper2"],
+			'I Upper': ["IUpper8", "IUpper9"],
+			'J Lower': ["JLower19"],
+			'J Upper': ["JUpper15", "JUpper16"],
+			'K Lower': ["KLower19"],
+			'K Upper': ["KUpper22", "KUpper23"]
+		},
+		'Stand': {
+			'C Lower': ["CLower9", "CLower10"],
+			'C Upper': ["CUpper12", "CUpper13"],
+			'D Lower': ["DLower22", "DLower23"],
+			'D Upper': ["DUpper24", "DUpper25"],
+			'E Lower': ["ELower2", "ELower3"],
+			'E Upper': ["EUpper5", "EUpper6"],
+			'F Upper': ["FUpper21", "FUpper22"],
+			'G Upper': ["GUpper31", "GUpper32"],
+			'H Lower': ["HLower5"],
+			'H Upper': ["HUpper6", "HUpper7"],
+			'I Upper': ["IUpper12", "IUpper13"],
+			'J Upper': ["JUpper19", "JUpper20"],
+			'K Upper': ["KUpper26", "KUpper27"]
+		}
+	};
+
+	// Flatten camera options for each category
+	const flattenedCameras = {
+		'Entry & Exit': Object.values(cameraCategories['Entry & Exit']).flat(),
+		'Stand': Object.values(cameraCategories['Stand']).flat()
+	};
+
+	// Flatten camera options for legacy code compatibility
+	const cameraOptions = Object.values(cameraCategories)
+		.flatMap(category => Object.values(category))
+		.flat();
+
+	// Toggle camera selection
+	function toggleCamera(camera: string) {
+		if (selectedCameras.includes(camera)) {
+			selectedCameras = selectedCameras.filter(c => c !== camera);
+		} else {
+			selectedCameras = [...selectedCameras, camera];
+		}
+	}
+
+	// Toggle all cameras in a category
+	function toggleCategory(category: string) {
+		const camerasInCategory = flattenedCameras[category];
+		
+		// Check if all cameras in this category are already selected
+		const allSelected = camerasInCategory.every(camera => selectedCameras.includes(camera));
+		
+		if (allSelected) {
+			// If all are selected, deselect them
+			selectedCameras = selectedCameras.filter(camera => !camerasInCategory.includes(camera));
+		} else {
+			// If not all are selected, select all missing ones
+			const camerasToAdd = camerasInCategory.filter(camera => !selectedCameras.includes(camera));
+			selectedCameras = [...selectedCameras, ...camerasToAdd];
+		}
+	}
+
+	// Format camera ID for API
+	function formatCameraId(camera: string): string {
+		// Remove hyphen and space, e.g., "DLower29" becomes "DLower29"
+		return camera.replace('-', '').replace(' ', '');
+	}
 
 	// Alerts list state
 	let alerts = [];
@@ -72,7 +153,8 @@
 				},
 				body: JSON.stringify({
 					query: query.trim(),
-					interval_seconds: intervalSeconds
+					interval_seconds: intervalSeconds,
+					cameras: selectedCameras.map(formatCameraId)
 				})
 			});
 
@@ -87,6 +169,7 @@
 			// Reset form
 			query = '';
 			intervalSeconds = 60;
+			selectedCameras = [];
 			
 			// Refresh alerts list
 			await fetchAlerts();
@@ -207,6 +290,39 @@
 						step="10" 
 					/>
 					<p class="text-sm text-gray-500">How often to check for new content (default: 60 seconds)</p>
+				</div>
+				<div class="grid gap-2">
+					<Label for="cameras">Select Cameras</Label>
+					<div class="flex flex-col gap-4 p-2 border rounded-md max-h-64 overflow-y-auto">
+						{#each Object.keys(flattenedCameras) as categoryName}
+							<div class="mb-4">
+								<button 
+									type="button"
+									class="font-medium text-md mb-2 px-3 py-1 rounded-md border hover:bg-gray-100 dark:hover:bg-gray-700"
+									on:click={() => toggleCategory(categoryName)}
+								>
+									{categoryName} ({flattenedCameras[categoryName].length} cameras)
+									{#if flattenedCameras[categoryName].every(camera => selectedCameras.includes(camera))}
+										<span class="ml-2 text-sm text-green-600">(All Selected)</span>
+									{:else if flattenedCameras[categoryName].some(camera => selectedCameras.includes(camera))}
+										<span class="ml-2 text-sm text-amber-600">(Partially Selected)</span>
+									{/if}
+								</button>
+								<div class="flex flex-wrap gap-2 ml-2 mt-2">
+									{#each flattenedCameras[categoryName] as camera}
+										<button 
+											type="button"
+											class={`px-3 py-1 rounded-full text-sm border ${selectedCameras.includes(camera) ? 'bg-primary text-primary-foreground' : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'}`}
+											on:click={() => toggleCamera(camera)}
+										>
+											{camera}
+										</button>
+									{/each}
+								</div>
+							</div>
+						{/each}
+					</div>
+					<p class="text-sm text-gray-500">Select cameras to monitor ({selectedCameras.length} selected)</p>
 				</div>
 				
 				{#if errorMessage}

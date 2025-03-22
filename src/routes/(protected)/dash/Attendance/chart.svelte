@@ -51,10 +51,11 @@
 		],
 		xaxis: {
 			categories: timeData.times,
+			tickAmount: 10,
 			labels: {
 				style: {
 					colors: $mode === 'dark' ? '#94a3b8' : '#475569' // Ternary for labels
-				}
+				},
 			},
 			axisBorder: {
 				show: false

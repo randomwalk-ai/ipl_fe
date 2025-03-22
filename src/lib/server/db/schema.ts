@@ -70,6 +70,7 @@ export const anomaly = pgTable("anomaly", {
 	endFrame: integer("end_frame").notNull(),
 	anomalyCount: integer("anomaly_count").notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	filePath: varchar("file_path", { length: 255 }),
 });
 
 export const user = pgTable("user", {

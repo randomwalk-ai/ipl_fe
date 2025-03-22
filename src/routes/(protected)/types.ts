@@ -19,7 +19,6 @@ export type AnalyticsData = {
 	};
 	alerts: {
 		count: number;
-		prevCount: number;
 	};
 	cameras: {
 		active: number;
@@ -46,5 +45,6 @@ export type AnalyticsData = {
 export type AttendanceData = {
 	times: string[];
 	incoming: number[];
-	// outgoing: number[];
+	team1: number[];
+	team2: number[];
 };

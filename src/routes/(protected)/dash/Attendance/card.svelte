@@ -3,15 +3,12 @@
 	import { UsersIcon } from '@lucide/svelte';
 	import AttendanceChart from './chart.svelte';
 	import LiveBadge from './LiveBadge.svelte';
+	import type { AttendanceData } from '../../types';
 
 	type Props = {
 		data: {
 			max: number;
-			timeData: {
-				times: string[];
-				incoming: number[];
-				// outgoing: number[];
-			};
+			timeData: AttendanceData;
 		};
 	};
 	let { data }: Props = $props();

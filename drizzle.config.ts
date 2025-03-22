@@ -7,7 +7,7 @@ export default defineConfig({
 	dbCredentials: {
 		url: process.env.DATABASE_URL
 	},
-	tablesFilter: ['*', '!cameras', '!gate_monitoring'],
+	// tablesFilter: ['*', '!cameras', '!gate_monitoring'],
 	verbose: true,
 	strict: true,
 	dialect: 'postgresql'

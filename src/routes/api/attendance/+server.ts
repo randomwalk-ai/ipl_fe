@@ -1,7 +1,7 @@
 import { db } from "$lib/server/db";
 import { gateMonitoring } from "$lib/server/db/schema";
 import { json } from "@sveltejs/kit";
-import { sql, and, gte, lte } from 'drizzle-orm';
+import { eq, and, max, sum, lte, sql, gte } from "drizzle-orm";
 
 // Function to perform the grouped query
 async function getGateMonitoringDataByMinute(
@@ -55,6 +55,72 @@ async function getGateMonitoringDataByMinute(
     }));
 }
 
+async function queryGateMonitoringData() {
+    try {
+
+        const result = await db.execute(sql`WITH minute_buckets AS (
+    -- Generate a series of rounded minutes within the data range
+    SELECT 
+        date_trunc('minute', min(timestamp)) + 
+        (INTERVAL '1 minute' * generate_series(0, 
+            EXTRACT(EPOCH FROM (date_trunc('minute', max(timestamp)) - 
+                               date_trunc('minute', min(timestamp))))/60
+        )) AS minute_bucket
+    FROM gate_monitoring
+),
+
+camera_max_per_minute AS (
+    -- For each camera and each minute, get the maximum counts up to that minute
+    SELECT 
+        mb.minute_bucket,
+        gm.camera_id,
+        MAX(gm.unique_count) AS max_unique_count,
+        MAX(gm.jersey_yellow) AS max_jersey_yellow,
+        MAX(gm.jersey_blue) AS max_jersey_blue,
+        MAX(gm.jersey_others) AS max_jersey_others
+    FROM minute_buckets mb
+    CROSS JOIN (SELECT DISTINCT camera_id FROM gate_monitoring) cameras
+    LEFT JOIN gate_monitoring gm ON 
+        gm.camera_id = cameras.camera_id AND
+        gm.timestamp <= mb.minute_bucket
+    GROUP BY mb.minute_bucket, gm.camera_id
+),
+
+minute_totals AS (
+    -- Sum the max values across all cameras for each minute
+    SELECT
+        minute_bucket,
+        SUM(COALESCE(max_unique_count, 0)) AS total_unique_count,
+        SUM(COALESCE(max_jersey_yellow, 0)) AS total_jersey_yellow,
+        SUM(COALESCE(max_jersey_blue, 0)) AS total_jersey_blue,
+        SUM(COALESCE(max_jersey_others, 0)) AS total_jersey_others
+    FROM camera_max_per_minute
+    GROUP BY minute_bucket
+)
+
+-- Final result with running maximums to ensure non-decreasing values
+SELECT
+    minute_bucket AS "minute",
+    MAX(total_unique_count) OVER (ORDER BY minute_bucket) AS "totalUniqueCount",
+    MAX(total_jersey_yellow) OVER (ORDER BY minute_bucket) AS "totalJerseyYellow",
+    MAX(total_jersey_blue) OVER (ORDER BY minute_bucket) AS "totalJerseyBlue",
+    MAX(total_jersey_others) OVER (ORDER BY minute_bucket) AS "totalJerseyOthers"
+FROM minute_totals
+ORDER BY minute_bucket;`);
+        return result as unknown as {
+            minute: string;
+            totalUniqueCount: number;
+            totalJerseyYellow: number;
+            totalJerseyBlue: number;
+            totalJerseyOthers: number;
+        }[]
+    } catch (error) {
+        console.error("Error querying data:", error);
+        throw error;
+    }
+}
+
+
 export type AttendanceRetType = {
     attendanceData: Awaited<ReturnType<typeof getGateMonitoringDataByMinute>>;
     oldAttendanceData: Awaited<ReturnType<typeof getGateMonitoringDataByMinute>>;
@@ -63,19 +129,30 @@ export type AttendanceRetType = {
 }
 
 export const GET = async () => {
+    const data = await queryGateMonitoringData();
     const currentTime = new Date();
-    // 1 hours prior
     const startTime = new Date(currentTime.getTime() - 60 * 60 * 1000);
-    // 2 hours prior
     const startTime2 = new Date(currentTime.getTime() - 2 * 60 * 60 * 1000);
-    // 3 hours prior
     const startTime3 = new Date(currentTime.getTime() - 3 * 60 * 60 * 1000);
-    // 48 hours prior
     const startTime48 = new Date(currentTime.getTime() - 48 * 60 * 60 * 1000);
-    const attendanceData = await getGateMonitoringDataByMinute(startTime, currentTime);
-    const oldAttendanceData = await getGateMonitoringDataByMinute(startTime2, currentTime);
-    const allAttendanceData = await getGateMonitoringDataByMinute(startTime48, currentTime);
-    const chartData = await getGateMonitoringDataByMinute(startTime3, currentTime);
+
+    // slice data to last 1 hour
+    const attendanceData = data.filter((d) => new Date(d.minute) >= startTime);
+    const oldAttendanceData = data.filter((d) => new Date(d.minute) >= startTime2 && new Date(d.minute) < startTime);
+    const chartData = data.filter((d) => new Date(d.minute) >= startTime3 && new Date(d.minute) < startTime2);
+    const allAttendanceData = data;
+    // // 1 hours prior
+    // const startTime = new Date(currentTime.getTime() - 60 * 60 * 1000);
+    // // 2 hours prior
+    // const startTime2 = new Date(currentTime.getTime() - 2 * 60 * 60 * 1000);
+    // // 3 hours prior
+    // const startTime3 = new Date(currentTime.getTime() - 3 * 60 * 60 * 1000);
+    // // 48 hours prior
+    // const startTime48 = new Date(currentTime.getTime() - 48 * 60 * 60 * 1000);
+    // const attendanceData = await getGateMonitoringDataByMinute(startTime, currentTime);
+    // const oldAttendanceData = await getGateMonitoringDataByMinute(startTime2, currentTime);
+    // const allAttendanceData = await getGateMonitoringDataByMinute(startTime48, currentTime);
+    // const chartData = await getGateMonitoringDataByMinute(startTime3, currentTime);
     return json({
         attendanceData,
         oldAttendanceData,

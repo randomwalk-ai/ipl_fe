@@ -155,7 +155,7 @@
 								>
 									<span>
 										Detected {alert.query}
-										{#if 'camera' in alert}
+										{#if ('camera' in alert) && alert.camera}
 											at {alert.camera?.name}
 										{/if}
 									</span>

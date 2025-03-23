@@ -8,7 +8,6 @@
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { parseUtcToIstTime } from '$lib/utils';
-	import SingamDash from './SingamDash.svelte';
 	import CamStats from './CamStats.svelte';
 
 	let { data } = $props();
@@ -38,7 +37,7 @@
 	});
 
 	// Mock analytics data
-	const analyticsData: AnalyticsData = $derived.by(
+	let analyticsData: AnalyticsData = $derived.by(
 		() =>
 			({
 				attendance: {
@@ -79,6 +78,9 @@
 			}) as AnalyticsData
 	);
 
+	// camAttendance
+	let camAttendance = $derived(data.camAttendance);
+
 	const PageState = getPageState();
 	PageState.title = 'Dashboard';
 
@@ -89,7 +91,7 @@
 	<div class="flex min-h-0 flex-1 gap-2">
 		<div class="flex min-h-0 flex-1 basis-1/2 flex-col gap-2">
 			<AttendanceCard data={attendanceData} />
-			<CamStats data={data.camAttendance} />
+			<CamStats data={camAttendance} />
 		</div>
 		<div class="min-h-0 flex-1 basis-1/2">
 			<Alerts />

@@ -25,7 +25,7 @@ export function parseUtcToIstTime(utcString: string): string {
 
 		let istDate = utcDate.tz('Asia/Kolkata');
 		// subtract 5.5 hours to convert UTC to IST
-		// istDate = istDate.subtract(5.5, 'hour');
+		istDate = istDate.subtract(5.5, 'hour');
 
 		// Use localized format 'LT' for time in en-US locale.
 		return istDate.locale('en-US').format('LT');

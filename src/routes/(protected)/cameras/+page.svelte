@@ -4,7 +4,6 @@
   // Get from props 
   let { data } = $props();
   let cameras = data.cameras;
-  
   // Make statuses reactive by using $state
   let statuses = $state({} as Record<string, string>);
   let pollingIntervals: Record<string, number> = {};
@@ -105,6 +104,7 @@
           <tr>
             <th class="px-6 py-3 border-b border-gray-700 bg-gray-900 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">ID</th>
             <th class="px-6 py-3 border-b border-gray-700 bg-gray-900 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Name</th>
+            <th class="px-6 py-3 border-b border-gray-700 bg-gray-900 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Category</th>
             <th class="px-6 py-3 border-b border-gray-700 bg-gray-900 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">URL</th>
             <th class="px-6 py-3 border-b border-gray-700 bg-gray-900 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
             <th class="px-6 py-3 border-b border-gray-700 bg-gray-900 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
@@ -115,6 +115,7 @@
             <tr class="bg-gray-800 hover:bg-gray-700 transition-colors">
               <td class="px-6 py-4 whitespace-nowrap text-gray-300">{camera.id}</td>
               <td class="px-6 py-4 whitespace-nowrap text-gray-300">{camera.name || 'Unnamed Camera'}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-gray-300">{camera.category || 'Uncategorized'}</td>
               <td class="px-6 py-4 whitespace-nowrap truncate max-w-xs text-gray-300">{camera.url || 'N/A'}</td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span class={getStatusColor(statuses[camera.id])}>

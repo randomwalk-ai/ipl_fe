@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { parseUtcToIstTime } from '$lib/utils';
+	import SingamDash from './SingamDash.svelte';
 
 	let { data } = $props();
 
@@ -80,4 +81,7 @@
 	<div class="min-h-32 shrink-0 grow basis-1/2">
 		<Alerts />
 	</div>
+</div>
+<div class="h-screen">
+	<SingamDash />
 </div>

@@ -6,7 +6,7 @@ import { countDistinct, sql } from "drizzle-orm";
 export const GET = async () => {
     const result = await db
         .select({
-            alertNotifsCount: countDistinct(alertNotifications.alertId), // Corrected distinct usage
+            alertNotifsCount: countDistinct(alertNotifications.id), // Corrected distinct usage
         })
         .from(alertNotifications);
     return json(result[0]);

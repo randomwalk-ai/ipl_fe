@@ -42,7 +42,7 @@
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{#each latestData.cameras as camera (camera.camera_id)}
+				{#each latestData?.cameras as camera (camera.camera_id)}
 					<TableRow>
 						<TableCell class="font-medium">
 							<div class="flex items-center gap-2">

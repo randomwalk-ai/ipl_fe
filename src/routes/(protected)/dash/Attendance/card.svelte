@@ -39,7 +39,7 @@
 			>
 		</div>
 	</CardHeader>
-	<CardContent class="flex-1 p-1 w-full min-h-0 overflow-hidden">
+	<CardContent class="flex-1 p-1 pt-4 w-full min-h-0 overflow-hidden">
 		<div class="w-full h-full">
 			<AttendanceChart timeData={data.timeData} />
 		</div>

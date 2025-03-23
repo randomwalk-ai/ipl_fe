@@ -58,7 +58,7 @@
 				teams: {
 					team1: {
 						name: 'CSK',
-						color: '#f59e0b', // Yellow
+						color: '#FFFF3C', // Yellow
 						fans: (data.attData.attendanceData.at(-1) ?? { totalJerseyYellow: 0 })
 							.totalJerseyYellow,
 						prevFans: (data.attData.oldAttendanceData.at(-1) ?? { totalJerseyYellow: 0 })
@@ -68,7 +68,7 @@
 					},
 					team2: {
 						name: 'MI',
-						color: '#3b82f6', // Blue
+						color: '#004B8D', // Blue
 						fans: (data.attData.attendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue,
 						prevFans: (data.attData.oldAttendanceData.at(-1) ?? { totalJerseyBlue: 0 })
 							.totalJerseyBlue,

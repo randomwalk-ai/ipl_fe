@@ -41,16 +41,37 @@ export interface Alert {
 }
 
 export type AnomalyType = {
-    id: number;
-    cameraId: string;
-    startFrame: number;
-    endFrame: number;
-    anomalyCount: number;
-    createdAt: string ;
-    filePath: string;
+	id: number;
+	cameraId: number;
+	createdAt: string;
+	startFrame: number;
+	endFrame: number;
+	anomalyCount: number;
+	filePath: string;
+	camera: {
+		id: number;
+		name: string;
+	};
 }
 
+// cam-attendance data type
+export interface Camera {
+	camera_id: string;
+	max_jersey_blue: number;
+	max_unique_count: number;
+	max_jersey_others: number;
+	max_jersey_yellow: number;
+}
 
+export interface CameraData {
+	minute_bucket: string;
+	cameras: Camera[];
+}
+
+export interface CamAttendanceType {
+	cameraData: CameraData[];
+	timestamp: string;
+}
 
 // Analytics data type
 export type AnalyticsData = {

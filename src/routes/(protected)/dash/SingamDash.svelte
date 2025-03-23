@@ -36,7 +36,7 @@
         <p class="text-gray-400 mb-6">There was an error loading the external dashboard. Please try again later.</p>
         <button 
           class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-          on:click={() => {
+          onclick={() => {
             loadError = false;
             iframeLoaded = false;
             setTimeout(() => {
@@ -57,8 +57,8 @@
       src="https://iplsingham.z29.web.core.windows.net/dashboard"
       class="w-full border-none"
       style="height: 80vh; min-height: 600px;"
-      on:load={handleIframeLoad}
-      on:error={handleIframeError}
+      onload={handleIframeLoad}
+      onerror={handleIframeError}
       title="External Dashboard"
     ></iframe>
   </div>

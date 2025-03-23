@@ -1,3 +1,4 @@
+<!-- +page.svelte -->
 <script lang="ts">
 	import { getPageState } from '$lib/stores/index.svelte';
 	import Alerts from './Alerts.svelte';
@@ -7,8 +8,11 @@
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { parseUtcToIstTime } from '$lib/utils';
+	import SingamDash from './SingamDash.svelte';
+	import CamStats from './CamStats.svelte';
 
 	let { data } = $props();
+	// $inspect(data.camAttendance);
 
 	// Mock data for testing
 	const attendanceData = $derived.by(() => ({
@@ -34,51 +38,61 @@
 	});
 
 	// Mock analytics data
-	const analyticsData: AnalyticsData = $derived.by(() => ({
-		attendance: {
-			total: (data.attData.attendanceData.at(-1) ?? { totalUniqueCount: 0 }).totalUniqueCount,
-			prevTotal: (data.attData.oldAttendanceData.at(-1) ?? { totalUniqueCount: 0 })
-				.totalUniqueCount,
-			allTotal: (data.attData.allAttendanceData.at(-1) ?? { totalUniqueCount: 0 }).totalUniqueCount
-		},
-		alerts: {
-			count: data.alertNotifsCount
-		},
-		cameras: {
-			active: data.activeCamCount,
-			total: 326
-		},
-		teams: {
-			team1: {
-				name: 'CSK',
-				color: '#f59e0b', // Yellow
-				fans: (data.attData.attendanceData.at(-1) ?? { totalJerseyYellow: 0 }).totalJerseyYellow,
-				prevFans: (data.attData.oldAttendanceData.at(-1) ?? { totalJerseyYellow: 0 })
-					.totalJerseyYellow,
-				allFans: (data.attData.allAttendanceData.at(-1) ?? { totalJerseyYellow: 0 })
-					.totalJerseyYellow
-			},
-			team2: {
-				name: 'MI',
-				color: '#3b82f6', // Blue
-				fans: (data.attData.attendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue,
-				prevFans: (data.attData.oldAttendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue,
-				allFans: (data.attData.allAttendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue
-			}
-		}
-	} as AnalyticsData));
+	const analyticsData: AnalyticsData = $derived.by(
+		() =>
+			({
+				attendance: {
+					total: (data.attData.attendanceData.at(-1) ?? { totalUniqueCount: 0 }).totalUniqueCount,
+					prevTotal: (data.attData.oldAttendanceData.at(-1) ?? { totalUniqueCount: 0 })
+						.totalUniqueCount,
+					allTotal: (data.attData.allAttendanceData.at(-1) ?? { totalUniqueCount: 0 })
+						.totalUniqueCount
+				},
+				alerts: {
+					count: data.alertNotifsCount
+				},
+				cameras: {
+					active: data.activeCamCount,
+					total: 326
+				},
+				teams: {
+					team1: {
+						name: 'CSK',
+						color: '#FFFF3C', // Yellow
+						fans: (data.attData.attendanceData.at(-1) ?? { totalJerseyYellow: 0 })
+							.totalJerseyYellow,
+						prevFans: (data.attData.oldAttendanceData.at(-1) ?? { totalJerseyYellow: 0 })
+							.totalJerseyYellow,
+						allFans: (data.attData.allAttendanceData.at(-1) ?? { totalJerseyYellow: 0 })
+							.totalJerseyYellow
+					},
+					team2: {
+						name: 'MI',
+						color: '#004B8D', // Blue
+						fans: (data.attData.attendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue,
+						prevFans: (data.attData.oldAttendanceData.at(-1) ?? { totalJerseyBlue: 0 })
+							.totalJerseyBlue,
+						allFans: (data.attData.allAttendanceData.at(-1) ?? { totalJerseyBlue: 0 })
+							.totalJerseyBlue
+					}
+				}
+			}) as AnalyticsData
+	);
 
 	const PageState = getPageState();
 	PageState.title = 'Dashboard';
 
 </script>
 
-<Grid data={analyticsData} />
-<div class="flex min-h-96 grow w-full gap-2">
-	<div class="min-h-32 grow basis-1/2">
-		<AttendanceCard data={attendanceData} />
-	</div>
-	<div class="min-h-32 shrink-0 grow basis-1/2">
-		<Alerts />
+<div class="flex h-full w-full flex-col gap-2 overflow-hidden">
+	<Grid data={analyticsData} />
+	<div class="flex min-h-0 flex-1 gap-2">
+		<div class="flex min-h-0 flex-1 basis-1/2 flex-col gap-2">
+			<AttendanceCard data={attendanceData} />
+			<CamStats data={data.camAttendance} />
+		</div>
+		<div class="min-h-0 flex-1 basis-1/2">
+			<Alerts />
+		</div>
 	</div>
 </div>

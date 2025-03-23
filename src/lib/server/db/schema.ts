@@ -49,13 +49,14 @@ export const analytics = pgTable('analytics', {
 	additionalMetrics: json('additional_metrics')
 });
 
-export const alerts = pgTable('alerts', {
+export const alerts = pgTable("alerts", {
 	id: varchar({ length: 50 }).primaryKey().notNull(),
 	query: text().notNull(),
-	createdAt: timestamp('created_at', { mode: 'string' }).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).notNull(),
 	results: jsonb().default([]),
-	intervalSeconds: integer('interval_seconds'),
-	cameras: text().array().default([''])
+	intervalSeconds: integer("interval_seconds"),
+	cameras: text().array().default([""]),
+	status: varchar(),
 });
 
 export const alertNotifications = pgTable('alert_notifications', {
@@ -68,7 +69,7 @@ export const alertNotifications = pgTable('alert_notifications', {
 
 export const anomaly = pgTable('anomaly', {
 	id: serial().primaryKey().notNull(),
-	cameraId: varchar('camera_id', { length: 50 }).notNull(),
+	cameraId: integer('camera_id').notNull(),
 	startFrame: integer('start_frame').notNull(),
 	endFrame: integer('end_frame').notNull(),
 	anomalyCount: integer('anomaly_count').notNull(),

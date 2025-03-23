@@ -24,6 +24,8 @@
 
 	// Get the latest camera data
 	const latestData = $derived(data.cameraData[0]);
+
+    const formatNumber = (num: number) => new Intl.NumberFormat('en-IN').format(num);
 </script>
 
 <div transition:fade class="flex flex-col h-1/2 min-h-0">
@@ -48,10 +50,10 @@
 								{camera.camera_id}
 							</div>
 						</TableCell>
-						<TableCell class="text-right">{camera.max_jersey_blue}</TableCell>
-						<TableCell class="text-right">{camera.max_jersey_yellow}</TableCell>
-						<TableCell class="text-right">{camera.max_jersey_others}</TableCell>
-						<TableCell class="text-right">{camera.max_unique_count}</TableCell>
+						<TableCell class="text-right">{formatNumber(camera.max_jersey_blue)}</TableCell>
+						<TableCell class="text-right">{formatNumber(camera.max_jersey_yellow)}</TableCell>
+						<TableCell class="text-right">{formatNumber(camera.max_jersey_others)}</TableCell>
+						<TableCell class="text-right">{formatNumber(camera.max_unique_count)}</TableCell>
 					</TableRow>
 				{/each}
 			</TableBody>

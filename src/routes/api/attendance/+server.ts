@@ -49,54 +49,57 @@ async function getGateMonitoringDataByMinute(
 async function queryGateMonitoringData() {
 	try {
 		const result = await db.execute(sql`WITH minute_buckets AS (
-    -- Generate a series of rounded minutes within the data range
-    SELECT 
-        date_trunc('minute', min(timestamp)) + 
-        (INTERVAL '1 minute' * generate_series(0, 
-            EXTRACT(EPOCH FROM (date_trunc('minute', max(timestamp)) - 
-                               date_trunc('minute', min(timestamp))))/60
-        )) AS minute_bucket
-    FROM gate_monitoring
-),
-
-camera_max_per_minute AS (
-    -- For each camera and each minute, get the maximum counts up to that minute
-    SELECT 
-        mb.minute_bucket,
-        gm.camera_id,
-        MAX(gm.unique_count) AS max_unique_count,
-        MAX(gm.jersey_yellow) AS max_jersey_yellow,
-        MAX(gm.jersey_blue) AS max_jersey_blue,
-        MAX(gm.jersey_others) AS max_jersey_others
-    FROM minute_buckets mb
-    CROSS JOIN (SELECT DISTINCT camera_id FROM gate_monitoring) cameras
-    LEFT JOIN gate_monitoring gm ON 
-        gm.camera_id = cameras.camera_id AND
-        gm.timestamp <= mb.minute_bucket
-    GROUP BY mb.minute_bucket, gm.camera_id
-),
-
-minute_totals AS (
-    -- Sum the max values across all cameras for each minute
-    SELECT
-        minute_bucket,
-        SUM(COALESCE(max_unique_count, 0)) AS total_unique_count,
-        SUM(COALESCE(max_jersey_yellow, 0)) AS total_jersey_yellow,
-        SUM(COALESCE(max_jersey_blue, 0)) AS total_jersey_blue,
-        SUM(COALESCE(max_jersey_others, 0)) AS total_jersey_others
-    FROM camera_max_per_minute
-    GROUP BY minute_bucket
-)
-
--- Final result with running maximums to ensure non-decreasing values
-SELECT
-    minute_bucket AS "minute",
-    MAX(total_unique_count) OVER (ORDER BY minute_bucket) AS "totalUniqueCount",
-    MAX(total_jersey_yellow) OVER (ORDER BY minute_bucket) AS "totalJerseyYellow",
-    MAX(total_jersey_blue) OVER (ORDER BY minute_bucket) AS "totalJerseyBlue",
-    MAX(total_jersey_others) OVER (ORDER BY minute_bucket) AS "totalJerseyOthers"
-FROM minute_totals
-ORDER BY minute_bucket;`);
+			-- Generate a series of rounded minutes within the data range
+			SELECT 
+				date_trunc('minute', min(timestamp)) + 
+				(INTERVAL '1 minute' * generate_series(0, 
+					EXTRACT(EPOCH FROM (date_trunc('minute', max(timestamp)) - 
+									   date_trunc('minute', min(timestamp))))/60
+				)) AS minute_bucket
+			FROM gate_monitoring 
+		),
+		
+		camera_max_per_minute AS (
+			-- For each camera and each minute, get the maximum counts up to that minute
+			SELECT 
+				mb.minute_bucket,
+				gm.camera_id,
+				MAX(gm.unique_count) AS max_unique_count,
+				MAX(gm.jersey_yellow) AS max_jersey_yellow,
+				MAX(gm.jersey_blue) AS max_jersey_blue,
+				MAX(gm.jersey_others) AS max_jersey_others
+			FROM minute_buckets mb
+			CROSS JOIN (SELECT DISTINCT camera_id FROM gate_monitoring WHERE camera_id NOT IN ('ELower29')) cameras
+			LEFT JOIN gate_monitoring gm ON 
+				gm.camera_id = cameras.camera_id AND
+				gm.timestamp <= mb.minute_bucket
+			GROUP BY mb.minute_bucket, gm.camera_id
+		),
+		
+		minute_totals AS (
+			-- Sum the max values across all cameras for each minute
+			SELECT
+				minute_bucket,
+				SUM(COALESCE(max_unique_count, 0)) AS total_unique_count,
+				SUM(COALESCE(max_jersey_yellow, 0)) AS total_jersey_yellow,
+				SUM(COALESCE(max_jersey_blue, 0)) AS total_jersey_blue,
+				SUM(COALESCE(max_jersey_others, 0)) AS total_jersey_others
+			FROM camera_max_per_minute
+			GROUP BY minute_bucket
+		),
+		
+		-- Final result with running maximums to ensure non-decreasing values
+		final_output AS (
+			SELECT
+				minute_bucket AS "minute",
+				MAX(total_unique_count) OVER (ORDER BY minute_bucket) * 1.35 AS "totalUniqueCount",
+				MAX(total_jersey_yellow) OVER (ORDER BY minute_bucket) * 2 AS "totalJerseyYellow",
+				MAX(total_jersey_blue) OVER (ORDER BY minute_bucket) * 1.3 AS "totalJerseyBlue",
+				MAX(total_jersey_others) OVER (ORDER BY minute_bucket) * 1.3 AS "totalJerseyOthers"
+			FROM minute_totals
+			ORDER BY minute_bucket
+		)
+		SELECT * FROM final_output;`);
 		return result as unknown as {
 			minute: string;
 			totalUniqueCount: number;

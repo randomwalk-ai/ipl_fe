@@ -18,7 +18,7 @@
 	let percentageFull = $derived.by(() => Math.round((current / data.max) * 100));
 
 	// Format numbers with commas
-	const formatNumber = (num: number) => num.toLocaleString();
+	const formatNumber = (num: number) => new Intl.NumberFormat('en-IN').format(num);
 </script>
 
 <Card class="flex flex-col w-full h-1/2 min-h-0 dark:bg-background dark:text-white">

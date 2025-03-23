@@ -82,6 +82,6 @@
 		<Alerts />
 	</div>
 </div>
-<div class="h-screen">
+<!-- <div class="h-screen">
 	<SingamDash />
-</div>
+</div> -->

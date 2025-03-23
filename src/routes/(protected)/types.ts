@@ -41,13 +41,17 @@ export interface Alert {
 }
 
 export type AnomalyType = {
-    id: number;
-    cameraId: string;
-    startFrame: number;
-    endFrame: number;
-    anomalyCount: number;
-    createdAt: string ;
-    filePath: string;
+	id: number;
+	cameraId: number;
+	createdAt: string;
+	startFrame: number;
+	endFrame: number;
+	anomalyCount: number;
+	filePath: string;
+	camera: {
+		id: number;
+		name: string;
+	};
 }
 
 

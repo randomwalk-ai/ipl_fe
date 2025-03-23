@@ -70,6 +70,7 @@
 
 	const PageState = getPageState();
 	PageState.title = 'Dashboard';
+
 </script>
 
 <Grid data={analyticsData} />

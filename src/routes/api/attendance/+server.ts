@@ -1,64 +1,54 @@
-import { db } from "$lib/server/db";
-import { gateMonitoring } from "$lib/server/db/schema";
-import { json } from "@sveltejs/kit";
-import { eq, and, max, sum, lte, sql, gte } from "drizzle-orm";
+import { db } from '$lib/server/db';
+import { gateMonitoring } from '$lib/server/db/schema';
+import { json } from '@sveltejs/kit';
+import { eq, and, max, sum, lte, sql, gte } from 'drizzle-orm';
+import { PUBLIC_RUNPOD_BASE_URL } from '$env/static/public';
 
 // Function to perform the grouped query
 async function getGateMonitoringDataByMinute(
-    startTime: Date,
-    endTime: Date
+	startTime: Date,
+	endTime: Date
 ): Promise<
-    {
-        minute: string;
-        totalUniqueCount: number;
-        totalJerseyYellow: number;
-        totalJerseyBlue: number;
-        totalJerseyOthers: number; // added to handle totalJerseyOthers
-    }[]
+	{
+		minute: string;
+		totalUniqueCount: number;
+		totalJerseyYellow: number;
+		totalJerseyBlue: number;
+		totalJerseyOthers: number; // added to handle totalJerseyOthers
+	}[]
 > {
-    const result = await db
-        .select({
-            minute: sql`date_trunc('minute', ${gateMonitoring.timestamp})`.as(
-                'minute'
-            ), // Group by minute
-            totalUniqueCount: sql<number>`max(${gateMonitoring.uniqueCount})`.as(
-                'total_unique_count'
-            ),
-            totalJerseyYellow: sql<number>`max(${gateMonitoring.jerseyYellow})`.as(
-                'total_jersey_yellow'
-            ),
-            totalJerseyBlue: sql<number>`max(${gateMonitoring.jerseyBlue})`.as(
-                'total_jersey_blue'
-            ),
-            totalJerseyOthers: sql<number>`max(${gateMonitoring.jerseyOthers})`.as(
-                'total_jersey_others'
-            ),
-        })
-        .from(gateMonitoring)
-        .where(
-            and(
-                gte(gateMonitoring.timestamp, startTime.toISOString()),
-                lte(gateMonitoring.timestamp, endTime.toISOString())
-            )
-        )
-        .groupBy(sql`date_trunc('minute', ${gateMonitoring.timestamp})`)
-        .orderBy(sql`date_trunc('minute', ${gateMonitoring.timestamp})`)
-        .execute();
+	const result = await db
+		.select({
+			minute: sql`date_trunc('minute', ${gateMonitoring.timestamp})`.as('minute'), // Group by minute
+			totalUniqueCount: sql<number>`max(${gateMonitoring.uniqueCount})`.as('total_unique_count'),
+			totalJerseyYellow: sql<number>`max(${gateMonitoring.jerseyYellow})`.as('total_jersey_yellow'),
+			totalJerseyBlue: sql<number>`max(${gateMonitoring.jerseyBlue})`.as('total_jersey_blue'),
+			totalJerseyOthers: sql<number>`max(${gateMonitoring.jerseyOthers})`.as('total_jersey_others')
+		})
+		.from(gateMonitoring)
+		.where(
+			and(
+				gte(gateMonitoring.timestamp, startTime.toISOString()),
+				lte(gateMonitoring.timestamp, endTime.toISOString())
+			)
+		)
+		.groupBy(sql`date_trunc('minute', ${gateMonitoring.timestamp})`)
+		.orderBy(sql`date_trunc('minute', ${gateMonitoring.timestamp})`)
+		.execute();
 
-    // Convert the result to the desired format, handling potential null values
-    return result.map((row) => ({
-        minute: row.minute as string,
-        totalUniqueCount: row.totalUniqueCount ?? 0,  // Handle nulls, defaulting to 0
-        totalJerseyYellow: row.totalJerseyYellow ?? 0,
-        totalJerseyBlue: row.totalJerseyBlue ?? 0,
-        totalJerseyOthers: row.totalJerseyOthers ?? 0,
-    }));
+	// Convert the result to the desired format, handling potential null values
+	return result.map((row) => ({
+		minute: row.minute as string,
+		totalUniqueCount: row.totalUniqueCount ?? 0, // Handle nulls, defaulting to 0
+		totalJerseyYellow: row.totalJerseyYellow ?? 0,
+		totalJerseyBlue: row.totalJerseyBlue ?? 0,
+		totalJerseyOthers: row.totalJerseyOthers ?? 0
+	}));
 }
 
 async function queryGateMonitoringData() {
-    try {
-
-        const result = await db.execute(sql`WITH minute_buckets AS (
+	try {
+		const result = await db.execute(sql`WITH minute_buckets AS (
     -- Generate a series of rounded minutes within the data range
     SELECT 
         date_trunc('minute', min(timestamp)) + 
@@ -107,54 +97,57 @@ SELECT
     MAX(total_jersey_others) OVER (ORDER BY minute_bucket) AS "totalJerseyOthers"
 FROM minute_totals
 ORDER BY minute_bucket;`);
-        return result as unknown as {
-            minute: string;
-            totalUniqueCount: number;
-            totalJerseyYellow: number;
-            totalJerseyBlue: number;
-            totalJerseyOthers: number;
-        }[]
-    } catch (error) {
-        console.error("Error querying data:", error);
-        throw error;
-    }
+		return result as unknown as {
+			minute: string;
+			totalUniqueCount: number;
+			totalJerseyYellow: number;
+			totalJerseyBlue: number;
+			totalJerseyOthers: number;
+		}[];
+	} catch (error) {
+		console.error('Error querying data:', error);
+		throw error;
+	}
 }
-
 
 export type AttendanceRetType = {
-    attendanceData: Awaited<ReturnType<typeof getGateMonitoringDataByMinute>>;
-    oldAttendanceData: Awaited<ReturnType<typeof getGateMonitoringDataByMinute>>;
-    allAttendanceData: Awaited<ReturnType<typeof getGateMonitoringDataByMinute>>;
-    chartData: Awaited<ReturnType<typeof getGateMonitoringDataByMinute>>;
-}
+	attendanceData: Awaited<ReturnType<typeof getGateMonitoringDataByMinute>>;
+	oldAttendanceData: Awaited<ReturnType<typeof getGateMonitoringDataByMinute>>;
+	allAttendanceData: Awaited<ReturnType<typeof getGateMonitoringDataByMinute>>;
+	chartData: Awaited<ReturnType<typeof getGateMonitoringDataByMinute>>;
+};
 
 export const GET = async () => {
-    let data = await queryGateMonitoringData();
-    // // remap all minute string data which is in UTC to local
-    // data.forEach((d) => {
-    //     d.minute = new Date(d.minute).toLocaleString('en-US', {
-    //         hour: '2-digit',
-    //         minute: '2-digit',
-    //         hour12: true,
-    //         timeZone: 'Asia/Singapore'
-    //     })
-    // })
-    const currentTime = new Date();
-    const startTime = new Date(currentTime.getTime() - 60 * 60 * 1000);
-    const startTime2 = new Date(currentTime.getTime() - 2 * 60 * 60 * 1000);
-    const startTime3 = new Date(currentTime.getTime() - 3 * 60 * 60 * 1000);
+	let data = await queryGateMonitoringData();
+	// // remap all minute string data which is in UTC to local
+	// data.forEach((d) => {
+	//     d.minute = new Date(d.minute).toLocaleString('en-US', {
+	//         hour: '2-digit',
+	//         minute: '2-digit',
+	//         hour12: true,
+	//         timeZone: 'Asia/Singapore'
+	//     })
+	// })
+	const currentTime = new Date();
+	const startTime = new Date(currentTime.getTime() - 60 * 60 * 1000);
+	const startTime2 = new Date(currentTime.getTime() - 2 * 60 * 60 * 1000);
+	const startTime3 = new Date(currentTime.getTime() - 3 * 60 * 60 * 1000);
 
-    // filter out data from the future
-    data = data.filter((d) => new Date(d.minute) < currentTime);
-    // slice data to last 1 hour
-    const attendanceData = data.filter((d) => new Date(d.minute) >= startTime);
-    const oldAttendanceData = data.filter((d) => new Date(d.minute) >= startTime2 && new Date(d.minute) < startTime);
-    const chartData = data.filter((d) => new Date(d.minute) >= startTime3 && new Date(d.minute) < startTime2);
-    const allAttendanceData = data;
-    return json({
-        attendanceData,
-        oldAttendanceData,
-        allAttendanceData,
-        chartData,
-    });
-}
+	// filter out data from the future
+	data = data.filter((d) => new Date(d.minute) < currentTime);
+	// slice data to last 1 hour
+	const attendanceData = data.filter((d) => new Date(d.minute) >= startTime);
+	const oldAttendanceData = data.filter(
+		(d) => new Date(d.minute) >= startTime2 && new Date(d.minute) < startTime
+	);
+	const chartData = data.filter(
+		(d) => new Date(d.minute) >= startTime3 && new Date(d.minute) < startTime2
+	);
+	const allAttendanceData = data;
+	return json({
+		attendanceData,
+		oldAttendanceData,
+		allAttendanceData,
+		chartData
+	});
+};

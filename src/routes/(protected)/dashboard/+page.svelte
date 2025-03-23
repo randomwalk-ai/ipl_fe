@@ -1,8 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+	import { PUBLIC_RUNPOD_BASE_URL } from '$env/static/public';
   
   let iframeLoaded = $state(false);
   let loadError = $state(false);
+  
   
   function handleIframeLoad() {
     iframeLoaded = true;

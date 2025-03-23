@@ -1,5 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { PUBLIC_RUNPOD_BASE_URL } from '$env/static/public';
 
 export const POST: RequestHandler = async ({ params, fetch, locals }) => {
 	// Ensure user is authenticated

@@ -1,10 +1,11 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { PUBLIC_RUNPOD_BASE_URL } from '$env/static/public';
 
 // GET endpoint to fetch all alerts
 export const GET: RequestHandler = async ({ fetch }) => {
 	try {
-		const response = await fetch('https://29eu3i0mi1l4hg-8000.proxy.runpod.net/alerts');
+		const response = await fetch(`${PUBLIC_RUNPOD_BASE_URL}/alerts`);
 
 		if (!response.ok) {
 			throw new Error(`API responded with status: ${response.status}`);
@@ -33,7 +34,7 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 			alertData.interval_seconds = 60;
 		}
 
-		const response = await fetch('https://29eu3i0mi1l4hg-8000.proxy.runpod.net/alerts', {
+		const response = await fetch(`${PUBLIC_RUNPOD_BASE_URL}/alerts`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

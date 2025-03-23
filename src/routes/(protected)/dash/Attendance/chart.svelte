@@ -38,8 +38,8 @@
 				grid: {
 					left: '2%',
 					right: '2%',
-					bottom: '20%',
-					top: '30',
+					bottom: '10%',
+					top: '40',
 					containLabel: true,
 					borderColor: $mode === 'dark' ? '#2d3748' : '#cbd5e1'
 				},
@@ -62,7 +62,7 @@
 				yAxis: {
 					type: 'value',
 					min: 0,
-					max: Math.ceil(1.1 * Math.max(...timeData.incoming, 0)),
+					// max: Math.ceil(1.1 * Math.max(...timeData.incoming, 0)),
 					splitNumber: 4,
 					axisLabel: {
 						formatter: '{value}',

@@ -92,10 +92,10 @@ async function queryGateMonitoringData() {
 		final_output AS (
 			SELECT
 				minute_bucket AS "minute",
-				MAX(total_unique_count) OVER (ORDER BY minute_bucket) * 1.35 AS "totalUniqueCount",
-				MAX(total_jersey_yellow) OVER (ORDER BY minute_bucket) * 2 AS "totalJerseyYellow",
-				MAX(total_jersey_blue) OVER (ORDER BY minute_bucket) * 1.3 AS "totalJerseyBlue",
-				MAX(total_jersey_others) OVER (ORDER BY minute_bucket) * 1.3 AS "totalJerseyOthers"
+				CEIL(MAX(total_unique_count) OVER (ORDER BY minute_bucket) * 1.35) AS "totalUniqueCount",
+				CEIL(MAX(total_jersey_yellow) OVER (ORDER BY minute_bucket) * 2) AS "totalJerseyYellow",
+				CEIL(MAX(total_jersey_blue) OVER (ORDER BY minute_bucket) * 1.3) AS "totalJerseyBlue",
+				CEIL(MAX(total_jersey_others) OVER (ORDER BY minute_bucket) * 1.3) AS "totalJerseyOthers"
 			FROM minute_totals
 			ORDER BY minute_bucket
 		)

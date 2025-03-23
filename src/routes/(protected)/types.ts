@@ -57,10 +57,11 @@ export type AnomalyType = {
 // cam-attendance data type
 export interface Camera {
 	camera_id: string;
-	max_jersey_blue: number;
+	camera_name: string; // Added camera name
 	max_unique_count: number;
-	max_jersey_others: number;
 	max_jersey_yellow: number;
+	max_jersey_blue: number;
+	max_jersey_others: number;
 }
 
 export interface CameraData {

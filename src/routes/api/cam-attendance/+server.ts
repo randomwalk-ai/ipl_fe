@@ -1,11 +1,12 @@
 import { db } from "$lib/server/db";
-import { gateMonitoring } from "$lib/server/db/schema";
+import { gateMonitoring, cameras } from "$lib/server/db/schema";
 import { json } from "@sveltejs/kit";
 import { sql } from "drizzle-orm";
 
-// Type definition for the camera data
+// Updated type definition for the camera data
 export type CameraData = {
     camera_id: string;
+    camera_name: string; // Added camera name
     max_unique_count: number;
     max_jersey_yellow: number;
     max_jersey_blue: number;
@@ -36,15 +37,17 @@ async function getGateMonitoringDataByMinuteWithCameras(): Promise<MinuteGrouped
             ),
             all_cameras AS (
                 -- Get a distinct list of all camera IDs that appear in the data
-                SELECT DISTINCT camera_id 
-                FROM gate_monitoring
-                WHERE camera_id IS NOT NULL
+                SELECT DISTINCT gm.camera_id, c.name as camera_name
+                FROM gate_monitoring gm
+                LEFT JOIN cameras c ON gm.camera_id = c.id::text
+                WHERE gm.camera_id IS NOT NULL
             ),
             camera_max_per_minute AS (
                 -- For each camera and each minute, get the maximum counts up to that minute
                 SELECT 
                     mb.minute_bucket,
                     ac.camera_id,
+                    ac.camera_name,
                     COALESCE(MAX(gm.unique_count), 0) AS max_unique_count,
                     COALESCE(MAX(gm.jersey_yellow), 0) AS max_jersey_yellow,
                     COALESCE(MAX(gm.jersey_blue), 0) AS max_jersey_blue,
@@ -54,7 +57,7 @@ async function getGateMonitoringDataByMinuteWithCameras(): Promise<MinuteGrouped
                 LEFT JOIN gate_monitoring gm ON 
                     gm.camera_id = ac.camera_id AND
                     gm.timestamp <= mb.minute_bucket
-                GROUP BY mb.minute_bucket, ac.camera_id
+                GROUP BY mb.minute_bucket, ac.camera_id, ac.camera_name
             )
             -- Create nested JSON with cameras grouped by minute
             SELECT 
@@ -62,6 +65,7 @@ async function getGateMonitoringDataByMinuteWithCameras(): Promise<MinuteGrouped
                 jsonb_agg(
                     jsonb_build_object(
                         'camera_id', camera_id,
+                        'camera_name', camera_name,
                         'max_unique_count', max_unique_count,
                         'max_jersey_yellow', max_jersey_yellow,
                         'max_jersey_blue', max_jersey_blue,
@@ -89,9 +93,6 @@ export type CameraDataRetType = {
 export const GET = async () => {
     try {
         const data = await getGateMonitoringDataByMinuteWithCameras();
-        
-        // No need to filter anymore since we're only returning the latest minute
-        // But keeping the timestamp logic for consistency
         
         return json({
             cameraData: data,

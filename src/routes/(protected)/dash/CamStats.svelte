@@ -35,6 +35,7 @@
 			<TableHeader>
 				<TableRow>
 					<TableHead class="w-[100px]">Camera ID</TableHead>
+					<TableHead class="min-w-[100px] text-right">Camera Name</TableHead>
 					<TableHead class="min-w-[100px] text-right">Blue Jersey</TableHead>
 					<TableHead class="min-w-[100px] text-right">Yellow Jersey</TableHead>
 					<TableHead class="min-w-[100px] text-right">Other Jersey</TableHead>
@@ -50,6 +51,7 @@
 								{camera.camera_id}
 							</div>
 						</TableCell>
+						<TableCell class="text-right">{camera.camera_name}</TableCell>
 						<TableCell class="text-right">{formatNumber(camera.max_jersey_blue)}</TableCell>
 						<TableCell class="text-right">{formatNumber(camera.max_jersey_yellow)}</TableCell>
 						<TableCell class="text-right">{formatNumber(camera.max_jersey_others)}</TableCell>

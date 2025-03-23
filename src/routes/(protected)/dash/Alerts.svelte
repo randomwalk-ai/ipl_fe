@@ -28,7 +28,8 @@
 							: 'No description',
 					type: 'query' in item ? 'alert' : 'anomaly',
 					redirect_url: 'query' in item ? item.results.redirect_url : '',
-					media_url: 'query' in item ? '': item.filePath
+					media_url: 'query' in item ? '' : item.filePath,
+					camera: 'camera' in item ? item.camera : undefined
 				};
 			});
 	});
@@ -136,10 +137,13 @@
 				{#each combinedData as alert (alert.id)}
 					<div
 						class="grid cursor-pointer gap-1 rounded-md p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-						onclick={() => alert.type === 'alert' ? openAlertModal(alert) : openAnomalyModal(alert)}
+						onclick={() =>
+							alert.type === 'alert' ? openAlertModal(alert) : openAnomalyModal(alert)}
 						role="button"
 						tabindex="0"
-						onkeydown={(e) => e.key === 'Enter' && (alert.type === 'alert' ? openAlertModal(alert) : openAnomalyModal(alert))}
+						onkeydown={(e) =>
+							e.key === 'Enter' &&
+							(alert.type === 'alert' ? openAlertModal(alert) : openAnomalyModal(alert))}
 					>
 						<div class="flex items-center justify-between gap-2">
 							<!-- svelte-ignore element_invalid_self_closing_tag -->
@@ -151,6 +155,9 @@
 								>
 									<span>
 										Detected {alert.query}
+										{#if 'camera' in alert}
+											at {alert.camera?.name}
+										{/if}
 									</span>
 									<span class="text-sm">
 										{timeAgo(alert.time)}
@@ -202,7 +209,10 @@
 		{#if selectedAnomalyUrl}
 			<!-- svelte-ignore a11y_media_has_caption -->
 			<video controls class="h-full w-full">
-				<source src={'https://29eu3i0mi1l4hg-8090.proxy.runpod.net/'+selectedAnomalyUrl.slice(6)} type="video/mp4" />
+				<source
+					src={'https://29eu3i0mi1l4hg-8090.proxy.runpod.net/' + selectedAnomalyUrl.slice(6)}
+					type="video/mp4"
+				/>
 				Your browser does not support the video tag.
 			</video>
 		{:else}

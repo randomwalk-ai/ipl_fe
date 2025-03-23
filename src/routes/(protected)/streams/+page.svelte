@@ -42,4 +42,4 @@
 <div>
 	{tabVal}
 </div> -->
-<iframe src="http://183.82.32.232:5010" class="w-full h-full"></iframe>
+<iframe src="https://macalerts.randomwalk.ai/frigate" class="w-full h-full"></iframe>

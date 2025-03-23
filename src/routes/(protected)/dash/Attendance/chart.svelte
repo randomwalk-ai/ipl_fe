@@ -12,101 +12,6 @@
 	let echartsContainer: HTMLDivElement | null = $state(null);
 	let chart: echarts.ECharts | null = $state(null);
 	let resizeObserver: ResizeObserver | null = $state(null);
-
-	// let options: ApexOptions = $derived.by(() => ({
-	// 	chart: {
-	// 		type: 'area',
-	// 		height: 250,
-	// 		toolbar: {
-	// 			show: false
-	// 		},
-	// 		background: 'transparent', // Always transparent for seamless switching
-	// 		redrawOnParentResize: true,
-	// 		redrawOnWindowResize: true
-	// 	},
-	// 	colors: ['#3b82f6', '#be185d'], // Colors don't change based on theme
-	// 	dataLabels: {
-	// 		enabled: false
-	// 	},
-	// 	stroke: {
-	// 		curve: 'smooth',
-	// 		width: 2
-	// 	},
-	// 	series: [
-	// 		{
-	// 			name: 'Incoming',
-	// 			data: timeData.incoming
-	// 		},
-	// 		{
-	// 			name: 'CSK',
-	// 			data: timeData.team1
-	// 		},
-	// 		{
-	// 			name: 'MI',
-	// 			data: timeData.team2
-	// 		}
-	// 		// {
-	// 		// 	name: 'Outgoing',
-	// 		// 	data: timeData.outgoing
-	// 		// }
-	// 	],
-	// 	xaxis: {
-	// 		categories: timeData.times,
-	// 		tickAmount: 10,
-	// 		labels: {
-	// 			style: {
-	// 				colors: $mode === 'dark' ? '#94a3b8' : '#475569' // Ternary for labels
-	// 			},
-	// 		},
-	// 		axisBorder: {
-	// 			show: false
-	// 		},
-	// 		axisTicks: {
-	// 			show: false
-	// 		}
-	// 	},
-	// 	yaxis: {
-	// 		labels: {
-	// 			style: {
-	// 				colors: $mode === 'dark' ? '#94a3b8' : '#475569' // Ternary for labels
-	// 			},
-	// 			formatter: (val: number) => val.toFixed(0)
-	// 		},
-	// 		tickAmount: 4,
-	// 		min: 0,
-	// 		max: 1.1 * Math.max(...timeData.incoming, 0)
-	// 	},
-	// 	grid: {
-	// 		borderColor: $mode === 'dark' ? '#2d3748' : '#cbd5e1', // Ternary for grid
-	// 		strokeDashArray: 4,
-	// 		yaxis: {
-	// 			lines: {
-	// 				show: true
-	// 			}
-	// 		},
-	// 		xaxis: {
-	// 			lines: {
-	// 				show: false
-	// 			}
-	// 		}
-	// 	},
-	// 	legend: {
-	// 		labels: {
-	// 			colors: $mode === 'dark' ? '#94a3b8' : '#475569' // Ternary for legend
-	// 		}
-	// 	},
-	// 	fill: {
-	// 		type: 'gradient',
-	// 		gradient: {
-	// 			opacityFrom: 0.4,
-	// 			opacityTo: 0.1
-	// 		}
-	// 	},
-	// 	tooltip: {
-	// 		theme: $mode === 'dark' ? 'dark' : 'light' // Ternary for tooltip
-	// 	}
-	// }));
-
 	let options: echarts.EChartsOption = $derived.by(
 		() =>
 			({
@@ -114,7 +19,8 @@
 				responsive: true,
 				maintainAspectRatio: false,
 				backgroundColor: 'transparent',
-				color: ['#3b82f6', '#be185d'],
+				// Updated default colors.  These are overridden by the series-specific colors below.
+				color: ['#39FF14', '#FFFF3C', '#004B8D'], // Gray/Green, Yellow, Blue
 				tooltip: {
 					trigger: 'axis',
 					backgroundColor: $mode === 'dark' ? '#1e293b' : '#ffffff',
@@ -130,10 +36,10 @@
 					}
 				},
 				grid: {
-					left: '2%', // Reduced from 3% to 1%
-					right: '2%', // Reduced from 4% to 2%
-					bottom: '20%', // Reduced from 3% to 2%
-					top: '30', // Reduced from 40 to 30
+					left: '2%',
+					right: '2%',
+					bottom: '20%',
+					top: '30',
 					containLabel: true,
 					borderColor: $mode === 'dark' ? '#2d3748' : '#cbd5e1'
 				},
@@ -161,8 +67,8 @@
 					axisLabel: {
 						formatter: '{value}',
 						color: $mode === 'dark' ? '#94a3b8' : '#475569',
-						inside: false, // Keep labels outside
-						padding: [0, 0, 0, 0] // Minimize padding around labels
+						inside: false,
+						padding: [0, 0, 0, 0]
 					},
 					splitLine: {
 						lineStyle: {
@@ -178,7 +84,6 @@
 					}
 				},
 				series: [
-					// Series configurations remain unchanged
 					{
 						name: 'Incoming',
 						type: 'line',
@@ -197,11 +102,11 @@
 								colorStops: [
 									{
 										offset: 0,
-										color: '#3b82f6'
+										color: '#39FF14' // Gray/Green - CHOOSE YOUR PREFERRED SHADE
 									},
 									{
 										offset: 1,
-										color: 'rgba(59, 130, 246, 0.1)'
+										color: 'rgba(113, 128, 150, 0.1)' // Lightened version of the same gray/green
 									}
 								]
 							}
@@ -229,11 +134,11 @@
 								colorStops: [
 									{
 										offset: 0,
-										color: '#be185d'
+										color: '#FFFF3C' // Yellow
 									},
 									{
 										offset: 1,
-										color: 'rgba(190, 24, 93, 0.1)'
+										color: 'rgba(255, 255, 60, 0.1)' // Light Yellow
 									}
 								]
 							}
@@ -261,11 +166,11 @@
 								colorStops: [
 									{
 										offset: 0,
-										color: '#be185d'
+										color: '#004B8D' // Blue
 									},
 									{
 										offset: 1,
-										color: 'rgba(190, 24, 93, 0.1)'
+										color: 'rgba(0, 75, 141, 0.1)' // Light Blue
 									}
 								]
 							}

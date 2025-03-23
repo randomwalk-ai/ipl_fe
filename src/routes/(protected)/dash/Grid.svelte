@@ -43,7 +43,8 @@
 
 	// Format number to K format if over 1000
 	const formatNumber = (num: number): string => {
-		return num >= 1000 ? (num / 1000).toFixed(1) + 'K' : num.toString();
+		// return num >= 1000 ? (num / 1000).toFixed(1) + 'K' : num.toString();
+		return new Intl.NumberFormat('en-IN').format(num);
 	};
 </script>
 

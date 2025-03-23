@@ -1,3 +1,4 @@
+<!-- AttendanceCard.svelte -->
 <script lang="ts">
 	import { Card, CardContent, CardHeader } from '$lib/components/ui/card';
 	import { UsersIcon } from '@lucide/svelte';
@@ -20,8 +21,8 @@
 	const formatNumber = (num: number) => num.toLocaleString();
 </script>
 
-<Card class="h-full w-full dark:bg-background dark:text-white">
-	<CardHeader class="flex h-14 flex-row items-center justify-between rounded-t-md bg-secondary p-4">
+<Card class="flex flex-col w-full h-1/2 min-h-0 dark:bg-background dark:text-white">
+	<CardHeader class="flex-none h-14 flex flex-row items-center justify-between rounded-t-md bg-secondary p-4">
 		<div class="flex items-center gap-2">
 			<UsersIcon class="h-5 w-5" />
 			<h3 class="font-medium">Attendance Tracking</h3>
@@ -38,7 +39,9 @@
 			>
 		</div>
 	</CardHeader>
-	<CardContent class="flex grow items-center justify-center">
-		<AttendanceChart timeData={data.timeData} />
+	<CardContent class="flex-1 p-1 w-full min-h-0 overflow-hidden">
+		<div class="w-full h-full">
+			<AttendanceChart timeData={data.timeData} />
+		</div>
 	</CardContent>
 </Card>

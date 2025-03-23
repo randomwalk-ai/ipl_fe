@@ -19,7 +19,7 @@ export type MinuteGroupedData = {
 }
 
 /**
- * Fetches gate monitoring data grouped by minute with nested camera information
+ * Fetches gate monitoring data for only the latest minute with nested camera information
  */
 async function getGateMonitoringDataByMinuteWithCameras(): Promise<MinuteGroupedData[]> {
     try {
@@ -70,7 +70,8 @@ async function getGateMonitoringDataByMinuteWithCameras(): Promise<MinuteGrouped
                 ) AS cameras
             FROM camera_max_per_minute
             GROUP BY minute_bucket
-            ORDER BY minute_bucket
+            ORDER BY minute_bucket DESC
+            LIMIT 1
         `);
         
         return result as unknown as MinuteGroupedData[];
@@ -89,17 +90,11 @@ export const GET = async () => {
     try {
         const data = await getGateMonitoringDataByMinuteWithCameras();
         
-        // Filter out future data
-        const currentTime = new Date();
-        const filteredData = data.filter(
-            (d) => new Date(d.minute_bucket) < currentTime
-        );
-        
-        // Optional: limit to last X minutes if needed
-        // const limitedData = filteredData.slice(-60); // Last 60 minutes
+        // No need to filter anymore since we're only returning the latest minute
+        // But keeping the timestamp logic for consistency
         
         return json({
-            cameraData: filteredData,
+            cameraData: data,
             timestamp: new Date().toISOString()
         } as CameraDataRetType);
     } catch (error) {

@@ -23,7 +23,7 @@
 	let { data }: Props = $props();
 
 	// Get the latest camera data
-	const latestData = $derived(data.cameraData[0]);
+	const latestData = $derived(data.cameraData?.[0]?.cameras.toSorted((a, b) => b.max_unique_count - a.max_unique_count));
 
     const formatNumber = (num: number) => new Intl.NumberFormat('en-IN').format(num);
 </script>
@@ -42,7 +42,7 @@
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{#each latestData?.cameras as camera (camera.camera_id)}
+				{#each latestData as camera (camera.camera_id)}
 					<TableRow>
 						<TableCell class="font-medium">
 							<div class="flex items-center gap-2">

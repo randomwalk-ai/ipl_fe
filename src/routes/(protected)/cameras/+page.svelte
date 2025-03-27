@@ -90,7 +90,7 @@
   }
 </script>
 
-<div class="container mx-auto p-4">
+<div class="container mx-auto p-4 h-full overflow-y-auto">
   <h1 class="text-2xl font-bold mb-6 text-white">Camera Management</h1>
   
   {#if !cameras || cameras.length === 0}

@@ -1,30 +1,30 @@
-import { db } from "$lib/server/db";
-import { gateMonitoring, cameras } from "$lib/server/db/schema";
-import { json } from "@sveltejs/kit";
-import { sql } from "drizzle-orm";
+import { db } from '$lib/server/db';
+import { gateMonitoring, cameras } from '$lib/server/db/schema';
+import { json } from '@sveltejs/kit';
+import { sql } from 'drizzle-orm';
 
 // Updated type definition for the camera data
 export type CameraData = {
-    camera_id: string;
-    camera_name: string; // Added camera name
-    max_unique_count: number;
-    max_jersey_yellow: number;
-    max_jersey_blue: number;
-    max_jersey_others: number;
-}
+	camera_id: string;
+	camera_name: string; // Added camera name
+	max_unique_count: number;
+	max_jersey_yellow: number;
+	max_jersey_blue: number;
+	max_jersey_others: number;
+};
 
 // Type definition for the grouped minute data
 export type MinuteGroupedData = {
-    minute_bucket: string;
-    cameras: CameraData[];
-}
+	minute_bucket: string;
+	cameras: CameraData[];
+};
 
 /**
  * Fetches gate monitoring data for only the latest minute with nested camera information
  */
 async function getGateMonitoringDataByMinuteWithCameras(): Promise<MinuteGroupedData[]> {
-    try {
-        const result = await db.execute(sql`
+	try {
+		const result = await db.execute(sql`
             WITH minute_buckets AS (
                 -- Generate a series of rounded minutes within the data range
                 SELECT 
@@ -66,7 +66,13 @@ async function getGateMonitoringDataByMinuteWithCameras(): Promise<MinuteGrouped
                     jsonb_build_object(
                         'camera_id', camera_id,
                         'camera_name', camera_name,
-                        'max_unique_count', max_unique_count,
+                        'max_unique_count', 
+                        CASE 
+                            WHEN camera_name = 'DLower29' THEN LEAST(CEIL(2200*1.05), max_unique_count)
+                            WHEN camera_name = 'KLower19' THEN LEAST(CEIL(2251*1.05), max_unique_count)
+                            WHEN camera_name = 'GUpper24' THEN LEAST(CEIL(1776*1.05), max_unique_count)
+                            ELSE max_unique_count
+                        END,
                         'max_jersey_yellow', max_jersey_yellow,
                         'max_jersey_blue', max_jersey_blue,
                         'max_jersey_others', max_jersey_others
@@ -77,29 +83,29 @@ async function getGateMonitoringDataByMinuteWithCameras(): Promise<MinuteGrouped
             ORDER BY minute_bucket DESC
             LIMIT 1
         `);
-        
-        return result as unknown as MinuteGroupedData[];
-    } catch (error) {
-        console.error("Error querying camera data by minute:", error);
-        throw error;
-    }
+
+		return result as unknown as MinuteGroupedData[];
+	} catch (error) {
+		console.error('Error querying camera data by minute:', error);
+		throw error;
+	}
 }
 
 export type CameraDataRetType = {
-    cameraData: MinuteGroupedData[];
-    timestamp: string;
-}
+	cameraData: MinuteGroupedData[];
+	timestamp: string;
+};
 
 export const GET = async () => {
-    try {
-        const data = await getGateMonitoringDataByMinuteWithCameras();
-        
-        return json({
-            cameraData: data,
-            timestamp: new Date().toISOString()
-        } as CameraDataRetType);
-    } catch (error) {
-        console.error("Error in camera data endpoint:", error);
-        return json({ error: "Failed to fetch camera data" }, { status: 500 });
-    }
+	try {
+		const data = await getGateMonitoringDataByMinuteWithCameras();
+
+		return json({
+			cameraData: data,
+			timestamp: new Date().toISOString()
+		} as CameraDataRetType);
+	} catch (error) {
+		console.error('Error in camera data endpoint:', error);
+		return json({ error: 'Failed to fetch camera data' }, { status: 500 });
+	}
 };

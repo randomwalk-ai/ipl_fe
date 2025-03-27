@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-
+import { PUBLIC_RUNPOD_BASE_URL } from '$env/static/public';
 export const GET: RequestHandler = async ({ params, fetch, locals }) => {
 	// Ensure user is authenticated
 	if (!locals.user) {
@@ -11,9 +11,7 @@ export const GET: RequestHandler = async ({ params, fetch, locals }) => {
 		const { cameraId } = params;
 
 		// Forward the request to the external API
-		const response = await fetch(
-			`https://29eu3i0mi1l4hg-8000.proxy.runpod.net/cameras/${cameraId}/status`
-		);
+		const response = await fetch(`${PUBLIC_RUNPOD_BASE_URL}/cameras/${cameraId}/status`);
 
 		if (!response.ok) {
 			throw error(response.status, 'Failed to fetch camera status');

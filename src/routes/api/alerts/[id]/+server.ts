@@ -1,12 +1,13 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { PUBLIC_RUNPOD_BASE_URL } from '$env/static/public';
 
 // DELETE endpoint to remove an alert
 export const DELETE: RequestHandler = async ({ params, fetch }) => {
 	const alertId = params.id;
 
 	try {
-		const response = await fetch(`https://29eu3i0mi1l4hg-8000.proxy.runpod.net/alerts/${alertId}`, {
+		const response = await fetch(`${PUBLIC_RUNPOD_BASE_URL}/alerts/${alertId}`, {
 			method: 'DELETE'
 		});
 
@@ -31,12 +32,9 @@ export const POST: RequestHandler = async ({ params, fetch, request }) => {
 	}
 
 	try {
-		const response = await fetch(
-			`https://29eu3i0mi1l4hg-8000.proxy.runpod.net/alerts/${alertId}/stop`,
-			{
-				method: 'POST'
-			}
-		);
+		const response = await fetch(`${PUBLIC_RUNPOD_BASE_URL}/alerts/${alertId}/stop`, {
+			method: 'POST'
+		});
 
 		if (!response.ok) {
 			throw new Error(`API responded with status: ${response.status}`);

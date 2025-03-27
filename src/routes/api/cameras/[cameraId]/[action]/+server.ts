@@ -17,12 +17,9 @@ export const POST: RequestHandler = async ({ params, fetch, locals }) => {
 		}
 
 		// Forward the request to the external API
-		const response = await fetch(
-			`https://29eu3i0mi1l4hg-8000.proxy.runpod.net/cameras/${cameraId}/${action}`,
-			{
-				method: 'POST'
-			}
-		);
+		const response = await fetch(`${PUBLIC_RUNPOD_BASE_URL}/cameras/${cameraId}/${action}`, {
+			method: 'POST'
+		});
 
 		if (!response.ok) {
 			throw error(response.status, `Failed to ${action} camera`);

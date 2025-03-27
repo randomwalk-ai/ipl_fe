@@ -2,7 +2,6 @@ import { db } from '$lib/server/db';
 import { gateMonitoring } from '$lib/server/db/schema';
 import { json } from '@sveltejs/kit';
 import { eq, and, max, sum, lte, sql, gte } from 'drizzle-orm';
-import { PUBLIC_RUNPOD_BASE_URL } from '$env/static/public';
 
 // Function to perform the grouped query
 async function getGateMonitoringDataByMinute(

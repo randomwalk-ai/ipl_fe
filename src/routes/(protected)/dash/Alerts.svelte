@@ -61,7 +61,7 @@
 			id: `loitering-${item.id}`, // Prefix ID
 			query: item.label || 'Loitering Detected',
 			time: item.timestampEntry, // Use entry time as the event time
-			description: `Object '${item.label || 'Unknown'}' detected loitering ${item.zone ? `in zone ${item.zone}` : ''}. ${item.durationSeconds ? `Duration: ${item.durationSeconds}s` : 'Ongoing.'}`,
+			description: `A '${item.label || 'Unknown'}' is loitering ${item.zone ? `` : ''}. ${item.durationSeconds ? `Duration: ${item.durationSeconds}s` : 'Ongoing.'}`,
 			type: 'loitering',
 			redirect_url: undefined,
 			media_url: item.clipFilename || undefined, // Store relative path if available
@@ -102,6 +102,9 @@
 			} else {
 				// Fallback or different logic if path is different
 				fullUrl = MEDIA_BASE_URL + item.media_url;
+			}
+			if (item.type === 'loitering') {
+				fullUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_clips/"+item.media_url;
 			}
 
 			selectedMediaUrl = fullUrl;

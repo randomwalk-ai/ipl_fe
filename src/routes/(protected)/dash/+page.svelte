@@ -66,7 +66,7 @@
 							.totalJerseyYellow
 					},
 					team2: {
-						name: 'MI',
+						name: 'RCB',
 						color: '#004B8D', // Blue
 						fans: (data.attData.attendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue,
 						prevFans: (data.attData.oldAttendanceData.at(-1) ?? { totalJerseyBlue: 0 })

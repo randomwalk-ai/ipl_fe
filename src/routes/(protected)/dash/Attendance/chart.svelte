@@ -30,7 +30,7 @@
 					}
 				},
 				legend: {
-					data: ['Incoming', 'CSK', 'MI'],
+					data: ['Incoming', 'CSK', 'RCB'],
 					textStyle: {
 						color: $mode === 'dark' ? '#94a3b8' : '#475569'
 					}
@@ -149,7 +149,7 @@
 						data: timeData.team1
 					},
 					{
-						name: 'MI',
+						name: 'RCB',
 						type: 'line',
 						smooth: true,
 						lineStyle: {

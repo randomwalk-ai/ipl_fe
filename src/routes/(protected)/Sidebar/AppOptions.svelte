@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { LayoutDashboard, MessagesSquare, BellRing } from '@lucide/svelte';
+	import { LayoutDashboard, MessagesSquare, BellRing, Users } from '@lucide/svelte';
 	import { goto, beforeNavigate, afterNavigate } from '$app/navigation';
 
 	let isNavigating = $state(false);
@@ -54,6 +54,15 @@
 			>
 				<BellRing />
 				<span>{'Alerts Configuration'}</span>
+			</Sidebar.MenuButton>
+		</Sidebar.MenuItem>
+		<Sidebar.MenuItem>
+			<Sidebar.MenuButton
+				onclick={(e) => goto('/crowd')}
+				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
+			>
+				<Users />
+				<span>{'Crowd Monitor'}</span>
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
 	</Sidebar.Menu>

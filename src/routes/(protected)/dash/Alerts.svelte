@@ -2,169 +2,212 @@
 	import { BellRingIcon } from '@lucide/svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
-	import type { Alert as AlertType, AnomalyType } from '../types';
+	import type { Alert as AlertType, AnomalyType, LoiteringData } from '../types';
 	import { onMount, onDestroy } from 'svelte';
+	import { fly } from 'svelte/transition'; // Import a transition
 	import SimpleDialog from './SimpleDialog.svelte';
 	import { addHoursToDate, parseUtcToIstTime, timeAgo } from '$lib/utils';
 
-	// Remove the alerts prop since we'll fetch them internally
+	// Define a unified type for the combined list
+	interface CombinedAlertItem {
+		id: string; // Ensure unique ID across all types (e.g., prefixing)
+		query: string;
+		time: string; // ISO string timestamp for sorting
+		description: string;
+		type: 'alert' | 'anomaly' | 'loitering';
+		redirect_url?: string; // URL for alert iframe
+		media_url?: string; // Relative path for anomaly/loitering video
+		cameraName?: string; // Optional camera name display
+	}
+
+	// Base URL for media files (anomalies, loitering clips) - adjust as needed
+	// Assuming the proxy handles the base path
+	const MEDIA_BASE_URL = 'https://29eu3i0mi1l4hg-8090.proxy.runpod.net/';
+
+	// State for fetched data
 	let alerts: AlertType[] | null = $state(null);
 	let anomalies: AnomalyType[] | null = $state(null);
+	let loitering: LoiteringData[] | null = $state(null);
 	let refreshInterval: ReturnType<typeof setInterval>;
 
-	// derive collate both alerts and anomalies
+	// Derive combined and sorted data
 	let combinedData = $derived.by(() => {
-		return [...(alerts ?? []), ...(anomalies ?? [])]
-			.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-			.map((item) => {
-				return {
-					id: item.id,
-					query: 'query' in item ? item.query : 'Crowd Anomaly',
-					time: item.createdAt,
-					description:
-						'query' in item
-							? item.results.results.find((result) => !!result.data.description)?.data
-									.description || 'No description'
-							: 'No description',
-					type: 'query' in item ? 'alert' : 'anomaly',
-					redirect_url: 'query' in item ? item.results.redirect_url : '',
-					media_url: 'query' in item ? '' : item.filePath,
-					camera: 'camera' in item ? item.camera : undefined
-				};
-			});
+		const mappedAlerts: CombinedAlertItem[] = (alerts ?? []).map((item) => ({
+			id: `alert-${item.id}`, // Prefix ID for uniqueness
+			query: item.query,
+			time: item.createdAt,
+			description:
+				item.results.results.find((result) => !!result.data.description)?.data.description ||
+				'No description available.',
+			type: 'alert',
+			redirect_url: item.results.redirect_url,
+			media_url: undefined, // Alerts use redirect_url
+			cameraName: undefined // AlertType doesn't have direct camera info
+		}));
+
+		const mappedAnomalies: CombinedAlertItem[] = (anomalies ?? []).map((item) => ({
+			id: `anomaly-${item.id}`, // Prefix ID
+			query: 'Crowd Anomaly', // Implicit query for anomalies
+			time: item.createdAt,
+			// Use camera name in description if available
+			description: `Detected unusual crowd activity${item.camera ? ` near ${item.camera.name}` : ''}.`,
+			type: 'anomaly',
+			redirect_url: undefined,
+			media_url: item.filePath, // Store the relative path
+			cameraName: item.camera?.name
+		}));
+
+		const mappedLoitering: CombinedAlertItem[] = (loitering ?? []).map((item) => ({
+			id: `loitering-${item.id}`, // Prefix ID
+			query: item.label || 'Loitering Detected',
+			time: item.timestampEntry, // Use entry time as the event time
+			description: `Object '${item.label || 'Unknown'}' detected loitering ${item.zone ? `in zone ${item.zone}` : ''}. ${item.durationSeconds ? `Duration: ${item.durationSeconds}s` : 'Ongoing.'}`,
+			type: 'loitering',
+			redirect_url: undefined,
+			media_url: item.clipFilename || undefined, // Store relative path if available
+			cameraName: item.cameraId!
+		}));
+
+		// Combine, sort by time (most recent first), and return
+		return [...mappedAlerts, ...mappedAnomalies, ...mappedLoitering].sort(
+			(a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
+		);
 	});
 
-	// Modal state
-	let showModal = $state(false);
+	// Modal state for Alert iframe
+	let showAlertModal = $state(false);
 	let selectedAlertUrl = $state('');
 	let selectedAlertTitle = $state('');
 
-	// Function to open the alert modal
-	function openAlertModal(alert: { query: string; redirect_url: string }) {
-		if (alert.redirect_url) {
-			selectedAlertUrl = alert.redirect_url;
-			selectedAlertTitle = alert.query || 'Alert Details';
-			showModal = true;
+	// Modal state for Anomaly/Loitering video
+	let showMediaModal = $state(false);
+	let selectedMediaUrl = $state('');
+	let selectedMediaTitle = $state('');
+
+	// Function to open the appropriate modal
+	function openModal(item: CombinedAlertItem) {
+		if (item.type === 'alert' && item.redirect_url) {
+			selectedAlertUrl = item.redirect_url;
+			selectedAlertTitle = item.query || 'Alert Details';
+			showAlertModal = true;
+		} else if ((item.type === 'anomaly' || item.type === 'loitering') && item.media_url) {
+			// Construct the full media URL here
+			// The slice(6) was specific to the previous anomaly path structure, adjust if needed for both types
+			// If media_url is already absolute or needs different prefixing, change this logic.
+			// Assuming relative path like '/media/...' for both
+			let fullUrl = '';
+			if (item.media_url.startsWith('/media/')) {
+				// Example adjustment based on common patterns
+				fullUrl = MEDIA_BASE_URL + item.media_url.slice(6); // Adjust slice index if prefix changes
+			} else {
+				// Fallback or different logic if path is different
+				fullUrl = MEDIA_BASE_URL + item.media_url;
+			}
+
+			selectedMediaUrl = fullUrl;
+			selectedMediaTitle =
+				item.query || (item.type === 'anomaly' ? 'Anomaly Details' : 'Loitering Details');
+			showMediaModal = true;
+		} else {
+			console.warn('No suitable URL found for item:', item);
+			// Optionally show a feedback message to the user
 		}
 	}
 
-	// Modal state
-	let showAnomalyModal = $state(false);
-	let selectedAnomalyUrl = $state('');
-	let selectedAnomalyTitle = $state('');
-
-	// Function to open the anomaly modal
-	function openAnomalyModal(anomaly: { query: string; media_url: string }) {
-		selectedAnomalyTitle = anomaly.query;
-		selectedAnomalyUrl = anomaly.media_url;
-		showAnomalyModal = true;
+	function closeAlertModal() {
+		showAlertModal = false;
 	}
 
-	function closeModal() {
-		showModal = false;
+	function closeMediaModal() {
+		showMediaModal = false;
 	}
 
-	function closeAnomalyModal() {
-		showAnomalyModal = false;
-	}
-
-	// Function to fetch alerts data
-	async function fetchAlerts() {
+	// Function to fetch all data types
+	async function fetchAllData() {
 		try {
 			const res = await fetch('/api/alert-notifications');
-			const alertsData = (await res.json()) as {
+			if (!res.ok) {
+				throw new Error(`API request failed with status ${res.status}`);
+			}
+			const data = (await res.json()) as {
 				alertsData: AlertType[];
 				anomaliesData: AnomalyType[];
+				loiteringData: LoiteringData[];
 			};
-			console.log('Raw alerts data:', alertsData);
-			alerts = alertsData.alertsData;
-			anomalies = alertsData.anomaliesData.map((a) => {
-				a.createdAt = addHoursToDate(a.createdAt);
-				// console.log('Anomaly createdAt:', a.createdAt);
-				return a;
-			});
 
-			// // Make sure alertsData is an array
-			// if (Array.isArray(alertsData)) {
-			// 	alerts = alertsData;
-			// } else if (alertsData && typeof alertsData === 'object') {
-			// 	// If it's an object with a data property, use that
-			// 	alerts = Array.isArray(alertsData.data) ? alertsData.data : [];
-			// } else {
-			// 	alerts = [];
-			// }
-			// console.log('Processed alerts for rendering:', alerts);
+			// Process fetched data
+			alerts = data.alertsData ?? [];
+			anomalies = (data.anomaliesData ?? []).map((a) => ({
+				...a,
+				createdAt: addHoursToDate(a.createdAt) // Adjust timezone as before
+			}));
+			loitering = (data.loiteringData ?? []).map((l) => ({
+				...l,
+				timestampEntry: addHoursToDate(l.timestampEntry), // Adjust relevant timestamps
+				timestampExit: l.timestampExit ? addHoursToDate(l.timestampExit) : null,
+				updatedAt: l.updatedAt ? addHoursToDate(l.updatedAt) : null,
+				insertedAt: l.insertedAt ? addHoursToDate(l.insertedAt) : null
+			}));
 		} catch (error) {
-			console.error('Failed to fetch alerts:', error);
-			alerts = []; // Ensure alerts is always an array
+			console.error('Failed to fetch notification data:', error);
+			// Optionally reset data or show error state
+			alerts = alerts ?? [];
+			anomalies = anomalies ?? [];
+			loitering = loitering ?? [];
 		}
 	}
 
 	onMount(() => {
-		// Initial fetch
-		fetchAlerts();
-
-		// Set up refresh interval (every 30 seconds)
-		refreshInterval = setInterval(fetchAlerts, 30000);
+		fetchAllData();
+		refreshInterval = setInterval(fetchAllData, 30000); // Refresh every 30 seconds
 	});
 
 	onDestroy(() => {
-		// Clean up interval when component is destroyed
 		if (refreshInterval) clearInterval(refreshInterval);
 	});
-
-	// Map severity to color classes
-	// const severityColorMap: Record<AlertType['severity'], string> = {
-	// 	high: 'bg-red-500',
-	// 	medium: 'bg-orange-500',
-	// 	low: 'bg-yellow-500',
-	// 	info: 'bg-blue-500'
-	// };
 </script>
 
 <Card class="flex h-full w-full flex-col dark:bg-background dark:text-white">
 	<CardHeader class="flex h-14 flex-row items-center justify-between rounded-t-md bg-secondary p-4">
 		<div class="flex items-center gap-2">
 			<BellRingIcon class="h-5 w-5" />
-			<h3 class="font-medium">Recent Alerts</h3>
+			<h3 class="font-medium">Recent Alerts & Events</h3>
 		</div>
 	</CardHeader>
 	<ScrollArea class="flex-1">
 		<CardContent class="grid gap-4 p-4">
-			{#if !alerts || alerts.length === 0}
-				<p class="text-gray-500 dark:text-gray-400">No alerts at this time</p>
+			{#if combinedData.length === 0}
+				<p class="text-center text-gray-500 dark:text-gray-400">No recent events</p>
 			{:else}
-				{#each combinedData as alert (alert.id)}
+				{#each combinedData as item (item.id)}
 					<div
 						class="grid cursor-pointer gap-1 rounded-md p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-						onclick={() =>
-							alert.type === 'alert' ? openAlertModal(alert) : openAnomalyModal(alert)}
 						role="button"
 						tabindex="0"
-						onkeydown={(e) =>
-							e.key === 'Enter' &&
-							(alert.type === 'alert' ? openAlertModal(alert) : openAnomalyModal(alert))}
+						onclick={() => openModal(item)}
+						onkeydown={(e) => e.key === 'Enter' && openModal(item)}
+						in:fly={{ y: 10, duration: 200, delay: 50 }}
+						out:fly={{ y: -10, duration: 200 }}
 					>
 						<div class="flex items-center justify-between gap-2">
-							<!-- svelte-ignore element_invalid_self_closing_tag -->
-							<!-- <span class={`h-2 w-2 rounded-full ${severityColorMap[alert.severity]}`} /> -->
-							<!-- {JSON.stringify(alert)} -->
-							<div class="flex grow flex-col gap-2">
+							<!-- Maybe add an icon based on type? -->
+							<!-- Example: {#if item.type === 'anomaly'} <Icon.../> {/if} -->
+							<div class="flex grow flex-col gap-1">
 								<div
 									class="text-md flex w-full items-center justify-between font-medium leading-none"
 								>
-									<span>
-										Detected {alert.query}
-										{#if ('camera' in alert) && alert.camera}
-											at {alert.camera?.name}
+									<span class="truncate pr-2">
+										Detected {item.query}
+										{#if item.cameraName}
+											at {item.cameraName}
 										{/if}
 									</span>
-									<span class="text-sm">
-										{timeAgo(alert.time)}
+									<span class="flex-shrink-0 text-sm text-muted-foreground">
+										{timeAgo(item.time)}
 									</span>
 								</div>
-								<span class="text-xs leading-tight">
-									{alert.description}
+								<span class="text-xs leading-tight text-muted-foreground">
+									{item.description}
 								</span>
 							</div>
 						</div>
@@ -175,13 +218,13 @@
 	</ScrollArea>
 </Card>
 
-<!-- Alert Modal with iframe -->
+<!-- Alert Modal (iframe) -->
 <SimpleDialog
-	bind:open={showModal}
+	bind:open={showAlertModal}
 	title={selectedAlertTitle}
 	fullHeight={true}
 	fullWidth={true}
-	on:close={closeModal}
+	on:close={closeAlertModal}
 >
 	<div class="h-full w-full">
 		{#if selectedAlertUrl}
@@ -192,31 +235,30 @@
 				sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
 			></iframe>
 		{:else}
-			<p class="text-center">No URL available for this alert.</p>
+			<p class="p-4 text-center">Content for this alert is not available.</p>
 		{/if}
 	</div>
 </SimpleDialog>
 
-<!-- Anomaly Modal with HTML5 video -->
+<!-- Anomaly / Loitering Modal (video) -->
 <SimpleDialog
-	bind:open={showAnomalyModal}
-	title={selectedAnomalyTitle}
+	bind:open={showMediaModal}
+	title={selectedMediaTitle}
 	fullHeight={true}
 	fullWidth={true}
-	on:close={closeAnomalyModal}
+	on:close={closeMediaModal}
 >
-	<div class="h-full w-full">
-		{#if selectedAnomalyUrl}
+	<div class="flex h-full w-full items-center justify-center bg-black">
+		{#if selectedMediaUrl}
 			<!-- svelte-ignore a11y_media_has_caption -->
-			<video controls class="h-full w-full">
-				<source
-					src={'https://29eu3i0mi1l4hg-8090.proxy.runpod.net/' + selectedAnomalyUrl.slice(6)}
-					type="video/mp4"
-				/>
-				Your browser does not support the video tag.
+			<video controls autoplay class="max-h-full max-w-full">
+				<source src={selectedMediaUrl} type="video/mp4" />
+				Your browser does not support the video tag. Try downloading the video.
+				<br />
+				<a href={selectedMediaUrl} download class="text-blue-400 hover:underline">Download Video</a>
 			</video>
 		{:else}
-			<p class="text-center">No video available for this anomaly.</p>
+			<p class="p-4 text-center text-white">No video available for this event.</p>
 		{/if}
 	</div>
 </SimpleDialog>

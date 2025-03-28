@@ -1,48 +1,19 @@
 <script lang="ts">
 	import { getPageState } from '$lib/stores/index.svelte';
 	import { onMount, onDestroy } from 'svelte';
+	import { PUBLIC_RUNPOD_ENDPOINT } from '$env/static/public';
 
 	const PageState = getPageState();
 	PageState.title = 'Crowd Monitor';
 
-	// Camera configuration
-	const cameraConfig = {
-    "125_ExternalCamerasWallaja1": "rtsp://183.82.32.232:8554/125_ExternalCamerasWallaja1",
-    "126_ExternalCamerasWallaja2": "rtsp://183.82.32.232:8554/126_ExternalCamerasWallaja2",
-    "127_ExternalCamerasWallaja3": "rtsp://183.82.32.232:8554/127_ExternalCamerasWallaja3",
-    "128_ExternalCamerasWallaja4": "rtsp://183.82.32.232:8554/128_ExternalCamerasWallaja4",
-    "129_ExternalCamerasWallaja5": "rtsp://183.82.32.232:8554/129_ExternalCamerasWallaja5",
-    "130_ExternalCamerasWallaja6": "rtsp://183.82.32.232:8554/130_ExternalCamerasWallaja6",
-    "131_ExternalCamerasWallaja7": "rtsp://183.82.32.232:8554/131_ExternalCamerasWallaja7",
-    "132_ExternalCamerasWallaja8": "rtsp://183.82.32.232:8554/132_ExternalCamerasWallaja8",
-    "133_ExternalCamerasWallaja9": "rtsp://183.82.32.232:8554/133_ExternalCamerasWallaja9",
-    "134_ExternalCamerasWallaja10": "rtsp://183.82.32.232:8554/134_ExternalCamerasWallaja10",
-    "135_ExternalCamerasWallaja11": "rtsp://183.82.32.232:8554/135_ExternalCamerasWallaja11",
-    "136_ExternalCamerasWallaja12": "rtsp://183.82.32.232:8554/136_ExternalCamerasWallaja12",
-    "137_ExternalCamerasWallaja13": "rtsp://183.82.32.232:8554/137_ExternalCamerasWallaja13",
-    "138_ExternalCamerasWallaja14": "rtsp://183.82.32.232:8554/138_ExternalCamerasWallaja14",
-    "139_ExternalCamerasWallaja15": "rtsp://183.82.32.232:8554/139_ExternalCamerasWallaja15",
-    "140_ExternalCamerasWallaja16": "rtsp://183.82.32.232:8554/140_ExternalCamerasWallaja16",
-    "141_ExternalCamerasWallaja17": "rtsp://183.82.32.232:8554/141_ExternalCamerasWallaja17",
-    "142_ExternalCamerasWallaja18": "rtsp://183.82.32.232:8554/142_ExternalCamerasWallaja18",
-    "143_ExternalCamerasWallaja19": "rtsp://183.82.32.232:8554/143_ExternalCamerasWallaja19",
-    "144_ExternalCamerasWallaja20": "rtsp://183.82.32.232:8554/144_ExternalCamerasWallaja20",
-    "145_ExternalCamerasWallaja21": "rtsp://183.82.32.232:8554/145_ExternalCamerasWallaja21",
-    "146_ExternalCamerasWallaja22": "rtsp://183.82.32.232:8554/146_ExternalCamerasWallaja22",
-    "147_ExternalCamerasWallaja23": "rtsp://183.82.32.232:8554/147_ExternalCamerasWallaja23",
-    "148_ExternalCamerasWallaja24": "rtsp://183.82.32.232:8554/148_ExternalCamerasWallaja24",
-    "149_ExternalCamerasWallaja25": "rtsp://183.82.32.232:8554/149_ExternalCamerasWallaja25",
-    "150_ExternalCamerasWallaja26": "rtsp://183.82.32.232:8554/150_ExternalCamerasWallaja26",
-    "151_ExternalCamerasWallaja27": "rtsp://183.82.32.232:8554/151_ExternalCamerasWallaja27",
-    "152_ExternalCamerasWallaja28": "rtsp://183.82.32.232:8554/152_ExternalCamerasWallaja28",
-    "153_ExternalCamerasWallaja29": "rtsp://183.82.32.232:8554/153_ExternalCamerasWallaja29",
-    "154_ExternalCamerasWallaja30": "rtsp://183.82.32.232:8554/154_ExternalCamerasWallaja30",
-    "155_ExternalCamerasWallaja31": "rtsp://183.82.32.232:8554/155_ExternalCamerasWallaja31",
-    "156_ExternalCamerasWallaja32": "rtsp://183.82.32.232:8554/156_ExternalCamerasWallaja32"
-};
+	// Camera configuration - will be fetched from API
+	let cameraConfig = {};
 
+	// Default endpoint if env variable is not set
+	const runpodEndpoint = PUBLIC_RUNPOD_ENDPOINT || "https://29eu3i0mi1l4hg-8086.proxy.runpod.net";
+	
 	// Default IP address
-	let ipAddress = "localhost:8090";
+	let ipAddress = runpodEndpoint;
 	
 	// Search filter
 	let searchQuery = "";
@@ -56,7 +27,26 @@
 	// Update timestamp every 10 seconds to refresh images
 	let refreshInterval: ReturnType<typeof setInterval>;
 	
-	onMount(() => {
+	// Fetch camera configuration from API
+	async function fetchCameraConfig() {
+		try {
+			console.log(`${runpodEndpoint}/crowd-hotspot/config`);
+			const response = await fetch(`${runpodEndpoint}/crowd-hotspot/config`);
+			if (response.ok) {
+				cameraConfig = await response.json();
+				console.log(cameraConfig);
+			} else {
+				console.error('Failed to fetch camera configuration:', response.status);
+			}
+		} catch (error) {
+			console.error('Error fetching camera configuration:', error);
+		}
+	}
+	
+	onMount(async () => {
+		// Fetch camera configuration on initial load
+		await fetchCameraConfig();
+		
 		refreshInterval = setInterval(() => {
 			isUpdating = true;
 			timestamp = Date.now();
@@ -75,7 +65,7 @@
 	// Generate image URLs based on IP address and camera names with timestamp for cache busting
 	$: allImages = Object.keys(cameraConfig).map(cameraName => ({
 		name: cameraName,
-		url: `http://${ipAddress}/crowd_hotspot/${cameraName}.jpg?t=${timestamp}`
+		url: `https://29eu3i0mi1l4hg-8090.proxy.runpod.net/ipl-gate-monitor/data/crowd_hotspot/${cameraName}.jpg`
 	}));
 	
 	// Filter images based on search query
@@ -86,6 +76,7 @@
 
 <div class="container mx-auto p-4">
 	<div class="flex flex-col md:flex-row gap-4 mb-4">
+		{#if ipAddress === ""}
 		<div class="flex-1">
 			<label for="ipAddress" class="block text-sm font-medium text-gray-700 mb-1">IP Address:</label>
 			<input 
@@ -95,6 +86,7 @@
 				class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm"
 			/>
 		</div>
+		{/if}
 		<div class="flex-1">
 			<label for="searchFilter" class="block text-sm font-medium text-gray-700 mb-1">Search Camera:</label>
 			<input 

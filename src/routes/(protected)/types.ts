@@ -112,3 +112,18 @@ export type AttendanceData = {
 	team1: number[];
 	team2: number[];
 };
+
+export type LoiteringData = {
+	id: number;
+	cameraId: string | null;
+	status: string | null;
+	updatedAt: string | null;
+	eventId: string;
+	zone: string | null;
+	label: string | null;
+	timestampEntry: string;
+	timestampExit: string | null;
+	durationSeconds: number | null;
+	clipFilename: string | null;
+	insertedAt: string | null;
+}

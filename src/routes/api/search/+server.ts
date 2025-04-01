@@ -7,6 +7,7 @@ import { z } from 'zod';
 const frigateUrls = frigateInstances.map((el) => el.url);
 
 const searchSchema = z.object({
+	query: z.string(),
 	limit: z.number().int().positive().optional().default(25),
 	cameras: z.string().array().optional(), // Changed from comma separated string to array of strings
 	labels: z.string().array().optional(),
@@ -45,6 +46,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// --- Build the query string ---
 		const queryStringParams = new URLSearchParams();
+		queryStringParams.set("query", parsedBody.query);
 		if (parsedBody.limit !== undefined) {
 			queryStringParams.set('limit', parsedBody.limit.toString());
 		}

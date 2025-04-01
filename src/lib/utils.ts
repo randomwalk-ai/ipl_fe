@@ -74,9 +74,5 @@ export function timeAgo(utcDateString: string | Date | null | undefined): string
 }
 
 export const frigateInstances = [
-	{ name: 'Stands Entry/Exit', url: 'http://162.243.108.233:5010' },
-	{ name: 'Galleries', url: 'http://162.243.56.128:5010' },
-	{ name: 'Concourse/Food Stalls', url: 'http://162.243.67.187:5010' },
-	{ name: 'Stadium Entry/Exit', url: 'http://192.241.245.244:5010' },
-	{ name: 'Wallaja Road Cameras', url: 'http://107.170.16.44:5010' }
+	{ name: 'Stands Entry/Exit', url: 'http://localhost:5020' },
 ]

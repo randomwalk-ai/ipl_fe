@@ -15,6 +15,7 @@
 	} from '@internationalized/date';
 	import type { CameraType } from '../types.js';
 	import { Loader2 } from '@lucide/svelte';
+	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 
 	// --- Data from load function ---
 	let { data } = $props();
@@ -112,17 +113,24 @@
 			searchError = err.message || 'An unexpected error occurred.';
 		} finally {
 			isLoading = false;
+      console.log("Set isloadin to falaw")
 		}
 	}
 </script>
 
-<div class="container mx-auto h-full p-4">
+<ScrollArea class="h-full p-4">
 	<h1 class="mb-6 text-2xl font-bold text-white">Frigate Event Search</h1>
 
 	<!-- Search Form -->
 	<div class="mb-8">
-		<div class="mb-4 flex flex-col gap-4 md:flex-row">
-			<div class="flex-grow">
+		<form
+			class="mb-4 flex flex-col gap-4 md:flex-row"
+			onsubmit={(e) => {
+				e.preventDefault();
+				performSearch();
+			}}
+		>
+			<div class="flex-grow px-1">
 				<label for="query" class="sr-only">Search Query</label>
 				<input
 					id="query"
@@ -134,10 +142,9 @@
 			</div>
 			<div>
 				<button
-					type="button"
-					class="w-full rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 md:w-auto flex items-center justify-center gap-1"
+					type="submit"
+					class="flex w-full items-center justify-center gap-1 rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 md:w-auto"
 					disabled={isLoading}
-					onclick={performSearch}
 				>
 					{#if isLoading}
 						<span class="mr-2 inline-block animate-spin">
@@ -148,7 +155,7 @@
 					{/if}
 				</button>
 			</div>
-		</div>
+		</form>
 
 		<!-- Search Options -->
 		<div class="grid grid-cols-1 items-end gap-x-4 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -283,7 +290,7 @@
 	{#if searchResults?.length > 0}
 		<h2 class="mb-4 text-xl font-semibold text-white">Results ({searchResults.length})</h2>
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-			{#each searchResults as result (result.id)}
+			{#each searchResults as result}
 				<!-- Same result display structure as before -->
 				<div
 					class="overflow-hidden rounded-lg bg-gray-800 shadow-lg transition-shadow hover:shadow-xl"
@@ -333,4 +340,4 @@
 			No results found. Try adjusting the filters.
 		</div>
 	{/if}
-</div>
+</ScrollArea>

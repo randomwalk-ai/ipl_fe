@@ -14,6 +14,7 @@
 		today
 	} from '@internationalized/date';
 	import type { CameraType } from '../types.js';
+	import { Loader2 } from '@lucide/svelte';
 
 	// --- Data from load function ---
 	let { data } = $props();
@@ -48,8 +49,12 @@
 	});
 
 	// --- Derived State (Calculated from other states) ---
-	let afterTimestamp = $derived(dateRange.start ? new Date(dateRange.start.toString()).getTime() : undefined);
-	let beforeTimestamp = $derived(dateRange.end ? new Date(dateRange.end.toString()).getTime() : undefined);
+	let afterTimestamp = $derived(
+		dateRange.start ? new Date(dateRange.start.toString()).getTime() : undefined
+	);
+	let beforeTimestamp = $derived(
+		dateRange.end ? new Date(dateRange.end.toString()).getTime() : undefined
+	);
 	$inspect('Daterange: ', dateRange, beforeTimestamp, afterTimestamp);
 
 	// --- Helper ---
@@ -87,7 +92,7 @@
 					query,
 					labels: selectedLabels,
 					limit,
-					cameras: cameras.map((el)=>`${el.id}_${el.name}`),
+					cameras: cameras.map((el) => `${el.id}_${el.name}`),
 					after: afterTimestamp,
 					before: beforeTimestamp,
 					include_thumbnails: 1 // Always include thumbnails
@@ -130,12 +135,14 @@
 			<div>
 				<button
 					type="button"
-					class="w-full rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 md:w-auto"
+					class="w-full rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 md:w-auto flex items-center justify-center gap-1"
 					disabled={isLoading}
 					onclick={performSearch}
 				>
 					{#if isLoading}
-						<span class="mr-2 inline-block animate-spin">⟳</span>Searching...
+						<span class="mr-2 inline-block animate-spin">
+							<Loader2 />
+						</span>Searching...
 					{:else}
 						Search
 					{/if}
@@ -144,7 +151,7 @@
 		</div>
 
 		<!-- Search Options -->
-		<div class="grid grid-cols-1 items-end gap-x-4 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+		<div class="grid grid-cols-1 items-end gap-x-4 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
 			<!-- Date Range Picker -->
 			<div class="pt-1">
 				<!-- svelte-ignore a11y_label_has_associated_control -->

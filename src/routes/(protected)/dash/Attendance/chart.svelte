@@ -20,7 +20,7 @@
 				maintainAspectRatio: false,
 				backgroundColor: 'transparent',
 				// Updated default colors.  These are overridden by the series-specific colors below.
-				color: ['#39FF14', '#FFFF3C', '#004B8D'], // Gray/Green, Yellow, Blue
+				color: ['#39FF14', '#FFFF3C', '#f53022'], // Gray/Green, Yellow, Blue
 				tooltip: {
 					trigger: 'axis',
 					backgroundColor: $mode === 'dark' ? '#1e293b' : '#ffffff',

@@ -36,7 +36,7 @@ export function parseUtcToIstTime(utcString: string): string {
 }
 
 // add 5.5 hours to convert UTC to IST
-export function addHoursToDate(date: string){
+export function addHoursToDate(date: string) {
 	try {
 		let utcDate = dayjs.utc(date);
 
@@ -72,3 +72,11 @@ export function timeAgo(utcDateString: string | Date | null | undefined): string
 		return 'Invalid date';
 	}
 }
+
+export const frigateBaseUrls = {
+	'Stands Entry/Exit': { url: 'http://162.243.108.233:5010' },
+	Galleries: { url: 'http://162.243.56.128:5010' },
+	'Concourse/Food Stalls': { url: 'http://162.243.67.187:5010' },
+	'Stadium Entry/Exit': { url: 'http://192.241.245.244:5010' },
+	'Wallaja Road Cameras': { url: 'http://107.170.16.44:5010' }
+};

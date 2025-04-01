@@ -36,21 +36,21 @@
 				<TableRow>
 					<TableHead class="w-[100px]">Camera ID</TableHead>
 					<TableHead class="min-w-[100px] text-right">Camera Name</TableHead>
-					<TableHead class="min-w-[100px] text-right">Blue Jersey</TableHead>
-					<TableHead class="min-w-[100px] text-right">Yellow Jersey</TableHead>
-					<TableHead class="min-w-[100px] text-right">Other Jersey</TableHead>
+					<TableHead class="min-w-[100px] text-right">RCB</TableHead>
+					<TableHead class="min-w-[100px] text-right">CSK</TableHead>
+					<TableHead class="min-w-[100px] text-right">Other</TableHead>
 					<TableHead class="min-w-[100px] text-right">Total Count</TableHead>
 				</TableRow>
 			</TableHeader>
 			<TableBody>
 				{#each latestData as camera (camera.camera_id)}
 					<TableRow>
-						<TableCell class="font-medium">
+						<!-- <TableCell class="font-medium">
 							<div class="flex items-center gap-2">
 								<CameraIcon class="h-4 w-4" />
 								{camera.camera_id}
 							</div>
-						</TableCell>
+						</TableCell> -->
 						<TableCell class="text-right">{camera.camera_name}</TableCell>
 						<TableCell class="text-right">{formatNumber(camera.max_jersey_blue)}</TableCell>
 						<TableCell class="text-right">{formatNumber(camera.max_jersey_yellow)}</TableCell>

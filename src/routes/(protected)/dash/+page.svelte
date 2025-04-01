@@ -51,8 +51,8 @@
 					count: data.alertNotifsCount
 				},
 				cameras: {
-					active: data.activeCamCount,
-					total: 326
+					active: 164,
+					total: 344
 				},
 				teams: {
 					team1: {
@@ -67,7 +67,7 @@
 					},
 					team2: {
 						name: 'RCB',
-						color: '#004B8D', // Blue
+						color: 'red', // Blue
 						fans: (data.attData.attendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue,
 						prevFans: (data.attData.oldAttendanceData.at(-1) ?? { totalJerseyBlue: 0 })
 							.totalJerseyBlue,

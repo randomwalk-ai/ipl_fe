@@ -50,14 +50,14 @@ export const analytics = pgTable('analytics', {
 	additionalMetrics: json('additional_metrics')
 });
 
-export const alerts = pgTable("alerts", {
+export const alerts = pgTable('alerts', {
 	id: varchar({ length: 50 }).primaryKey().notNull(),
 	query: text().notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).notNull(),
+	createdAt: timestamp('created_at', { mode: 'string' }).notNull(),
 	results: jsonb().default([]),
-	intervalSeconds: integer("interval_seconds"),
-	cameras: text().array().default([""]),
-	status: varchar(),
+	intervalSeconds: integer('interval_seconds'),
+	cameras: text().array().default(['']),
+	status: varchar()
 });
 
 export const alertNotifications = pgTable('alert_notifications', {
@@ -128,22 +128,33 @@ export const verification = pgTable('verification', {
 	updatedAt: timestamp('updated_at')
 });
 
-export const loiteringLog = pgTable("loitering_log", {
-	id: serial().primaryKey().notNull(),
-	eventId: varchar("event_id", { length: 50 }).notNull(),
-	cameraId: varchar("camera_id", { length: 50 }),
-	zone: varchar({ length: 50 }),
-	label: varchar({ length: 50 }),
-	timestampEntry: timestamp("timestamp_entry", { withTimezone: true, mode: 'string' }).notNull(),
-	timestampExit: timestamp("timestamp_exit", { withTimezone: true, mode: 'string' }),
-	durationSeconds: doublePrecision("duration_seconds"),
-	clipFilename: varchar("clip_filename", { length: 255 }),
-	status: varchar({ length: 15 }).default('active'),
-	insertedAt: timestamp("inserted_at", { withTimezone: true, mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
-}, (table) => [
-	index("idx_loitering_log_object_id_status").using("btree", table.eventId.asc().nullsLast().op("text_ops"), table.status.asc().nullsLast().op("text_ops")),
-	index("idx_loitering_log_status").using("btree", table.status.asc().nullsLast().op("text_ops")),
-	index("idx_loitering_log_timestamp_entry").using("btree", table.timestampEntry.asc().nullsLast().op("timestamptz_ops")),
-]);
-
+export const loiteringLog = pgTable(
+	'loitering_log',
+	{
+		id: serial().primaryKey().notNull(),
+		eventId: varchar('event_id', { length: 50 }).notNull(),
+		cameraId: varchar('camera_id', { length: 50 }),
+		zone: varchar({ length: 50 }),
+		label: varchar({ length: 50 }),
+		timestampEntry: timestamp('timestamp_entry', { withTimezone: true, mode: 'string' }).notNull(),
+		timestampExit: timestamp('timestamp_exit', { withTimezone: true, mode: 'string' }),
+		durationSeconds: doublePrecision('duration_seconds'),
+		clipFilename: varchar('clip_filename', { length: 255 }),
+		snapshotFilename: varchar('snapshot_filename', { length: 255 }),
+		status: varchar({ length: 15 }).default('active'),
+		insertedAt: timestamp('inserted_at', { withTimezone: true, mode: 'string' }).defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+	},
+	(table) => [
+		index('idx_loitering_log_object_id_status').using(
+			'btree',
+			table.eventId.asc().nullsLast().op('text_ops'),
+			table.status.asc().nullsLast().op('text_ops')
+		),
+		index('idx_loitering_log_status').using('btree', table.status.asc().nullsLast().op('text_ops')),
+		index('idx_loitering_log_timestamp_entry').using(
+			'btree',
+			table.timestampEntry.asc().nullsLast().op('timestamptz_ops')
+		)
+	]
+);

@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ fetch }) => {
 export const POST: RequestHandler = async ({ request, fetch }) => {
 	try {
 		const alertData = await request.json();
-
+		console.log(alertData);
 		// Validate the request body
 		if (!alertData.query) {
 			return json({ error: 'Query is required' }, { status: 400 });

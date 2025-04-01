@@ -17,6 +17,7 @@
 		type: 'alert' | 'anomaly' | 'loitering';
 		redirect_url?: string; // URL for alert iframe
 		media_url?: string; // Relative path for anomaly/loitering video
+		snapshot_filename?: string; // Relative path for loitering snapshot
 		cameraName?: string; // Optional camera name display
 	}
 
@@ -56,8 +57,9 @@
 			media_url: item.filePath, // Store the relative path
 			cameraName: item.camera?.name
 		}));
-
+		console.log(loitering)
 		const mappedLoitering: CombinedAlertItem[] = (loitering ?? []).map((item) => ({
+			
 			id: `loitering-${item.id}`, // Prefix ID
 			query: item.label || 'Loitering Detected',
 			time: item.timestampEntry, // Use entry time as the event time
@@ -65,6 +67,7 @@
 			type: 'loitering',
 			redirect_url: undefined,
 			media_url: item.clipFilename || undefined, // Store relative path if available
+			snapshot_filename: item.snapshotFilename || undefined,
 			cameraName: item.cameraId!
 		}));
 
@@ -86,32 +89,39 @@
 
 	// Function to open the appropriate modal
 	function openModal(item: CombinedAlertItem) {
+		// console.log(item);
 		if (item.type === 'alert' && item.redirect_url) {
 			selectedAlertUrl = item.redirect_url;
 			selectedAlertTitle = item.query || 'Alert Details';
 			showAlertModal = true;
-		} else if ((item.type === 'anomaly' || item.type === 'loitering') && item.media_url) {
+		} else if ((item.type === 'anomaly' || item.type === 'loitering') && item.snapshot_filename) {
 			// Construct the full media URL here
 			// The slice(6) was specific to the previous anomaly path structure, adjust if needed for both types
 			// If media_url is already absolute or needs different prefixing, change this logic.
 			// Assuming relative path like '/media/...' for both
 			let fullUrl = '';
-			if (item.media_url.startsWith('/media/')) {
+			if (item.snapshot_filename.startsWith('/media/')) {
 				// Example adjustment based on common patterns
-				fullUrl = MEDIA_BASE_URL + item.media_url.slice(6); // Adjust slice index if prefix changes
+				fullUrl = MEDIA_BASE_URL + item.snapshot_filename.slice(6); // Adjust slice index if prefix changes
 			} else {
 				// Fallback or different logic if path is different
 				fullUrl = MEDIA_BASE_URL + item.media_url;
 			}
 			if (item.type === 'loitering') {
-				fullUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_clips/"+item.media_url;
+				// fullUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_clips/"+item.media_url;
+				fullUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_snapshots/"+item.snapshot_filename;
+
 			}
 
 			selectedMediaUrl = fullUrl;
 			selectedMediaTitle =
 				item.query || (item.type === 'anomaly' ? 'Anomaly Details' : 'Loitering Details');
 			showMediaModal = true;
-		} else {
+		} else if (item.type === 'loitering' && !item.media_url) {
+			selectedMediaUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_snapshots/"+item.snapshot_filename;
+
+		} 
+		 else {
 			console.warn('No suitable URL found for item:', item);
 			// Optionally show a feedback message to the user
 		}
@@ -254,12 +264,14 @@
 	<div class="flex h-full w-full items-center justify-center bg-black">
 		{#if selectedMediaUrl}
 			<!-- svelte-ignore a11y_media_has_caption -->
-			<video controls autoplay class="max-h-full max-w-full">
+			<!-- <video controls autoplay class="max-h-full max-w-full">
 				<source src={selectedMediaUrl} type="video/mp4" />
 				Your browser does not support the video tag. Try downloading the video.
 				<br />
 				<a href={selectedMediaUrl} download class="text-blue-400 hover:underline">Download Video</a>
-			</video>
+			</video> -->
+			<!-- Show image -->
+			<img src={selectedMediaUrl} alt="Loitering Snapshot" class="max-h-full max-w-full" />
 		{:else}
 			<p class="p-4 text-center text-white">No video available for this event.</p>
 		{/if}

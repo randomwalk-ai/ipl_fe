@@ -39,6 +39,9 @@ importers:
         specifier: ^3.24.2
         version: 3.24.2
     devDependencies:
+      '@internationalized/date':
+        specifier: ^3.7.0
+        version: 3.7.0
       '@lucide/svelte':
         specifier: ^0.483.0
         version: 0.483.0(svelte@5.23.2)

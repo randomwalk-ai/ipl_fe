@@ -127,3 +127,29 @@ export type LoiteringData = {
 	clipFilename: string | null;
 	insertedAt: string | null;
 }
+
+export interface FrigateEvent {
+	id: string;
+	camera: string;
+	start_time: number; // Unix timestamp (float)
+	end_time: number | null;
+	label: string;
+	zones: string[];
+	thumbnail: string; // Base64 encoded string or path depending on include_thumbnails
+	has_clip: boolean;
+	has_snapshot: boolean;
+	score?: number; // Optional score field
+	sub_label?: string | null; // Optional sub_label
+	sourceInstance?: string | null;
+	// Add any other relevant fields you expect
+	[key: string]: any; // Allow for other potential fields
+}
+
+export type FrigateSearchResponse = FrigateEvent[];
+
+export type CameraType = {
+	id: number,
+	name: string,
+	category: string,
+	url: string
+}

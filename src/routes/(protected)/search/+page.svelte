@@ -48,8 +48,8 @@
 	});
 
 	// --- Derived State (Calculated from other states) ---
-	let afterTimestamp = $derived(dateRange.start ? dateRange.start.toString() : undefined);
-	let beforeTimestamp = $derived(dateRange.end ? dateRange.end.toString() : undefined);
+	let afterTimestamp = $derived(dateRange.start ? new Date(dateRange.start.toString()).getTime() : undefined);
+	let beforeTimestamp = $derived(dateRange.end ? new Date(dateRange.end.toString()).getTime() : undefined);
 	$inspect('Daterange: ', dateRange, beforeTimestamp, afterTimestamp);
 
 	// --- Helper ---

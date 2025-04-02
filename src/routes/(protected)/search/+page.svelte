@@ -479,7 +479,7 @@
 										<div
 											class="absolute bottom-0 left-0 bg-black/60 px-1.5 py-0.5 text-xs text-blue-300 backdrop-blur-sm"
 										>
-											Score: {result.data.top_score.toFixed(3)}
+											Score: {Math.round(result.data.top_score*100)} %
 										</div>
 									{/if}
 								</div>

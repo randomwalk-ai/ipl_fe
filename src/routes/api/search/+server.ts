@@ -98,10 +98,12 @@ export const POST: RequestHandler = async ({ request }) => {
 				});
 			}
 			if (parsedBody.before !== undefined) {
-				queryStringParams.set('before', Math.floor(parsedBody.before / 1000).toString()); // Convert ms to s
+				// Use the value directly, it's already in seconds from the frontend
+				queryStringParams.set('before', parsedBody.before.toString());
 			}
 			if (parsedBody.after !== undefined) {
-				queryStringParams.set('after', Math.floor(parsedBody.after / 1000).toString()); // Convert ms to s
+				// Use the value directly, it's already in seconds from the frontend
+				queryStringParams.set('after', parsedBody.after.toString());
 			}
 			if (parsedBody.stationary !== undefined) {
 				queryStringParams.set('stationary', parsedBody.stationary ? '1' : '0'); // Frigate expects 1 or 0
@@ -162,7 +164,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 					const data: FrigateSearchResponse = await response.json();
 					// Add instance identifier
-					return data.map(event => ({ ...event, sourceInstance: baseUrl })) as FrigateEvent[];
+					return data.map(event => ({ ...event, source_instance: baseUrl })) as FrigateEvent[];
 
 				} catch (err: any) {
 					console.error(`Network or parsing error fetching from ${baseUrl}: ${err.message}`);

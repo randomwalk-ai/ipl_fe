@@ -150,6 +150,7 @@ export interface FrigateEvent {
 	data: FrigateEventData
 	search_distance: number
 	search_source: string
+	source_instance: string
 	// Add any other relevant fields you expect
 	[key: string]: any; // Allow for other potential fields
 }

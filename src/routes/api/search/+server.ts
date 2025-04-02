@@ -77,7 +77,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			console.log('Building STANDARD search query');
 			// Only add 'query' if it's present and not empty
 			if (parsedBody.query && parsedBody.query.trim() !== '') {
-			    queryStringParams.set("query", parsedBody.query);
+				queryStringParams.set("query", parsedBody.query);
 			}
 			if (parsedBody.limit !== undefined) {
 				queryStringParams.set('limit', parsedBody.limit.toString());
@@ -110,7 +110,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 			// Frontend uses hasSnapshot, but Frigate API uses has_snapshot
 			if (parsedBody.hasSnapshot !== undefined) {
-                // Correct parameter name for Frigate API
+				// Correct parameter name for Frigate API
 				queryStringParams.set('has_snapshot', parsedBody.hasSnapshot ? '1' : '0'); // Frigate expects 1 or 0
 			}
 			if (parsedBody.type !== undefined) {
@@ -130,7 +130,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			// Always include thumbnails based on request for standard search too
 			queryStringParams.set('include_thumbnails', includeThumbnails.toString());
 
-            // Timezone might be useful for Frigate even in standard searches, keep it if sent
+			// Timezone might be useful for Frigate even in standard searches, keep it if sent
 			if (parsedBody.timezone) {
 				queryStringParams.set('timezone', parsedBody.timezone);
 			}
@@ -181,11 +181,22 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			console.log(`Fetched a total of ${allEvents.length} events before sorting and limiting.`);
 
-			// --- Sort aggregated results (most recent first) ---
 			const sortedEvents = allEvents.sort((a, b) => (b.start_time ?? 0) - (a.start_time ?? 0));
-
-			// --- Apply final limit ---
-			const limitedEvents = sortedEvents.slice(0, finalLimit);
+			// --- FILTERING WORKAROUND: Ensure unique event IDs ---
+			const uniqueEvents: FrigateEvent[] = [];
+			const seenIds = new Set<string>();
+			for (const event of sortedEvents) {
+				// Check if we've already added an event with this ID
+				if (!seenIds.has(event.id)) {
+					uniqueEvents.push(event); // Add it if it's the first time seeing this ID
+					seenIds.add(event.id);    // Mark this ID as seen
+				} else {
+					// Optional: Log that you are skipping a duplicate
+					// console.log(`Skipping duplicate event ID ${event.id} received from Frigate.`);
+				}
+			}
+			// --- END FILTERING WORKAROUND ---
+			const limitedEvents = uniqueEvents.slice(0, finalLimit);
 
 			console.log(`Returning ${limitedEvents.length} events after sorting and limiting.`);
 			return json(limitedEvents);
@@ -199,7 +210,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			throw error(500, 'Failed to perform aggregated search.');
 		}
 	} catch (err: any) {
-        // ... (keep existing Zod/general error handling) ...
+		// ... (keep existing Zod/general error handling) ...
 		if (err instanceof z.ZodError) {
 			console.error('Zod validation error:', err.errors);
 			return json({ message: 'Invalid request body', errors: err.errors }, { status: 400 });

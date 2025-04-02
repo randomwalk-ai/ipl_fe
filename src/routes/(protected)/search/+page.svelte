@@ -343,7 +343,7 @@
 					disabled={similaritySearchActive || isLoading}
 				>
 					<Select.Trigger class={cn(similaritySearchActive && 'cursor-not-allowed opacity-50')}>
-						{#if selectedLabels.length > 0}{selectedLabels.join(', ')}{:else}Any Label{/if}
+						{#if cameras.length > 0}{cameras.map((el)=>el.name).join(', ')}{:else}Any Camera{/if}
 					</Select.Trigger>
 					<Select.Content class="border-gray-700 bg-gray-800 text-gray-200">
 						{#each data.cameras as camera (camera.id)}

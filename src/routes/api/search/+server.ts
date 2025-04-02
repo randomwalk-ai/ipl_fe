@@ -181,7 +181,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			console.log(`Fetched a total of ${allEvents.length} events before sorting and limiting.`);
 
-			const sortedEvents = allEvents.sort((a, b) => (b.start_time ?? 0) - (a.start_time ?? 0));
+			const sortedEvents = allEvents.sort((a, b) => (b.start_time ?? 0) - (a.start_time ?? 0)).sort((a, b) => b.data.top_score - a.data.top_score)
 			// --- FILTERING WORKAROUND: Ensure unique event IDs ---
 			const uniqueEvents: FrigateEvent[] = [];
 			const seenIds = new Set<string>();

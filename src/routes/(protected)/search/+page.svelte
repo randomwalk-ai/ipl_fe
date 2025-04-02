@@ -6,7 +6,7 @@
 	import { RangeCalendar } from '$lib/components/ui/range-calendar';
 	import * as Popover from '$lib/components/ui/popover';
 	import { buttonVariants } from '$lib/components/ui/button';
-	import { cn } from '$lib/utils.js';
+	import { cn, frigateInstances } from '$lib/utils.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import {
 		CalendarDate,
@@ -507,7 +507,7 @@
 									{#if result.source_instance}
 										<p class="truncate text-xs text-gray-500" title={result.source_instance}>
 											<span class="font-medium">Src:</span>
-											{result.source_instance}
+											{frigateInstances.find((el)=>el.url===result.source_instance)?.name}
 										</p>
 									{/if}
 									<div class="pt-1 text-xs text-gray-400">

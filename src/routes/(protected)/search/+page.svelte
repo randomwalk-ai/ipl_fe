@@ -207,7 +207,7 @@
 	}
 </script>
 
-<ScrollArea class="h-full p-4 text-gray-200 overflow-x-visible">
+<ScrollArea class="h-full overflow-x-visible p-4 text-gray-200">
 	<h1 class="mb-6 text-2xl font-bold text-white">Frigate Event Search</h1>
 
 	<!-- Search Form -->
@@ -245,9 +245,10 @@
 					disabled={isLoading || similaritySearchActive}
 				>
 					{#if isLoading && !similaritySearchActive}
-						<span class="mr-2 inline-block size-4 animate-spin">
+						<div class="animate-spin">
 							<Loader2 />
-						</span>Searching...
+						</div>
+						<div>Searching...</div>
 					{:else}
 						<SearchIcon class="mr-1 size-4" /> Search
 					{/if}
@@ -429,7 +430,7 @@
 			({searchResults.length})
 		</h2>
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-			{#each searchResults as result (result.id)}
+			{#each searchResults as result}
 				{@const baseUrl = normalizeBaseUrl(result.source_instance)}
 				{@const snapshotUrl =
 					baseUrl && result.has_snapshot ? `${baseUrl}/api/events/${result.id}/snapshot.jpg` : null}
@@ -519,43 +520,6 @@
 							</div>
 						{/snippet}
 					</Dialog.Trigger>
-
-					<!-- DIALOG CONTENT - Updated -->
-					<script>
-						// Dummy data and functions for context (replace with your actual imports/logic)
-						let result = {
-							id: 'long_event_id_string_that_might_overflow_its_container_1234567890abcdef',
-							label: 'Person Detected',
-							camera: 'Front Door Cam',
-							has_snapshot: true,
-							has_clip: true,
-							source_instance: 'frigate_instance_long_name_that_could_also_be_quite_long',
-							start_time: 1678886400,
-							end_time: 1678886460,
-							zones: [
-								'driveway_zone_area_with_a_long_name',
-								'pathway',
-								'porch',
-								'another_very_long_zone_name_just_for_testing_overflow'
-							],
-							top_score: 0.987654321,
-							search_distance: 0.123456789,
-							plus_id: 'plus_id_another_potentially_very_long_identifier_string_abcdef123456',
-							sub_label: 'Verified Match'
-						};
-						let snapshotUrl = '/api/your-snapshot-url'; // Example URL
-						let clipUrl = '/api/your-clip-url'; // Example URL
-						let baseUrl = '/api/'; // Example
-
-						function formatTimestamp(timestamp) {
-							if (!timestamp) return 'N/A';
-							return new Date(timestamp * 1000).toLocaleString();
-						}
-
-						// Assuming Dialog and Tabs are imported correctly from your library (e.g., Shadcn/ui-svelte or similar)
-						import * as Dialog from '$lib/components/ui/dialog'; // Adjust path as needed
-						import * as Tabs from '$lib/components/ui/tabs'; // Adjust path as needed
-					</script>
 
 					<Dialog.Content class="max-w-3xl border-gray-700 bg-background text-gray-200">
 						<Dialog.Header>

@@ -98,7 +98,11 @@
 							></div>
 						{/if}
 						<CardHeader class="p-2">
-							<CardTitle class="text-sm">{label} - {data.players[input].stats.count}</CardTitle>
+							<CardTitle class="text-sm">{label}</CardTitle>
+							<!-- Circle with gray bg to put number  {data.players[input].stats.count} on the top right of the card -->
+							<div class="absolute top-0 right-2 rounded-full bg-[#1F2736] p-2 text-[8pt] text-gray-100 h-5 w-5 flex items-center justify-center">
+								{data.players[input].stats.count}
+							</div>
 						</CardHeader>
 
 						<CardContent class="flex-grow overflow-hidden p-0">

@@ -86,17 +86,17 @@ export const frigateInstances = [{ name: 'Stands Entry/Exit', url: 'http://local
 export const ipl_players_lookup: {
 	[key: string]: string;
 } = {
-	Ashwin: 'Ravi Ashwin',
-	Conway: 'Devon Conway',
-	Curran: 'Sam Curran',
-	Dhoni: 'MS Dhoni',
-	Dube: 'Shivam Dube',
-	Hooda: 'Deepak Hooda',
-	Jadeja: 'Ravindra Jadeja',
-	Khaleel: 'Khaleel Ahmed',
-	Noor: 'Noor Ahmad',
-	Pathirana: 'Matheesha Pathirana',
-	Rachin: 'Rachin Ravindra',
-	Rahul: 'Rahul Tripathi',
-	Ruturaj: 'Ruturaj Gaikwad'
+	"csk ashwin": 'Ravi Ashwin',
+	"csk conway": 'Devon Conway',
+	"csk curran": 'Sam Curran',
+	"csk dhoni": 'MS Dhoni',
+	"csk dube": 'Shivam Dube',
+	"csk hooda": 'Deepak Hooda',
+	"csk jadeja": 'Ravindra Jadeja',
+	"csk khaleel": 'Khaleel Ahmed',
+	"noor csk": 'Noor Ahmad',
+	"csk pathirana": 'Matheesha Pathirana',
+	"csk rachin ravindra": 'Rachin Ravindra',
+	"rahul tripathi": 'Rahul Tripathi',
+	"csk ruturaj gaikwad": 'Ruturaj Gaikwad'
 };

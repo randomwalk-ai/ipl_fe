@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { alertNotifications, anomaly, loiteringLog } from '$lib/server/db/schema';
-import { desc } from 'drizzle-orm';
+import { desc, gt, sql } from 'drizzle-orm';
 
 export const GET: RequestHandler = async () => {
 	try {
@@ -25,9 +25,16 @@ export const GET: RequestHandler = async () => {
 		});
 		const res3 = await db.query.loiteringLog.findMany({
 			orderBy: desc(loiteringLog.insertedAt),
-			limit: 200
+			limit: 200,
+			where: gt(loiteringLog.durationSeconds, 120)
 		});
-		// console.log('Raw alerts data:', res);
+		// const res3 = await db.execute(sql`
+		// 	SELECT * FROM loitering_log
+		// 	where duration_seconds > 120
+		// 	ORDER BY inserted_at DESC
+		// 	LIMIT 200;
+		// `);
+		console.log('Raw alerts data:', res3);
 		// console.log(JSON.stringify(res[0], null, 2));
 		return json({
 			alertsData: res,

@@ -67,7 +67,7 @@
 
 	let perPlayerTweetObj = $derived.by(() => {
 		return players.map((player) => {
-			const playerTweets = data.tweets.filter((tweet) => {
+			const playerTweets = data.tweets.filter((e)=>e.category==='player').filter((tweet) => {
 				return tweet.input
 					.split(' csk ')
 					.join('')

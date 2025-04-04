@@ -19,6 +19,7 @@
         "db:studio": "drizzle-kit studio"
     },
     "devDependencies": {
+        "@internationalized/date": "^3.7.0",
         "@lucide/svelte": "^0.483.0",
         "@sveltejs/adapter-node": "^5.2.11",
         "@sveltejs/kit": "^2.16.0",

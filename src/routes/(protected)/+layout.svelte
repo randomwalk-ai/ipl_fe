@@ -17,7 +17,7 @@
 		<AppSidebar />
 		<Sidebar.Inset class="flex h-full w-full flex-col overflow-hidden">
 			<Header />
-			<div class="flex flex-1 w-full flex-col gap-2 p-2 pt-0 overflow-hidden">
+			<div class="flex flex-1 w-full flex-col gap-2 p-2 py-0 overflow-hidden">
 				{@render children()}
 			</div>
 		</Sidebar.Inset>

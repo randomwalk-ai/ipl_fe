@@ -80,3 +80,7 @@ export const frigateBaseUrls = {
 	'Stadium Entry/Exit': { url: 'http://192.241.245.244:5010' },
 	'Wallaja Road Cameras': { url: 'http://107.170.16.44:5010' }
 };
+
+export const frigateInstances = [
+	{ name: 'Stands Entry/Exit', url: 'http://localhost:5020' },
+]

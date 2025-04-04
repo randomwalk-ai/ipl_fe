@@ -172,7 +172,7 @@ export const tweets = pgTable("tweets", {
 	pictures: text(),
 	videos: text(),
 	gifs: text(),
-	category: text(),
+	category: text().$type<"ticket" | "player">(),
 	sentiment: text().$type<"positive" | "negative" | "neutral">(),
 	input: text(),
 });

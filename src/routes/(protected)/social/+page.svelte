@@ -35,11 +35,11 @@
 	let { data } = $props();
 	let derivedTweets = $derived.by(() => {
 		if (selectedTab === 'All Mentions') {
-			return data.tweets;
+			return data.latestTweets;
 		} else if (selectedTab === 'Tickets') {
-			return data.tweets.filter((tweet) => tweet.category === 'ticket');
+			return data.latestTweets.filter((tweet) => tweet.category === 'ticket');
 		} else if (selectedTab === 'Players') {
-			return data.tweets.filter((tweet) => tweet.category === 'player');
+			return data.latestTweets.filter((tweet) => tweet.category === 'player');
 		}
 		return [];
 	});
@@ -68,32 +68,30 @@
 			<div class="space-y-4 p-4 text-center">
 				<!-- Total Tweets card -->
 					<h4 class="text-sm font-bold uppercase text-muted-foreground">Total Tweets</h4>
-					<p class="mt-2 text-5xl font-semibold">{derivedTweets.length}</p>			
+					<p class="mt-2 text-3xl font-semibold">
+						{selectedTab === 'All Mentions'
+							? data.totalCount.count
+							: selectedTab === 'Tickets'
+								? data.ticketCount
+								: data.playerCount.count}
+					</p>			
 			</div>
 		</Card>
 		{#if selectedTab !== 'Tickets'}
 		<Card class="flex h-full w-3/4 flex-col bg-[#1F2736] border-none p-4 mr-8">
 			<SentimentBar
-						sentiments={derivedTweets
-							.filter((el) => el.category !== 'ticket')
-							.reduce(
-								(acc, el) => {
-									if (el.sentiment === 'positive') {
-										acc.positive++;
-									} else if (el.sentiment === 'neutral') {
-										acc.neutral++;
-									} else {
-										acc.negative++;
-									}
-									return acc;
-								},
-								{
-									positive: 0,
-									neutral: 0,
-									negative: 0
-								}
-							)}
-					/>
+			sentiments={selectedTab === 'All Mentions'
+				? {
+						positive: data.totalCount.positive,
+						neutral: data.totalCount.neutral - data.ticketCount,
+						negative: data.totalCount.negative
+					}
+				: {
+						positive: data.playerCount.positive,
+						neutral: data.playerCount.neutral,
+						negative: data.playerCount.negative
+					}}
+		/>
 				</Card>
 				{/if}
 	</div>

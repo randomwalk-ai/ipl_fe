@@ -81,6 +81,22 @@ export const frigateBaseUrls = {
 	'Wallaja Road Cameras': { url: 'http://107.170.16.44:5010' }
 };
 
-export const frigateInstances = [
-	{ name: 'Stands Entry/Exit', url: 'http://localhost:5020' },
-]
+export const frigateInstances = [{ name: 'Stands Entry/Exit', url: 'http://localhost:5020' }];
+
+export const ipl_players_lookup: {
+	[key: string]: string;
+} = {
+	Ashwin: 'Ravi Ashwin',
+	Conway: 'Devon Conway',
+	Curran: 'Sam Curran',
+	Dhoni: 'MS Dhoni',
+	Dube: 'Shivam Dube',
+	Hooda: 'Deepak Hooda',
+	Jadeja: 'Ravindra Jadeja',
+	Khaleel: 'Khaleel Ahmed',
+	Noor: 'Noor Ahmad',
+	Pathirana: 'Matheesha Pathirana',
+	Rachin: 'Rachin Ravindra',
+	Rahul: 'Rahul Tripathi',
+	Ruturaj: 'Ruturaj Gaikwad'
+};

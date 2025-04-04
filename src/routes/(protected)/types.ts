@@ -1,43 +1,43 @@
 export type AlertSeverity = 'low' | 'medium' | 'high' | 'info';
 
 interface Results {
-	results: Result[]
-	redirect_url: string
+	results: Result[];
+	redirect_url: string;
 }
 
 interface Result {
-	id: string
-	data: Data
-	label: string
-	zones: any[]
-	camera: string
-	img_url: string
-	plus_id: any
-	end_time: number
-	has_clip: boolean
-	sub_label: any
-	thumbnail: string
-	top_score: any
-	start_time: number
-	thumb_path: string
-	has_snapshot: boolean
-	search_source: string
-	search_distance: number
+	id: string;
+	data: Data;
+	label: string;
+	zones: any[];
+	camera: string;
+	img_url: string;
+	plus_id: any;
+	end_time: number;
+	has_clip: boolean;
+	sub_label: any;
+	thumbnail: string;
+	top_score: any;
+	start_time: number;
+	thumb_path: string;
+	has_snapshot: boolean;
+	search_source: string;
+	search_distance: number;
 }
 
 interface Data {
-	type: string
-	score: number
-	top_score: number,
-	description?: string
+	type: string;
+	score: number;
+	top_score: number;
+	description?: string;
 }
 
 export interface Alert {
-	id: string
-	alertId: string
-	query: string
-	results: Results
-	createdAt: string
+	id: string;
+	alertId: string;
+	query: string;
+	results: Results;
+	createdAt: string;
 }
 
 export type AnomalyType = {
@@ -52,7 +52,7 @@ export type AnomalyType = {
 		id: number;
 		name: string;
 	};
-}
+};
 
 // cam-attendance data type
 export interface Camera {
@@ -126,31 +126,31 @@ export type LoiteringData = {
 	durationSeconds: number | null;
 	clipFilename: string | null;
 	insertedAt: string | null;
-}
+};
 
 export interface FrigateEventData {
-	score: number
-	top_score: number
-	type: string
-  }
+	score: number;
+	top_score: number;
+	type: string;
+}
 
 export interface FrigateEvent {
-	id: string
-	camera: string
-	label: string
-	sub_label: any
-	zones: any[]
-	start_time: number
-	end_time: number
-	has_clip: boolean
-	has_snapshot: boolean
-	top_score: any
-	plus_id: any
-	thumb_path: string
-	data: FrigateEventData
-	search_distance: number
-	search_source: string
-	source_instance: string
+	id: string;
+	camera: string;
+	label: string;
+	sub_label: any;
+	zones: any[];
+	start_time: number;
+	end_time: number;
+	has_clip: boolean;
+	has_snapshot: boolean;
+	top_score: any;
+	plus_id: any;
+	thumb_path: string;
+	data: FrigateEventData;
+	search_distance: number;
+	search_source: string;
+	source_instance: string;
 	// Add any other relevant fields you expect
 	[key: string]: any; // Allow for other potential fields
 }
@@ -158,10 +158,20 @@ export interface FrigateEvent {
 export type FrigateSearchResponse = FrigateEvent[];
 
 export type CameraType = {
-	id: number,
-	name: string,
-	category: string,
-	url: string
-}
+	id: number;
+	name: string;
+	category: string;
+	url: string;
+};
 
-
+export type TweetsData = {
+	tweetId: string;
+	tweetUser: string;
+	tweetDate: string;
+	text: string;
+	retweets: number;
+	likes: number;
+	category: string;
+	sentiment: 'positive' | 'negative' | 'neutral';
+	input: string;
+};

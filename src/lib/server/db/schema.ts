@@ -11,7 +11,8 @@ import {
 	text,
 	jsonb,
 	unique,
-	index
+	index,
+	primaryKey
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
@@ -158,3 +159,20 @@ export const loiteringLog = pgTable(
 		)
 	]
 );
+
+export const tweets = pgTable("tweets", {
+	tweetId: text("tweet_id").primaryKey().notNull(),
+	tweetUser: text("tweet_user"),
+	tweetDate: timestamp("tweet_date", { mode: 'string' }),
+	text: text(),
+	comments: integer(),
+	retweets: integer(),
+	quotes: integer(),
+	likes: integer(),
+	pictures: text(),
+	videos: text(),
+	gifs: text(),
+	category: text(),
+	sentiment: text().$type<"positive" | "negative" | "neutral">(),
+	input: text(),
+});

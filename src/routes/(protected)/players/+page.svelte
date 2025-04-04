@@ -139,7 +139,7 @@
 						</CardContent>
 
 						<CardFooter class="h-10 p-2">
-							<SentimentBar sentiments={player.playerSentiment} legend={false} />
+							<SentimentBar sentiments={player.playerSentiment} legend={false} showHeader={false} />
 						</CardFooter>
 					</Card>
 				</div>
@@ -175,7 +175,7 @@
 						</CardContent>
 
 						<CardFooter class="h-10 p-2">
-							<SentimentBar sentiments={player.playerSentiment} legend={false} />
+							<SentimentBar sentiments={player.playerSentiment} legend={false} showHeader={false} />
 						</CardFooter>
 					</Card>
 				</div>

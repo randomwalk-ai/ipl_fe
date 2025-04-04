@@ -9,7 +9,7 @@
 	import { Loader2, Trash2, PauseCircle } from '@lucide/svelte';
 	import SimpleDialog from '../dash/SimpleDialog.svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { frigateBaseUrls } from '$lib/utils';
+	import { frigateInstances } from '$lib/utils';
 
 	// Page state
 	const PageState = getPageState();
@@ -60,7 +60,10 @@
 		}
 	};
 	
-	
+	let frigateBaseUrls = frigateInstances.reduce((acc, instance) => {
+		acc[instance.name] = { url: instance.url };
+		return acc;
+	}, {});
 	let frigateBaseUrl = frigateBaseUrls['Stands Entry/Exit']['url'];
 
 	// Toggle camera selection

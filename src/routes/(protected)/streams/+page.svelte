@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getPageState } from '$lib/stores/index.svelte';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
-	import { frigateBaseUrls } from '$lib/utils';
+	import { frigateInstances } from '$lib/utils';
 
 	const PageState = getPageState();
 	PageState.title = 'CCTV Monitoring';
@@ -15,7 +15,10 @@
 	// 	'Wallaja Road Cameras': { url: 'http://107.170.16.44:5010' }
 	// };
 
-	
+	let frigateBaseUrls = frigateInstances.reduce((acc, instance) => {
+		acc[instance.name] = { url: instance.url };
+		return acc;
+	}, {});
 </script>
 
 <div>

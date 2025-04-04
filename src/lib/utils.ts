@@ -73,15 +73,13 @@ export function timeAgo(utcDateString: string | Date | null | undefined): string
 	}
 }
 
-export const frigateBaseUrls = {
-	'Stands Entry/Exit': { url: 'http://162.243.108.233:5010' },
-	Galleries: { url: 'http://162.243.56.128:5010' },
-	'Concourse/Food Stalls': { url: 'http://162.243.67.187:5010' },
-	'Stadium Entry/Exit': { url: 'http://192.241.245.244:5010' },
-	'Wallaja Road Cameras': { url: 'http://107.170.16.44:5010' }
-};
-
-export const frigateInstances = [{ name: 'Stands Entry/Exit', url: 'http://localhost:5020' }];
+export const frigateInstances = [
+	{ name: 'Stands Entry/Exit', url: 'http://localhost:5020' },
+	{ name: 'Galleries', url: 'http://localhost:5021' },
+	{ name: 'Concourse/Food Stalls', url: 'http://localhost:5022' },
+	{ name: 'Stadium Entry/Exit', url: 'http://localhost:5023' },
+	{ name: 'Road Cameras', url: 'http://localhost:5024' }
+];
 
 export const ipl_players_lookup: {
 	[key: string]: string;

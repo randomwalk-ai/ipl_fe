@@ -72,29 +72,36 @@ export function timeAgo(utcDateString: string | Date | null | undefined): string
 		return 'Invalid date';
 	}
 }
+// external_roadside - http://107.170.74.160:5010
+// foodstalls_media - http://192.241.185.241:5010
+// gallery_kmk_box - http://162.243.227.227:5010
+// gate_concourse - http://162.243.75.102:5010
+// hospitality_offices - http://107.170.123.140:5010
+// stand_entry - http://107.170.54.225:5010
 
 export const frigateInstances = [
-	{ name: 'Stands Entry/Exit', url: 'http://localhost:5020' },
-	{ name: 'Galleries', url: 'http://localhost:5021' },
-	{ name: 'Concourse/Food Stalls', url: 'http://localhost:5022' },
-	{ name: 'Stadium Entry/Exit', url: 'http://localhost:5023' },
-	{ name: 'Road Cameras', url: 'http://localhost:5024' }
+	{ name: 'Stands Entry/Exit', url: 'http://107.170.54.225:5010' },
+	{ name: 'Galleries', url: 'http://162.243.227.227:5010' },
+	{ name: 'Gates & Concourse', url: 'http://162.243.75.102:5010' },
+	{ name: 'External Road Cameras', url: 'http://107.170.74.160:5010' },
+	{ name: 'Food Stalls & Media', url: 'http://192.241.185.241:5010' },
+	{ name: 'Hospitality Offices', url: 'http://107.170.123.140:5010' }
 ];
 
 export const ipl_players_lookup: {
 	[key: string]: string;
 } = {
-	"csk ashwin": 'Ravi Ashwin',
-	"csk conway": 'Devon Conway',
-	"csk curran": 'Sam Curran',
-	"csk dhoni": 'MS Dhoni',
-	"csk dube": 'Shivam Dube',
-	"csk hooda": 'Deepak Hooda',
-	"csk jadeja": 'Ravindra Jadeja',
-	"csk khaleel": 'Khaleel Ahmed',
-	"noor csk": 'Noor Ahmad',
-	"csk pathirana": 'Matheesha Pathirana',
-	"csk rachin ravindra": 'Rachin Ravindra',
-	"rahul tripathi": 'Rahul Tripathi',
-	"csk ruturaj gaikwad": 'Ruturaj Gaikwad'
+	'csk ashwin': 'Ravi Ashwin',
+	'csk conway': 'Devon Conway',
+	'csk curran': 'Sam Curran',
+	'csk dhoni': 'MS Dhoni',
+	'csk dube': 'Shivam Dube',
+	'csk hooda': 'Deepak Hooda',
+	'csk jadeja': 'Ravindra Jadeja',
+	'csk khaleel': 'Khaleel Ahmed',
+	'noor csk': 'Noor Ahmad',
+	'csk pathirana': 'Matheesha Pathirana',
+	'csk rachin ravindra': 'Rachin Ravindra',
+	'rahul tripathi': 'Rahul Tripathi',
+	'csk ruturaj gaikwad': 'Ruturaj Gaikwad'
 };

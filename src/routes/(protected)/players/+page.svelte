@@ -16,6 +16,9 @@
 	import SentimentBar from '../social/SentimentBar.svelte';
 	import { ipl_players_lookup } from '$lib/utils';
 	import TweetChart from './TweetChart.svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { invalidate } from '$app/navigation';
+	import { browser } from '$app/environment';
 	dayjs.extend(relativeTime);
 	dayjs.extend(customParseFormat);
 
@@ -27,6 +30,8 @@
 
 	let pageData = getPageState();
 	pageData.title = 'Player Sentiment';
+	let refreshInterval: ReturnType<typeof setInterval> | undefined;
+	let isRefreshing = $state(false);
 
 	let { data } = $props();
 
@@ -37,6 +42,36 @@
 	};
 
 	let selectedInput = $state<string | undefined>(undefined);
+
+	// Auto-refresh function
+	async function refreshData() {
+		if (isRefreshing) return;
+		
+		isRefreshing = true;
+		try {
+			// Instead of invalidation, fetch the data directly with a simple page reload
+			// This is more reliable for ensuring fresh data
+			if (browser) {
+				window.location.reload();
+			}
+		} catch (error) {
+			console.error('Error refreshing player stats:', error);
+		} finally {
+			isRefreshing = false;
+		}
+	}
+	
+	// Setup auto-refresh on mount
+	onMount(() => {
+		// Initialize the refresh timer
+		if (browser) {
+			const intervalId = setInterval(refreshData, 60000);
+			
+			return () => {
+				clearInterval(intervalId);
+			};
+		}
+	});
 
 	// let perPlayerTweetObj = $derived.by(() => {
 	// 	return players.map((player) => {
@@ -173,9 +208,25 @@
 	<div class="flex h-full w-1/4 flex-col">
 		<Card class="flex h-full flex-col">
 			<CardHeader class="p-3">
-				<CardTitle
-					>Tweets - {selectedInput ? data.players[selectedInput].stats.count : data.playerCount.count}</CardTitle
-				>
+				<div class="flex items-center justify-between">
+					<CardTitle
+						>Tweets - {selectedInput ? data.players[selectedInput].stats.count : data.playerCount.count}</CardTitle>
+					<div class="flex items-center gap-2">
+						{#if isRefreshing}
+							<div class="h-3 w-3 rounded-full bg-blue-500 animate-pulse" title="Refreshing data..."></div>
+						{/if}
+						<button 
+							on:click={refreshData} 
+							class="text-xs text-gray-400 hover:text-white transition-colors p-1 rounded hover:bg-gray-700/30"
+							title="Refresh data manually"
+							disabled={isRefreshing}
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+							</svg>
+						</button>
+					</div>
+				</div>
 				<CardDescription>{selectedInput ? "Player's tweets and sentiment analysis" : "All player tweets"}</CardDescription>
 			</CardHeader>
 			<CardContent class="flex-grow overflow-auto p-0">

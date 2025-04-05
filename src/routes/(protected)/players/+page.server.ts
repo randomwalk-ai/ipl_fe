@@ -1,7 +1,10 @@
 import type { FinalResult } from '../../api/social/+server.js';
 import type { TweetsData } from '../types.js';
 
-export const load = async ({ fetch }) => {
+export const load = async ({ fetch, depends }) => {
+	// Add a dependency tag that we can use for invalidation
+	depends('social:data');
+	
 	try {
 		const response = await fetch('/api/social');
 		const responseJson = (await response.json()) as FinalResult

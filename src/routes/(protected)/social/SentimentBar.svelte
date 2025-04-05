@@ -26,7 +26,7 @@
 <!-- Title - Tweets Sentiment Analysis -->
 {#if showHeader}
 	<div class="flex flex-row items-center justify-left p-2">
-		<h4 class="text-sm font-bold uppercase text-muted-foreground">Tweets Sentiment Analysis</h4>
+		<h4 class="text-sm font-bold uppercase text-muted-foreground">Public Sentiment</h4>
 	</div>
 {/if}
 

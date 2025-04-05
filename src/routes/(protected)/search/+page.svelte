@@ -30,6 +30,7 @@
 	let searchError: string | null = $state(null);
 	let similaritySearchActive = $state(false);
 	let similarityEventId = $state<string | null>(null);
+	let cameraSearchQuery = $state('');
 
 	// --- Form State ---
 	const availableLabels = [
@@ -343,20 +344,82 @@
 					disabled={similaritySearchActive || isLoading}
 				>
 					<Select.Trigger class={cn(similaritySearchActive && 'cursor-not-allowed opacity-50')}>
-						{#if cameras.length > 0}{cameras.map((el)=>el.name).join(', ')}{:else}Any Camera{/if}
+						{#if cameras.length > 0}
+							{cameras.length} {cameras.length === 1 ? 'camera' : 'cameras'} selected
+						{:else}Any Camera{/if}
 					</Select.Trigger>
 					<Select.Content class="border-gray-700 bg-gray-800 text-gray-200">
-						{#each data.cameras as camera (camera.id)}
-							<Select.Item
-								value={camera.id.toString()}
-								class="data-[highlighted]:bg-blue-600 data-[state=checked]:bg-blue-700"
-							>
-								<div class="flex w-full items-center justify-between text-sm">
-									<span>{camera.name}</span>
-									<span class="font-mono text-xs text-gray-400">ID: {camera.id}</span>
-								</div>
-							</Select.Item>
-						{/each}
+						<!-- Add search input field -->
+						<div class="sticky top-0 bg-gray-800 border-b border-gray-700">
+							<div class="p-1">
+								<input 
+									type="text" 
+									placeholder="Search cameras..." 
+									class="w-full px-2 py-1 text-sm rounded border border-gray-600 bg-gray-700 text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+									bind:value={cameraSearchQuery}
+								/>
+							</div>
+							<div class="flex justify-between px-1 pb-1">
+								<button
+									type="button"
+									class="px-2 py-0.5 text-xs rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+									onclick={() => {
+										cameras = data.cameras.filter(camera => 
+											camera.name.toLowerCase().includes(cameraSearchQuery.toLowerCase())
+										);
+									}}
+								>
+									Select All
+								</button>
+								<button
+									type="button"
+									class="px-2 py-0.5 text-xs rounded bg-gray-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-500"
+									onclick={() => {
+										cameras = [];
+									}}
+								>
+									Clear All
+								</button>
+							</div>
+						</div>
+						<div class="py-1">
+							{#if cameras.length > 0}
+								<!-- Selected cameras section -->
+								<div class="px-2 py-1 text-xs font-semibold text-blue-300 bg-gray-900">Selected Cameras</div>
+								{#each cameras as camera (camera.id)}
+									<Select.Item
+										value={camera.id.toString()}
+										class="data-[highlighted]:bg-blue-600 data-[state=checked]:bg-blue-700"
+									>
+										<div class="flex w-full items-center justify-between text-sm">
+											<span>{camera.name.split('_').join(' ')}</span>
+										</div>
+									</Select.Item>
+								{/each}
+								<!-- Divider -->
+								<div class="my-1 border-t border-gray-700"></div>
+								<!-- All cameras section -->
+								<div class="px-2 py-1 text-xs font-semibold text-gray-400 bg-gray-900">All Cameras</div>
+							{/if}
+							
+							{#each data.cameras.filter(camera => 
+								camera.name.toLowerCase().includes(cameraSearchQuery.toLowerCase()) && 
+								!cameras.some(selected => selected.id === camera.id)
+							) as camera (camera.id)}
+								<Select.Item
+									value={camera.id.toString()}
+									class="data-[highlighted]:bg-blue-600 data-[state=checked]:bg-blue-700"
+								>
+									<div class="flex w-full items-center justify-between text-sm">
+										<span>{camera.name.split('_').join(' ')}</span>
+									</div>
+								</Select.Item>
+							{:else}
+								{#if cameras.length === 0 || cameras.length === data.cameras.filter(c => c.name.toLowerCase().includes(cameraSearchQuery.toLowerCase())).length}
+									<div class="px-2 py-2 text-sm text-gray-400 text-center">No additional cameras found</div>
+								{/if}
+							{/each}
+						</div>
 					</Select.Content>
 				</Select.Root>
 			</div>

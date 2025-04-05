@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { LayoutDashboard, MessagesSquare, BellRing, Users, Hash, Eye } from '@lucide/svelte';
+	import { LayoutDashboard, MessagesSquare, BellRing, Users, Hash, Eye, Search } from '@lucide/svelte';
 	import { goto, beforeNavigate, afterNavigate } from '$app/navigation';
 
 	let isNavigating = $state(false);
@@ -40,6 +40,15 @@
 		</Sidebar.MenuItem>
 		<Sidebar.MenuItem>
 			<Sidebar.MenuButton
+				onclick={(e) => goto('/search')}
+				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
+			>
+				<Search />
+				<span>{'Search'}</span>
+			</Sidebar.MenuButton>
+		</Sidebar.MenuItem>
+		<Sidebar.MenuItem>
+			<Sidebar.MenuButton
 				onclick={(e) => goto('/social')}
 				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
 			>
@@ -53,7 +62,7 @@
 				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
 			>
 				<Eye />
-				<span>{'Players'}</span>
+				<span>{'Player Sentiment'}</span>
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
 		<Sidebar.MenuItem>

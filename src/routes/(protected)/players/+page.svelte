@@ -15,6 +15,7 @@
 	import type { TweetsData } from '../types';
 	import SentimentBar from '../social/SentimentBar.svelte';
 	import { ipl_players_lookup } from '$lib/utils';
+	import TweetChart from './TweetChart.svelte';
 	dayjs.extend(relativeTime);
 	dayjs.extend(customParseFormat);
 
@@ -178,11 +179,18 @@
 				<CardDescription>Select a player to view their relevant tweets</CardDescription>
 			</CardHeader>
 			<CardContent class="flex-grow overflow-auto p-0">
+				{#if selectedInput && data.players[selectedInput].tweets.length > 0}
+					<div class="px-3 pt-3 pb-2">
+						<h3 class="text-sm font-semibold mb-2">Sentiment Trend</h3>
+						<TweetChart tweets={data.players[selectedInput].tweets} />
+						<div class="h-px w-full bg-gray-700/20 my-3"></div>
+					</div>
+				{/if}
 				<ScrollArea class="h-full w-full">
 					<div class="flex flex-col gap-2 p-3">
 						{#if selectedInput}
 							{#each data.players[selectedInput].tweets ?? [] as tweet (tweet.tweetId)}
-								<a href={`https://x.com/${tweet.tweetUser.replace('@', '')}/status/${tweet.tweetId}`} target="_blank" rel="noopener noreferrer">
+								<a href={`https://x.com/${tweet.tweetUser ? tweet.tweetUser.replace('@', '') : ''}/status/${tweet.tweetId}`} target="_blank" rel="noopener noreferrer">
 								<div class="mb-2 min-h-12 rounded-md border p-2 cursor-pointer hover:bg-[#1F2736] transition-colors duration-200">
 									<p class="text-sm">{tweet.text}</p>
 									<CardFooter class="p-0">

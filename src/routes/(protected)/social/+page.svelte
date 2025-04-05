@@ -110,7 +110,7 @@
 					<div class="flex flex-wrap">
 						{#each derivedTweets as tweet (tweet.tweetId)}
 							<div class="container w-96 p-2">
-								<a href={`https://x.com/${tweet.tweetUser.replace('@', '')}/status/${tweet.tweetId}`} target="_blank" rel="noopener noreferrer">
+								<a href={`https://x.com/${tweet.tweetUser ? tweet.tweetUser.replace('@', '') : ''}/status/${tweet.tweetId}`} target="_blank" rel="noopener noreferrer">
 								<Card class="flex h-full w-full flex-col bg-[#161823] border-none hover:bg-[#1F2736] transition-colors duration-200 cursor-pointer">
 									<CardContent class="grow p-4">
 										<div class="flex items-center gap-2 font-medium">
@@ -122,7 +122,7 @@
 										<div
 											class="mt-1 flex w-full items-center justify-between text-xs text-muted-foreground"
 										>
-											{getRelativeTime(tweet.tweetDate)}
+											{getRelativeTime(tweet.tweetDate!)}
 											<div
 												class={[
 													'h-4 w-4 rounded-full',

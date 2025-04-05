@@ -206,6 +206,62 @@
 		}
 		return normalized;
 	}
+
+	// Add the search function at the top of the script section
+	function searchCamera(cameraName: string, query: string): boolean {
+		if (!query.trim()) return true; // If no query, show all cameras
+		
+		// Case insensitive search
+		const cameraNameLower = cameraName.toLowerCase();
+		const queryLower = query.toLowerCase();
+		
+		// Replace underscores with spaces to match display format
+		const displayName = cameraNameLower.split('_').join(' ');
+		
+		// Check if camera name contains the query
+		if (cameraNameLower.includes(queryLower) || displayName.includes(queryLower)) {
+			return true;
+		}
+		
+		// Handle individual words in the query
+		const queryWords = queryLower.split(/\s+/).filter(word => word.length > 0);
+		return queryWords.some(word => cameraNameLower.includes(word) || displayName.includes(word));
+	}
+
+	// Function to calculate match score for sorting (higher score = better match)
+	function getMatchScore(cameraName: string, query: string): number {
+		if (!query.trim()) return 0; // Default score for empty query
+		
+		const cameraNameLower = cameraName.toLowerCase();
+		const displayName = cameraNameLower.split('_').join(' ');
+		const queryLower = query.toLowerCase();
+		
+		// Exact match gives highest score
+		if (cameraNameLower === queryLower || displayName === queryLower) return 100;
+		
+		// Starts with query is next best
+		if (cameraNameLower.startsWith(queryLower) || displayName.startsWith(queryLower)) return 80;
+		
+		// Contains whole query as substring
+		if (cameraNameLower.includes(queryLower) || displayName.includes(queryLower)) return 60;
+		
+		// Count how many query words match
+		const queryWords = queryLower.split(/\s+/).filter(word => word.length > 0);
+		let matchCount = 0;
+		
+		for (const word of queryWords) {
+			if (cameraNameLower.includes(word) || displayName.includes(word)) {
+				matchCount++;
+			}
+		}
+		
+		// Score based on percentage of words that match
+		if (queryWords.length > 0) {
+			return (matchCount / queryWords.length) * 40;
+		}
+		
+		return 0;
+	}
 </script>
 
 <ScrollArea class="h-full overflow-x-visible p-4 text-gray-200">
@@ -364,9 +420,9 @@
 									type="button"
 									class="px-2 py-0.5 text-xs rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
 									onclick={() => {
-										cameras = data.cameras.filter(camera => 
-											camera.name.toLowerCase().includes(cameraSearchQuery.toLowerCase())
-										);
+										cameras = data.cameras
+											.filter(camera => searchCamera(camera.name, cameraSearchQuery))
+											.sort((a, b) => getMatchScore(b.name, cameraSearchQuery) - getMatchScore(a.name, cameraSearchQuery));
 									}}
 								>
 									Select All
@@ -402,10 +458,14 @@
 								<div class="px-2 py-1 text-xs font-semibold text-gray-400 bg-gray-900">All Cameras</div>
 							{/if}
 							
-							{#each data.cameras.filter(camera => 
-								camera.name.toLowerCase().includes(cameraSearchQuery.toLowerCase()) && 
-								!cameras.some(selected => selected.id === camera.id)
-							) as camera (camera.id)}
+							{#each data.cameras
+								.filter(camera => 
+									searchCamera(camera.name, cameraSearchQuery) &&
+									!cameras.some(selected => selected.id === camera.id)
+								)
+								.sort((a, b) => 
+									getMatchScore(b.name, cameraSearchQuery) - getMatchScore(a.name, cameraSearchQuery)
+								) as camera (camera.id)}
 								<Select.Item
 									value={camera.id.toString()}
 									class="data-[highlighted]:bg-blue-600 data-[state=checked]:bg-blue-700"
@@ -415,7 +475,7 @@
 									</div>
 								</Select.Item>
 							{:else}
-								{#if cameras.length === 0 || cameras.length === data.cameras.filter(c => c.name.toLowerCase().includes(cameraSearchQuery.toLowerCase())).length}
+								{#if cameras.length === 0 || cameras.length === data.cameras.filter(c => searchCamera(c.name, cameraSearchQuery)).length}
 									<div class="px-2 py-2 text-sm text-gray-400 text-center">No additional cameras found</div>
 								{/if}
 							{/each}

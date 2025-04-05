@@ -91,7 +91,7 @@
 					<Card
 						class="flex h-full cursor-pointer flex-col"
 						style="position: relative;"
-						onclick={() => (selectedInput = input)}
+						onclick={() => (selectedInput = selectedInput === input ? undefined : input)}
 					>
 						{#if selectedInput === input}
 							<div
@@ -135,7 +135,7 @@
 					<Card
 						class="flex h-full cursor-pointer flex-col"
 						style="position: relative;"
-						onclick={() => (selectedInput = input)}
+						onclick={() => (selectedInput = selectedInput === input ? undefined : input)}
 					>
 						{#if selectedInput === input}
 							<div

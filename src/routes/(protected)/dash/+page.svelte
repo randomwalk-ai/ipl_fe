@@ -51,7 +51,7 @@
 					count: data.alertNotifsCount
 				},
 				cameras: {
-					active: 164,
+					active: 252,
 					total: 344
 				},
 				teams: {
@@ -66,8 +66,8 @@
 							.totalJerseyYellow
 					},
 					team2: {
-						name: 'RCB',
-						color: 'red', // Blue
+						name: 'DC',
+						color: 'blue', // Blue
 						fans: (data.attData.attendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue,
 						prevFans: (data.attData.oldAttendanceData.at(-1) ?? { totalJerseyBlue: 0 })
 							.totalJerseyBlue,
@@ -91,7 +91,7 @@
 	<div class="flex min-h-0 flex-1 gap-2">
 		<div class="flex min-h-0 flex-1 basis-1/2 flex-col gap-2">
 			<AttendanceCard data={attendanceData} />
-			<CamStats data={camAttendance} />
+			<!-- <CamStats data={camAttendance} /> -->
 		</div>
 		<div class="min-h-0 flex-1 basis-1/2">
 			<Alerts />

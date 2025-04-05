@@ -352,8 +352,8 @@
 								class="data-[highlighted]:bg-blue-600 data-[state=checked]:bg-blue-700"
 							>
 								<div class="flex w-full items-center justify-between text-sm">
-									<span>{camera.name}</span>
-									<span class="font-mono text-xs text-gray-400">ID: {camera.id}</span>
+									<span>{camera.name.split('_').join(' ')}</span>
+									<!-- <span class="font-mono text-xs text-gray-400">ID: {camera.id}</span> -->
 								</div>
 							</Select.Item>
 						{/each}

@@ -25,7 +25,7 @@
 	};
 
 	let pageData = getPageState();
-	pageData.title = 'Players';
+	pageData.title = 'Player Sentiment';
 
 	let { data } = $props();
 

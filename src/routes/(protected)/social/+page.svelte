@@ -28,15 +28,15 @@
 	};
 
 	let pageData = getPageState();
-	pageData.title = 'Social';
-	let HeaderTabs = ['All Mentions', 'Tickets', 'Players'] as const;
+	pageData.title = 'Social Media';
+	let HeaderTabs = ['All Mentions', 'Ticket Sales', 'Players'] as const;
 	let selectedTab: (typeof HeaderTabs)[number] = $state('All Mentions');
 
 	let { data } = $props();
 	let derivedTweets = $derived.by(() => {
 		if (selectedTab === 'All Mentions') {
 			return data.latestTweets;
-		} else if (selectedTab === 'Tickets') {
+		} else if (selectedTab === 'Ticket Sales') {
 			return data.latestTweets.filter((tweet) => tweet.category === 'ticket');
 		} else if (selectedTab === 'Players') {
 			return data.latestTweets.filter((tweet) => tweet.category === 'player');
@@ -54,7 +54,7 @@
 <div class="flex h-full w-full flex-col">
 	<div class="flex h-full w-full flex-row gap-4  mb-4 ml-4 mr-4">
 		<Card class={`flex flex-col dark:bg-[#161823] border-none dark:text-white ${
-			selectedTab !== 'Tickets' ? 'w-1/4' : 'w-full transition-all duration-200'
+			selectedTab !== 'Ticket Sales' ? 'w-1/4' : 'w-full transition-all duration-200'
 		}`}>
 			<!-- <CardHeader
 				class="flex h-14 flex-row items-center justify-between rounded-t-md bg-secondary p-4"
@@ -71,13 +71,13 @@
 					<p class="mt-2 text-3xl font-semibold">
 						{selectedTab === 'All Mentions'
 							? data.totalCount.count
-							: selectedTab === 'Tickets'
+							: selectedTab === 'Ticket Sales'
 								? data.ticketCount
 								: data.playerCount.count}
 					</p>			
 			</div>
 		</Card>
-		{#if selectedTab !== 'Tickets'}
+		{#if selectedTab !== 'Ticket Sales'}
 		<Card class="flex h-full w-3/4 flex-col bg-[#1F2736] border-none p-4 mr-8">
 			<SentimentBar
 			sentiments={selectedTab === 'All Mentions'

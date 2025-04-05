@@ -74,7 +74,7 @@
 		</Select.Trigger>
 		<Select.Content>
 			<Select.Group>
-				<Select.GroupHeading>Players</Select.GroupHeading>
+				<Select.GroupHeading>Player Sentiment</Select.GroupHeading>
 				{#each players as player (player.value)}
 					<Select.Item value={player.value} label={player.label}>
 						{player.label}

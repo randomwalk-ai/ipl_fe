@@ -53,7 +53,7 @@
 				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
 			>
 				<Eye />
-				<span>{'Players'}</span>
+				<span>{'Player Sentiment'}</span>
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
 		<Sidebar.MenuItem>

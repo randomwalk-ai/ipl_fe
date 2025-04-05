@@ -247,9 +247,7 @@
                                         frameborder="0" 
                                         allowfullscreen
                                     ></iframe>
-                                    <button class="open-button" on:click={() => openFrigateLink(camera.url)}>
-                                        Open in New Tab
-                                    </button>
+                          
                                 </div>
                             {/each}
                         </div>

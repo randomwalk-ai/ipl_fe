@@ -18,7 +18,7 @@
                     { label: 'H lower', color: 'rgba(144, 238, 144, 0.82)', hovered: false ,snapshot_urls:[],frigate_urls:[{label:'H lower entry',url:'http://107.170.54.225:5010/#STAND_ENTRY_EXIT_CAMERA_DETAI_H_STAND_LOWER_ENTRY12'}]},
                     { label: 'I lower', color: 'rgba(144, 238, 144, 0.86)', hovered: false ,snapshot_urls:[],frigate_urls:[{label:'I lower entry',url:'http://107.170.54.225:5010/#STAND_ENTRY_EXIT_CAMERA_DETAI_I_STAND_LOWER_ENTRY14'}]},
                     { label: 'J lower', color: 'rgba(144, 238, 144, 0.90)', hovered: false ,snapshot_urls:[],frigate_urls:[{label:'J lower entry',url:'http://107.170.54.225:5010/#STAND_ENTRY_EXIT_CAMERA_DETAI_J_STAND_LOWER_ENTRY16'}]},
-                    { label: 'K lower', color: 'rgba(144, 238, 144, 0.94)', hovered: false ,snapshot_urls:[],frigate_urls:[{label:'K lower entry',url:'http://107.170.54.225:5010/#STAND_ENTRY_EXIT_CAMERA_DETAI_K_STAND_LOWER_ENTRY18'}]},
+                    { label: 'K lower', color: 'rgba(144, 238, 144, 0.94)', hovered: false ,snapshot_urls:[],frigate_urls:[{label:'K lower entry',url:'http://107.170.54.225:5010/#STAND_ENTRY_EXIT_CAMERA_DETAI_K_STAND_LOWER_ENTRY18'},{label:'K lower entry',url:'http://107.170.54.225:5010/#STAND_ENTRY_EXIT_CAMERA_DETAI_K_STAND_LOWER_ENTRY18'}]},
                     { label: 'MCC stand', color: 'rgba(144, 238, 144, 0.98)', hovered: false ,snapshot_urls:[],frigate_urls:[]}
                 ]
             },
@@ -423,18 +423,18 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.8); /* Darker overlay for dark theme */
         display: flex;
         justify-content: center;
         align-items: center;
         z-index: 1000;
     }
     .popup-content {
-        background-color: white;
+        background-color: #1c1c1c; /* Dark background for popup */
         border-radius: 8px;
         width: 400px;
         max-width: 90%;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Softer shadow for dark theme */
         overflow: hidden;
     }
     .popup-header {
@@ -442,23 +442,24 @@
         justify-content: space-between;
         align-items: center;
         padding: 15px 20px;
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #eee;
+        background-color: #2a2a2a; /* Darker header background */
+        border-bottom: 1px solid #444; /* Darker border */
     }
     .popup-header h3 {
         margin: 0;
         padding: 0;
-        border: none;
+        color: #fff; /* White text for header */
     }
     .close-button {
         background: none;
         border: none;
         font-size: 24px;
         cursor: pointer;
-        color: #666;
+        color: #ccc; /* Lighter color for close button */
     }
     .popup-body {
         padding: 20px;
+        color: #fff; /* White text for body */
     }
     .camera-list {
         list-style: none;
@@ -467,7 +468,7 @@
     }
     .camera-list li {
         padding: 12px 15px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #444; /* Darker border for list items */
         cursor: pointer;
         transition: background-color 0.2s;
     }
@@ -475,7 +476,7 @@
         border-bottom: none;
     }
     .camera-list li:hover {
-        background-color: #f0f0f0;
+        background-color: #333; /* Darker hover effect */
     }
     /* Dialog styles */
     .dialog-overlay {

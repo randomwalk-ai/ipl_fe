@@ -174,15 +174,21 @@
 		<Card class="flex h-full flex-col">
 			<CardHeader class="p-3">
 				<CardTitle
-					>Tweets - {selectedInput ? data.players[selectedInput].stats.count : data.totalCount.count}</CardTitle
+					>Tweets - {selectedInput ? data.players[selectedInput].stats.count : data.playerCount.count}</CardTitle
 				>
-				<CardDescription>Select a player to view their relevant tweets</CardDescription>
+				<CardDescription>{selectedInput ? "Player's tweets and sentiment analysis" : "All player tweets"}</CardDescription>
 			</CardHeader>
 			<CardContent class="flex-grow overflow-auto p-0">
-				{#if selectedInput && data.players[selectedInput].tweets.length > 0}
+				{#if selectedInput}
 					<div class="px-3 pt-3 pb-2">
 						<h3 class="text-sm font-semibold mb-2">Sentiment Trend</h3>
 						<TweetChart tweets={data.players[selectedInput].tweets} />
+						<div class="h-px w-full bg-gray-700/20 my-3"></div>
+					</div>
+				{:else}
+					<div class="px-3 pt-3 pb-2">
+						<h3 class="text-sm font-semibold mb-2">All Players Sentiment Trend</h3>
+						<TweetChart tweets={data.latestTweets.filter(t => t.category === 'player')} />
 						<div class="h-px w-full bg-gray-700/20 my-3"></div>
 					</div>
 				{/if}
@@ -216,9 +222,36 @@
 								<div class="p-3 text-center text-muted-foreground">No tweets available</div>
 							{/each}
 						{:else}
-							<div class="p-3 text-center text-muted-foreground">
-								Select a player to view tweets
-							</div>
+							{#if data.latestTweets.some(t => t.category === 'player')}
+								{#each data.latestTweets.filter(t => t.category === 'player').slice(0, 20) as tweet (tweet.tweetId)}
+									<a href={`https://x.com/${tweet.tweetUser ? tweet.tweetUser.replace('@', '') : ''}/status/${tweet.tweetId}`} target="_blank" rel="noopener noreferrer">
+									<div class="mb-2 min-h-12 rounded-md border p-2 cursor-pointer hover:bg-[#1F2736] transition-colors duration-200">
+										<p class="text-sm">{tweet.text}</p>
+										<CardFooter class="p-0">
+											<div
+												class="mt-1 flex w-full items-center justify-between text-xs text-muted-foreground"
+											>
+												{getRelativeTime(tweet.tweetDate!)}
+												<div
+													class={[
+														'h-4 w-4 rounded-full',
+														{
+															'bg-green-500': tweet.sentiment === 'positive',
+															'bg-yellow-500': tweet.sentiment === 'neutral',
+															'bg-red-500': tweet.sentiment === 'negative'
+														}
+													]}
+												></div>
+											</div>
+										</CardFooter>
+									</div>
+									</a>
+								{/each}
+							{:else}
+								<div class="p-3 text-center text-muted-foreground">
+									No player tweets available
+								</div>
+							{/if}
 						{/if}
 					</div>
 				</ScrollArea>

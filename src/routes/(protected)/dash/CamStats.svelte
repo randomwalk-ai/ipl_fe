@@ -36,7 +36,7 @@
 				<TableRow>
 					<TableHead class="w-[100px]">Camera ID</TableHead>
 					<TableHead class="min-w-[100px] text-right">Camera Name</TableHead>
-					<TableHead class="min-w-[100px] text-right">RCB</TableHead>
+					<TableHead class="min-w-[100px] text-right">DC</TableHead>
 					<TableHead class="min-w-[100px] text-right">CSK</TableHead>
 					<TableHead class="min-w-[100px] text-right">Other</TableHead>
 					<TableHead class="min-w-[100px] text-right">Total Count</TableHead>

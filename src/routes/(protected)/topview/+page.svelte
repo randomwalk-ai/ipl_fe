@@ -144,6 +144,11 @@
             <div on:click={toggleFloor} class="button" style="position: relative; width: 40%; z-index: 10; cursor: pointer; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; text-align: center; margin-bottom: 10px;">
                 Toggle Floor: {floor}
             </div>
+            {#if currentSector}
+                <div class="current-sector-label" style="margin-top: 10px; font-size: 1.4em; color: #fff;">
+                    {currentSector.label}
+                </div>
+            {/if}
             <svg width="100%" height="100%" viewBox="-200 -200 400 400" style="position: relative; pointer-events: none;">
                 {#each displayedStands() as stand, index}
                     <g>

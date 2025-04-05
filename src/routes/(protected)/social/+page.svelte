@@ -18,6 +18,8 @@
 	import dayjs from 'dayjs';
 	import relativeTime from 'dayjs/plugin/relativeTime';
 	import customParseFormat from 'dayjs/plugin/customParseFormat';
+	import { onMount } from 'svelte';
+	import { mode } from 'mode-watcher';
 	dayjs.extend(relativeTime);
 	dayjs.extend(customParseFormat);
 
@@ -44,12 +46,44 @@
 		return [];
 	});
 	$inspect(derivedTweets);
+
+	// Function to reload Twitter embed
+	function reloadTwitterScript() {
+		if (!browser) return;
+		
+		// Remove existing script if any
+		const existingScript = document.getElementById('twitter-widget-script');
+		if (existingScript) {
+			existingScript.remove();
+		}
+		
+		// Add new script
+		const script = document.createElement('script');
+		script.id = 'twitter-widget-script';
+		script.src = 'https://platform.twitter.com/widgets.js';
+		script.async = true;
+		script.charset = 'utf-8';
+		document.head.appendChild(script);
+	}
+
+	// Watch for tab changes
+	$effect(() => {
+		if (selectedTab === 'Ticket Sales') {
+			// Wait for the DOM to update before loading widgets
+			setTimeout(reloadTwitterScript, 100);
+		}
+	});
+
+	// Also load on mount if needed
+	onMount(() => {
+		if (selectedTab === 'Ticket Sales') {
+			reloadTwitterScript();
+		}
+	});
 </script>
 
 <svelte:head>
-	{#if browser}
-		<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-	{/if}
+	<!-- Twitter widgets script is now dynamically loaded in the component logic -->
 </svelte:head>
 <div class="flex h-full w-full flex-col">
 	<div class="flex h-full w-full flex-row gap-4  mb-4 ml-4 mr-4">
@@ -107,39 +141,55 @@
 		<div class="flex h-full w-full gap-4">
 			<div class="h-full w-full">
 				<ScrollArea class="h-full w-full">
-					<div class="flex flex-wrap">
-						{#each derivedTweets as tweet (tweet.tweetId)}
-							<div class="container w-96 p-2">
-								<a href={`https://x.com/${tweet.tweetUser ? tweet.tweetUser.replace('@', '') : ''}/status/${tweet.tweetId}`} target="_blank" rel="noopener noreferrer">
-								<Card class="flex h-full w-full flex-col bg-[#161823] border-none hover:bg-[#1F2736] transition-colors duration-200 cursor-pointer">
-									<CardContent class="grow p-4">
-										<div class="flex items-center gap-2 font-medium">
-											<span>{tweet.tweetUser}</span>
-										</div>
-										<p class="my-2 whitespace-pre-line">{tweet.text}</p>
-									</CardContent>
-									<CardFooter class="">
-										<div
-											class="mt-1 flex w-full items-center justify-between text-xs text-muted-foreground"
-										>
-											{getRelativeTime(tweet.tweetDate!)}
+					{#if selectedTab === 'Ticket Sales'}
+						<div class="flex flex-wrap">
+							{#each derivedTweets as tweet (tweet.tweetId)}
+								<div class="container w-96 p-2">
+									<blockquote class="twitter-tweet" data-theme={$mode === 'dark' ? 'light' : 'light'}>
+										<p lang="en" dir="ltr">
+											{tweet.text}
+										</p>
+										&mdash; {tweet.tweetUser} 
+										<a href={`https://twitter.com/${tweet.tweetUser ? tweet.tweetUser.replace('@', '') : ''}/status/${tweet.tweetId}`}>View on Twitter</a>
+									</blockquote>
+								</div>
+							{/each}
+						</div>
+					{:else}
+						<div class="flex flex-wrap">
+							{#each derivedTweets as tweet (tweet.tweetId)}
+								<div class="container w-96 p-2">
+									<a href={`https://x.com/${tweet.tweetUser ? tweet.tweetUser.replace('@', '') : ''}/status/${tweet.tweetId}`} target="_blank" rel="noopener noreferrer">
+									<Card class="flex h-full w-full flex-col bg-[#161823] border-none hover:bg-[#1F2736] transition-colors duration-200 cursor-pointer">
+										<CardContent class="grow p-4">
+											<div class="flex items-center gap-2 font-medium">
+												<span>{tweet.tweetUser}</span>
+											</div>
+											<p class="my-2 whitespace-pre-line">{tweet.text}</p>
+										</CardContent>
+										<CardFooter class="">
 											<div
-												class={[
-													'h-4 w-4 rounded-full',
-													{
-														'bg-green-500': tweet.sentiment === 'positive',
-														'bg-yellow-500': tweet.sentiment === 'neutral',
-														'bg-red-500': tweet.sentiment === 'negative'
-													}
-												]}
-											></div>
-										</div>
-									</CardFooter>
-								</Card>
-								</a>
-							</div>
-						{/each}
-					</div>
+												class="mt-1 flex w-full items-center justify-between text-xs text-muted-foreground"
+											>
+												{getRelativeTime(tweet.tweetDate!)}
+												<div
+													class={[
+														'h-4 w-4 rounded-full',
+														{
+															'bg-green-500': tweet.sentiment === 'positive',
+															'bg-yellow-500': tweet.sentiment === 'neutral',
+															'bg-red-500': tweet.sentiment === 'negative'
+														}
+													]}
+												></div>
+											</div>
+										</CardFooter>
+									</Card>
+									</a>
+								</div>
+							{/each}
+						</div>
+					{/if}
 				</ScrollArea>
 			</div>
 

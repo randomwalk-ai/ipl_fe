@@ -358,7 +358,6 @@
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        background-color: white;
     }
     .snapshot-item img {
         width: 100%;
@@ -371,8 +370,11 @@
     }
     .frigate-item h4 {
         margin-top: 0;
+        text-align: center;
+        font-weight: bold;
+        color: #fff;
         margin-bottom: 10px;
-        font-size: 14px;
+        font-size: 16px;
     }
     .frigate-item iframe {
         width: 100%;

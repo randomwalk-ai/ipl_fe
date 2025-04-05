@@ -182,7 +182,8 @@
 					<div class="flex flex-col gap-2 p-3">
 						{#if selectedInput}
 							{#each data.players[selectedInput].tweets ?? [] as tweet (tweet.tweetId)}
-								<div class="mb-2 min-h-12 rounded-md border p-2">
+								<a href={`https://x.com/${tweet.tweetUser.replace('@', '')}/status/${tweet.tweetId}`} target="_blank" rel="noopener noreferrer">
+								<div class="mb-2 min-h-12 rounded-md border p-2 cursor-pointer hover:bg-[#1F2736] transition-colors duration-200">
 									<p class="text-sm">{tweet.text}</p>
 									<CardFooter class="p-0">
 										<div
@@ -202,6 +203,7 @@
 										</div>
 									</CardFooter>
 								</div>
+								</a>
 							{:else}
 								<div class="p-3 text-center text-muted-foreground">No tweets available</div>
 							{/each}

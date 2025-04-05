@@ -110,8 +110,8 @@
 					<div class="flex flex-wrap">
 						{#each derivedTweets as tweet (tweet.tweetId)}
 							<div class="container w-96 p-2">
-								
-								<Card class="flex h-full w-full flex-col bg-[#161823] border-none hover:bg-[#1F2736] transition-colors duration-200">
+								<a href={`https://x.com/${tweet.tweetUser.replace('@', '')}/status/${tweet.tweetId}`} target="_blank" rel="noopener noreferrer">
+								<Card class="flex h-full w-full flex-col bg-[#161823] border-none hover:bg-[#1F2736] transition-colors duration-200 cursor-pointer">
 									<CardContent class="grow p-4">
 										<div class="flex items-center gap-2 font-medium">
 											<span>{tweet.tweetUser}</span>
@@ -136,6 +136,7 @@
 										</div>
 									</CardFooter>
 								</Card>
+								</a>
 							</div>
 						{/each}
 					</div>

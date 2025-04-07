@@ -31,6 +31,7 @@ const searchSchema = z.object({
 	include_thumbnails: z.number().int().min(0).max(1).optional().default(0),
 	timezone: z.string().optional(), // Timezone is needed for similarity search
 	sort: z.enum(['date_desc', 'date_asc', 'score_desc', 'score_asc']).optional(), // Added sort field
+	min_score: z.number().optional(), // Added min_score field
 });
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -143,6 +144,9 @@ export const POST: RequestHandler = async ({ request }) => {
 			} else {
 				queryStringParams.set('sort', 'date_desc'); // Sort by date descending
 			}
+			if (parsedBody.min_score !== undefined) {
+				queryStringParams.set('min_score', parsedBody.min_score.toString());
+			}
 			// Frigate API default is date_desc, but explicitly set for clarity
 		}
 
@@ -191,11 +195,11 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			console.log(`Fetched a total of ${allEvents.length} events before sorting and limiting.`);
 
-			const sortedEvents = allEvents.sort((a, b) => (b.start_time ?? 0) - (a.start_time ?? 0)).sort((a, b) => b.data.top_score - a.data.top_score)
+			// const sortedEvents = allEvents.sort((a, b) => (b.start_time ?? 0) - (a.start_time ?? 0)).sort((a, b) => b.data.top_score - a.data.top_score)
 			// --- FILTERING WORKAROUND: Ensure unique event IDs ---
 			const uniqueEvents: FrigateEvent[] = [];
 			const seenIds = new Set<string>();
-			for (const event of sortedEvents) {
+			for (const event of allEvents) {
 				// Check if we've already added an event with this ID
 				if (!seenIds.has(event.id)) {
 					uniqueEvents.push(event); // Add it if it's the first time seeing this ID

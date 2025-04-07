@@ -20,6 +20,7 @@
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import { Switch } from '$lib/components/ui/switch/index.js';
 
 	// --- Data from load function ---
 	let { data } = $props();
@@ -47,7 +48,9 @@
 	let query = $state('');
 	let selectedLabels = $state<LabelValue[]>([]);
 	let limit = $state(25);
+	let conf = $state(85);
 	let cameras = $state<CameraType[]>([]);
+	let sortBy: 'date_desc' | 'score_desc' = $state('date_desc');
 
 	// Date Range State
 	const df = new DateFormatter('en-US', { dateStyle: 'medium' });
@@ -103,6 +106,15 @@
 		input.value = String(num);
 	}
 
+	function handleConfInput(event: Event) {
+		const input = event.target as HTMLInputElement;
+		let num = parseInt(input.value, 10);
+		if (isNaN(num) || num < 1) num = 1;
+		if (num > 100) num = 100;
+		conf = num;
+		input.value = String(num);
+	}
+
 	// --- Search Function (Modified) ---
 	async function performSearch(options?: { searchType?: 'similarity'; eventId?: string }) {
 		isLoading = true;
@@ -144,7 +156,9 @@
 				after: afterTimestamp, // Use derived seconds timestamp
 				before: beforeTimestamp, // Use derived seconds timestamp
 				include_thumbnails: 1,
-				timezone: userTimezone
+				timezone: userTimezone,
+				min_score: conf,
+				sort_by: sortBy
 			};
 			console.log('Performing standard search with filters:', requestBody);
 		}
@@ -350,21 +364,21 @@
 					</Select.Trigger>
 					<Select.Content class="border-gray-700 bg-gray-800 text-gray-200">
 						<!-- Add search input field -->
-						<div class="sticky top-0 bg-gray-800 border-b border-gray-700">
+						<div class="sticky top-0 border-b border-gray-700 bg-gray-800">
 							<div class="p-1">
-								<input 
-									type="text" 
-									placeholder="Search cameras..." 
-									class="w-full px-2 py-1 text-sm rounded border border-gray-600 bg-gray-700 text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+								<input
+									type="text"
+									placeholder="Search cameras..."
+									class="w-full rounded border border-gray-600 bg-gray-700 px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
 									bind:value={cameraSearchQuery}
 								/>
 							</div>
 							<div class="flex justify-between px-1 pb-1">
 								<button
 									type="button"
-									class="px-2 py-0.5 text-xs rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+									class="rounded bg-blue-600 px-2 py-0.5 text-xs text-white hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
 									onclick={() => {
-										cameras = data.cameras.filter(camera => 
+										cameras = data.cameras.filter((camera) =>
 											camera.name.toLowerCase().includes(cameraSearchQuery.toLowerCase())
 										);
 									}}
@@ -373,7 +387,7 @@
 								</button>
 								<button
 									type="button"
-									class="px-2 py-0.5 text-xs rounded bg-gray-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-500"
+									class="rounded bg-gray-600 px-2 py-0.5 text-xs text-white hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-500"
 									onclick={() => {
 										cameras = [];
 									}}
@@ -385,7 +399,9 @@
 						<div class="py-1">
 							{#if cameras.length > 0}
 								<!-- Selected cameras section -->
-								<div class="px-2 py-1 text-xs font-semibold text-blue-300 bg-gray-900">Selected Cameras</div>
+								<div class="bg-gray-900 px-2 py-1 text-xs font-semibold text-blue-300">
+									Selected Cameras
+								</div>
 								{#each cameras as camera (camera.id)}
 									<Select.Item
 										value={camera.id.toString()}
@@ -399,13 +415,14 @@
 								<!-- Divider -->
 								<div class="my-1 border-t border-gray-700"></div>
 								<!-- All cameras section -->
-								<div class="px-2 py-1 text-xs font-semibold text-gray-400 bg-gray-900">All Cameras</div>
+								<div class="bg-gray-900 px-2 py-1 text-xs font-semibold text-gray-400">
+									All Cameras
+								</div>
 							{/if}
-							
-							{#each data.cameras.filter(camera => 
-								camera.name.toLowerCase().includes(cameraSearchQuery.toLowerCase()) && 
-								!cameras.some(selected => selected.id === camera.id)
-							) as camera (camera.id)}
+
+							{#each data.cameras.filter((camera) => camera.name
+										.toLowerCase()
+										.includes(cameraSearchQuery.toLowerCase()) && !cameras.some((selected) => selected.id === camera.id)) as camera (camera.id)}
 								<Select.Item
 									value={camera.id.toString()}
 									class="data-[highlighted]:bg-blue-600 data-[state=checked]:bg-blue-700"
@@ -415,8 +432,12 @@
 									</div>
 								</Select.Item>
 							{:else}
-								{#if cameras.length === 0 || cameras.length === data.cameras.filter(c => c.name.toLowerCase().includes(cameraSearchQuery.toLowerCase())).length}
-									<div class="px-2 py-2 text-sm text-gray-400 text-center">No additional cameras found</div>
+								{#if cameras.length === 0 || cameras.length === data.cameras.filter((c) => c.name
+												.toLowerCase()
+												.includes(cameraSearchQuery.toLowerCase())).length}
+									<div class="px-2 py-2 text-sm text-gray-400 text-center">
+										No additional cameras found
+									</div>
 								{/if}
 							{/each}
 						</div>
@@ -436,6 +457,38 @@
 					class="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-white focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
 					bind:value={limit}
 					oninput={handleLimitInput}
+					disabled={isLoading}
+				/>
+			</div>
+
+			<!-- Confidence Threshold -->
+			<div>
+				<label for="limit" class="mb-1 block text-sm font-medium text-gray-300"
+					>Min Confidence (1-100)</label
+				>
+				<input
+					id="limit"
+					type="number"
+					min="1"
+					max="100"
+					defaultValue="85"
+					class="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-white focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+					bind:value={conf}
+					oninput={handleConfInput}
+					disabled={isLoading}
+				/>
+			</div>
+
+			<!-- sortBy Toggle -->
+			<div>
+				<label for="limit" class="mb-1 block text-sm font-medium text-gray-300"
+					>Sort by {sortBy === 'date_desc' ? 'DateTime Desc' : 'Confidence Desc'}</label
+				>
+				<Switch
+					onCheckedChange={(e) => {
+						sortBy = e ? 'score_desc' : 'date_desc';
+					}}
+					checked={sortBy === 'score_desc'}
 					disabled={isLoading}
 				/>
 			</div>
@@ -542,7 +595,7 @@
 										<div
 											class="absolute bottom-0 left-0 bg-black/60 px-1.5 py-0.5 text-xs text-blue-300 backdrop-blur-sm"
 										>
-											Score: {Math.round(result.data.top_score*100)} %
+											Score: {Math.round(result.data.top_score * 100)} %
 										</div>
 									{/if}
 								</div>
@@ -570,7 +623,7 @@
 									{#if result.source_instance}
 										<p class="truncate text-xs text-gray-500" title={result.source_instance}>
 											<span class="font-medium">Src:</span>
-											{frigateInstances.find((el)=>el.url===result.source_instance)?.name}
+											{frigateInstances.find((el) => el.url === result.source_instance)?.name}
 										</p>
 									{/if}
 									<div class="pt-1 text-xs text-gray-400">

@@ -29,7 +29,8 @@ const searchSchema = z.object({
 
 	// Common fields
 	include_thumbnails: z.number().int().min(0).max(1).optional().default(0),
-	timezone: z.string().optional() // Timezone is needed for similarity search
+	timezone: z.string().optional(), // Timezone is needed for similarity search
+	sort: z.enum(['date_desc', 'date_asc', 'score_desc', 'score_asc']).optional(), // Added sort field
 });
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -83,9 +84,11 @@ export const POST: RequestHandler = async ({ request }) => {
 				queryStringParams.set('limit', parsedBody.limit.toString());
 			}
 			if (parsedBody.cameras && parsedBody.cameras.length > 0) {
-				parsedBody.cameras.forEach(camera => {
-					queryStringParams.append('cameras', camera);
-				});
+				// parsedBody.cameras.forEach(camera => {
+				// 	queryStringParams.append('cameras', camera);
+				// });
+				// Use a single query parameter with comma-separated values
+				queryStringParams.set('cameras', parsedBody.cameras.join(','));
 			}
 			if (parsedBody.labels && parsedBody.labels.length > 0) {
 				parsedBody.labels.forEach(label => {
@@ -134,6 +137,13 @@ export const POST: RequestHandler = async ({ request }) => {
 			if (parsedBody.timezone) {
 				queryStringParams.set('timezone', parsedBody.timezone);
 			}
+			if (parsedBody.sort) {
+				// Use the sort parameter from the request
+				queryStringParams.set('sort', parsedBody.sort);
+			} else {
+				queryStringParams.set('sort', 'date_desc'); // Sort by date descending
+			}
+			// Frigate API default is date_desc, but explicitly set for clarity
 		}
 
 

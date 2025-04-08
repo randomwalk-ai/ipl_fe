@@ -89,6 +89,7 @@ export interface SearchOptions {
     minImageQuality?: number;  // Should be between 0.0 and 1.0
     minClusterQuality?: number; // Should be between 0.0 and 1.0
     minClusterSize?: number;   // Should be >= 1
+    maxDistance?: number; // Optional max distance for filtering results between 0.0 and 1.0
 }
 
 /**
@@ -132,6 +133,9 @@ export async function searchByImage(
     }
     if (options.minClusterSize !== undefined && options.minClusterSize !== null) {
         url.searchParams.append('min_cluster_size', String(options.minClusterSize));
+    }
+    if (options.maxDistance !== undefined && options.maxDistance !== null) {
+        url.searchParams.append('max_distance', String(options.maxDistance));
     }
 
     // Prepare the form data payload

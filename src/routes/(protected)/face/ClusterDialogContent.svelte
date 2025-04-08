@@ -61,13 +61,13 @@
 			No faces found in this cluster.
 		</div>
 	{:else}
-		<div class="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+		<div class="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-2">
 			{#each faces as face (face.embedding_id)}
 				{@const imageWidth = 704}
 				{@const imageHeight = 576}
 				<!-- Make the container clickable -->
 				<div
-					class="relative aspect-square cursor-pointer overflow-hidden rounded bg-gray-700 transition-transform duration-150 ease-in-out hover:scale-105"
+					class="relative aspect-square cursor-pointer overflow-hidden rounded bg-gray-700 transition-transform duration-150 ease-in-out hover:outline"
 					onclick={() => handleFaceClick(face)}
 					role="button"
 					tabindex="0"

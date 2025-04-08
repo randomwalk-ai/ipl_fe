@@ -452,7 +452,7 @@
 						placeholder="0-100"
 					/>
 					<p class="mt-1 text-xs text-gray-400">
-						Lower values yield more similar results. Default: 65
+						Lower values yield more results. Default: 65
 					</p>
 					</div>
 			</div>

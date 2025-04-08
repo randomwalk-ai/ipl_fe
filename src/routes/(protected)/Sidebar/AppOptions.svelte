@@ -1,6 +1,15 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { LayoutDashboard, MessagesSquare, BellRing, Users, Hash, Eye, Search } from '@lucide/svelte';
+	import {
+		LayoutDashboard,
+		MessagesSquare,
+		BellRing,
+		Users,
+		Hash,
+		Eye,
+		Search,
+		UserSearch
+	} from '@lucide/svelte';
 	import { goto, beforeNavigate, afterNavigate } from '$app/navigation';
 
 	let isNavigating = $state(false);
@@ -45,6 +54,15 @@
 			>
 				<Search />
 				<span>{'Search'}</span>
+			</Sidebar.MenuButton>
+		</Sidebar.MenuItem>
+		<Sidebar.MenuItem>
+			<Sidebar.MenuButton
+				onclick={(e) => goto('/face')}
+				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
+			>
+				<UserSearch />
+				<span>{'Face Recognition'}</span>
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
 		<Sidebar.MenuItem>
@@ -98,7 +116,7 @@
 				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
 			>
 				<Eye />
-				<span>{'topview'}</span>
+				<span>{'Top View'}</span>
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
 	</Sidebar.Menu>

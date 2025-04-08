@@ -21,9 +21,13 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
+	import { getPageState } from '$lib/stores/index.svelte.js';
 
 	// --- Data from load function ---
 	let { data } = $props();
+	let PageState = getPageState();
+
+	PageState.title = 'Frigate Event Search';
 
 	// --- State ---
 	let isLoading = $state(false);
@@ -223,7 +227,7 @@
 </script>
 
 <ScrollArea class="h-full overflow-x-visible p-4 text-gray-200">
-	<h1 class="mb-6 text-2xl font-bold text-white">Frigate Event Search</h1>
+	<!-- <h1 class="mb-6 text-2xl font-bold text-white">Frigate Event Search</h1> -->
 
 	<!-- Search Form -->
 	<div class="mb-8">
@@ -364,7 +368,7 @@
 					</Select.Trigger>
 					<Select.Content class="border-gray-700 bg-gray-800 text-gray-200">
 						<!-- Add search input field -->
-						<div class="sticky top-0 border-b border-gray-700 bg-gray-800">
+						<div class="sticky z-50 top-0 border-b border-gray-700 bg-gray-800">
 							<div class="p-1">
 								<input
 									type="text"

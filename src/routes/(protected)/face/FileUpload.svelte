@@ -46,7 +46,7 @@
 
 	// --- State for Search Filters ---
 	let searchPriority = $state<SearchPriority>('faces');
-	let searchLimit = $state(30);
+	let searchLimit = $state(50);
 	let selectedCameras = $state<CameraType[]>([]);
 	let cameraSearchQuery = $state('');
 	let startTime = $state<string>('');
@@ -279,21 +279,17 @@
 		if (!open) onSearchDialogClose();
 	}}
 >
-	<Dialog.Content
-		class="max-w-4xl border-gray-700 bg-background sm:max-w-5xl lg:max-w-6xl"
-	>
+	<Dialog.Content class="max-w-4xl border-gray-700 bg-background sm:max-w-5xl lg:max-w-6xl">
 		<Dialog.Header>
 			<Dialog.Title class="text-xl font-semibold">Image Search Results</Dialog.Title>
 			{#if !searchLoading}
-				<Dialog.Description>
-					Showing matches for the uploaded image.
-				</Dialog.Description>
+				<Dialog.Description>Showing matches for the uploaded image.</Dialog.Description>
 			{/if}
 		</Dialog.Header>
 
 		<div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-4">
 			<!-- Query Image Display -->
-			<div class="md:col-span-1 flex flex-col gap-2">
+			<div class="flex flex-col gap-2 md:col-span-1">
 				<h3 class="mb-2 font-semibold">Query Image</h3>
 				{#if queryImageUrl}
 					<img
@@ -389,9 +385,7 @@
 									<!-- Divider -->
 									<div class="my-1 border-t border-gray-700"></div>
 									<!-- All cameras section -->
-									<div class="px-2 py-1 text-xs font-semibold">
-										All Cameras
-									</div>
+									<div class="px-2 py-1 text-xs font-semibold">All Cameras</div>
 								{/if}
 
 								{#each dataCameras.filter((camera) => camera.name
@@ -409,9 +403,7 @@
 									{#if selectedCameras.length === 0 || selectedCameras.length === dataCameras.filter( (c) => c.name
 														.toLowerCase()
 														.includes(cameraSearchQuery.toLowerCase()) ).length}
-										<div class="px-2 py-2 text-sm text-center">
-											No additional cameras found
-										</div>
+										<div class="px-2 py-2 text-sm text-center">No additional cameras found</div>
 									{/if}
 								{/each}
 							</div>
@@ -421,9 +413,7 @@
 
 				<!-- Toggle between faces vs cluster -->
 				<div>
-					<label class="mb-1 block text-sm font-medium"
-						>Search for {searchPriority}</label
-					>
+					<label class="mb-1 block text-sm font-medium">Search for {searchPriority}</label>
 					<Switch
 						onCheckedChange={(e) => {
 							searchPriority = e ? 'clusters' : 'faces';
@@ -433,9 +423,7 @@
 
 				<!-- Distance threshold -->
 				<div>
-					<label class="mb-1 block text-sm font-medium"
-						>Distance Threshold</label
-					>
+					<label class="mb-1 block text-sm font-medium">Distance Threshold</label>
 					<Input
 						type="number"
 						min={0}
@@ -451,10 +439,8 @@
 						class="w-full"
 						placeholder="0-100"
 					/>
-					<p class="mt-1 text-xs">
-						Lower values yield more results. Default: 65
-					</p>
-					</div>
+					<p class="mt-1 text-xs">Lower values yield more results. Default: 65</p>
+				</div>
 			</div>
 
 			<!-- Search Results Area -->
@@ -604,10 +590,7 @@
 													</div>
 													<!-- Text Details -->
 													<div class="space-y-1 p-3 text-xs">
-														<p
-															class="truncate font-semibold"
-															title={match.cluster_id}
-														>
+														<p class="truncate font-semibold" title={match.cluster_id}>
 															Cluster: {match.cluster_id.substring(0, 8)}...
 														</p>
 														<p><strong>Members:</strong> {match.member_count}</p>
@@ -627,15 +610,11 @@
 						</div>
 					</ScrollArea>
 				{:else if searchResults && searchResults.length === 0}
-					<div
-						class="flex h-64 items-center justify-center rounded-lg bg-secondary p-4"
-					>
+					<div class="flex h-64 items-center justify-center rounded-lg bg-secondary p-4">
 						No matches found in the database for the detected face.
 					</div>
 				{:else if !queryFaceFound}
-					<div
-						class="flex h-64 items-center justify-center rounded-lg bg-secondary p-4"
-					>
+					<div class="flex h-64 items-center justify-center rounded-lg bg-secondary p-4">
 						No face was detected in the uploaded image to search for.
 					</div>
 				{/if}

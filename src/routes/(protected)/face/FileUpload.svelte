@@ -265,7 +265,7 @@
 
 <!-- File Drop Zone triggers the search -->
 <FileDropZone
-	class="mb-4 flex cursor-pointer flex-col border-2 border-dashed border-gray-600 p-6 text-center text-gray-400 transition-colors duration-200 ease-in-out hover:border-blue-500 hover:bg-gray-800/50"
+	class="mb-4 flex cursor-pointer flex-col border-2 border-dashed border-gray-600 p-6 text-center transition-colors duration-200 ease-in-out hover:border-blue-500 hover:opacity-80"
 	onUpload={handleFileUpload}
 >
 	<UploadCloud class="mx-auto mb-2 h-12 w-12" />
@@ -280,12 +280,12 @@
 	}}
 >
 	<Dialog.Content
-		class="max-w-4xl border-gray-700 bg-background text-gray-200 sm:max-w-5xl lg:max-w-6xl"
+		class="max-w-4xl border-gray-700 bg-background sm:max-w-5xl lg:max-w-6xl"
 	>
 		<Dialog.Header>
-			<Dialog.Title class="text-xl font-semibold text-gray-100">Image Search Results</Dialog.Title>
+			<Dialog.Title class="text-xl font-semibold">Image Search Results</Dialog.Title>
 			{#if !searchLoading}
-				<Dialog.Description class="text-gray-400">
+				<Dialog.Description>
 					Showing matches for the uploaded image.
 				</Dialog.Description>
 			{/if}
@@ -294,7 +294,7 @@
 		<div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-4">
 			<!-- Query Image Display -->
 			<div class="md:col-span-1 flex flex-col gap-2">
-				<h3 class="mb-2 font-semibold text-gray-300">Query Image</h3>
+				<h3 class="mb-2 font-semibold">Query Image</h3>
 				{#if queryImageUrl}
 					<img
 						src={queryImageUrl}
@@ -312,7 +312,7 @@
 				{/if}
 				<!-- Cameras Select -->
 				<div>
-					<label class="mb-1 block text-sm font-medium text-gray-300">Cameras</label>
+					<label class="mb-1 block text-sm font-medium">Cameras</label>
 					<Select.Root
 						type="multiple"
 						onValueChange={(e) => {
@@ -336,7 +336,7 @@
 								{selectedCameras.length === 1 ? 'camera' : 'cameras'} selected
 							{:else}Any Camera{/if}
 						</Select.Trigger>
-						<Select.Content class="border-gray-700 bg-gray-800 text-gray-200">
+						<Select.Content class="border-gray-700">
 							<!-- Add search input field -->
 							<div class="sticky top-0 z-50 border-b border-gray-700 bg-gray-800">
 								<div class="p-1">
@@ -389,7 +389,7 @@
 									<!-- Divider -->
 									<div class="my-1 border-t border-gray-700"></div>
 									<!-- All cameras section -->
-									<div class="bg-gray-900 px-2 py-1 text-xs font-semibold text-gray-400">
+									<div class="px-2 py-1 text-xs font-semibold">
 										All Cameras
 									</div>
 								{/if}
@@ -409,7 +409,7 @@
 									{#if selectedCameras.length === 0 || selectedCameras.length === dataCameras.filter( (c) => c.name
 														.toLowerCase()
 														.includes(cameraSearchQuery.toLowerCase()) ).length}
-										<div class="px-2 py-2 text-sm text-gray-400 text-center">
+										<div class="px-2 py-2 text-sm text-center">
 											No additional cameras found
 										</div>
 									{/if}
@@ -421,7 +421,7 @@
 
 				<!-- Toggle between faces vs cluster -->
 				<div>
-					<label class="mb-1 block text-sm font-medium text-gray-300"
+					<label class="mb-1 block text-sm font-medium"
 						>Search for {searchPriority}</label
 					>
 					<Switch
@@ -433,7 +433,7 @@
 
 				<!-- Distance threshold -->
 				<div>
-					<label class="mb-1 block text-sm font-medium text-gray-300"
+					<label class="mb-1 block text-sm font-medium"
 						>Distance Threshold</label
 					>
 					<Input
@@ -451,7 +451,7 @@
 						class="w-full"
 						placeholder="0-100"
 					/>
-					<p class="mt-1 text-xs text-gray-400">
+					<p class="mt-1 text-xs">
 						Lower values yield more results. Default: 65
 					</p>
 					</div>
@@ -459,9 +459,9 @@
 
 			<!-- Search Results Area -->
 			<div class="md:col-span-3">
-				<h3 class="mb-2 font-semibold text-gray-300">Matches Found</h3>
+				<h3 class="mb-2 font-semibold">Matches Found</h3>
 				{#if searchLoading}
-					<div class="flex h-64 items-center justify-center text-gray-400">
+					<div class="flex h-64 items-center justify-center">
 						<Loader2 class="animate-spin" />
 						Searching...
 					</div>
@@ -501,14 +501,14 @@
 															/>
 															<!-- Fallback text if image fails -->
 															<div
-																class="absolute inset-0 flex items-center justify-center bg-gray-600 text-xs text-gray-400"
+																class="absolute inset-0 flex items-center justify-center bg-gray-600 text-xs"
 																style="display: none;"
 															>
 																No Thumbnail
 															</div>
 														{:else}
 															<div
-																class="flex h-full w-full items-center justify-center bg-gray-600 text-xs text-gray-400"
+																class="flex h-full w-full items-center justify-center bg-gray-600 text-xs"
 															>
 																No Thumbnail
 															</div>
@@ -542,7 +542,7 @@
 														{/if}
 													</div>
 													<!-- Text Details -->
-													<div class="space-y-1 p-3 text-xs text-gray-400">
+													<div class="space-y-1 p-3 text-xs">
 														<p><strong>Cam:</strong> {match.camera_id ?? 'N/A'}</p>
 														<p><strong>Time:</strong> {formatDate(match.timestamp)}</p>
 														<p class="truncate" title={match.cluster_id ?? ''}>
@@ -554,7 +554,7 @@
 												</div>
 											{/snippet}
 										</Dialog.Trigger>
-										<Dialog.Content class="max-w-5xl border-gray-700 bg-background text-gray-200">
+										<Dialog.Content class="max-w-5xl border-gray-700 bg-background">
 											<!-- Face Detail View -->
 											<ClusterDialogContent cluster_id={match.cluster_id ?? ''} />
 										</Dialog.Content>
@@ -577,14 +577,14 @@
 																loading="lazy"
 															/>
 															<div
-																class="absolute inset-0 flex items-center justify-center bg-gray-600 text-xs text-gray-400"
+																class="absolute inset-0 flex items-center justify-center bg-gray-600 text-xs"
 																style="display: none;"
 															>
 																No Thumbnail
 															</div>
 														{:else}
 															<div
-																class="flex h-full w-full items-center justify-center bg-gray-600 text-xs text-gray-400"
+																class="flex h-full w-full items-center justify-center bg-gray-600 text-xs"
 															>
 																No Representative Thumbnail
 															</div>
@@ -603,9 +603,9 @@
 														</div>
 													</div>
 													<!-- Text Details -->
-													<div class="space-y-1 p-3 text-xs text-gray-400">
+													<div class="space-y-1 p-3 text-xs">
 														<p
-															class="truncate font-semibold text-gray-300"
+															class="truncate font-semibold"
 															title={match.cluster_id}
 														>
 															Cluster: {match.cluster_id.substring(0, 8)}...
@@ -618,7 +618,7 @@
 												</div>
 											{/snippet}
 										</Dialog.Trigger>
-										<Dialog.Content class="max-w-5xl border-gray-700 bg-background text-gray-200">
+										<Dialog.Content class="max-w-5xl border-gray-700 bg-background">
 											<ClusterDialogContent cluster_id={match.cluster_id} />
 										</Dialog.Content>
 									</Dialog.Root>
@@ -628,13 +628,13 @@
 					</ScrollArea>
 				{:else if searchResults && searchResults.length === 0}
 					<div
-						class="flex h-64 items-center justify-center rounded-lg bg-gray-800 p-4 text-gray-400"
+						class="flex h-64 items-center justify-center rounded-lg bg-secondary p-4"
 					>
 						No matches found in the database for the detected face.
 					</div>
 				{:else if !queryFaceFound}
 					<div
-						class="flex h-64 items-center justify-center rounded-lg bg-gray-800 p-4 text-gray-400"
+						class="flex h-64 items-center justify-center rounded-lg bg-secondary p-4"
 					>
 						No face was detected in the uploaded image to search for.
 					</div>

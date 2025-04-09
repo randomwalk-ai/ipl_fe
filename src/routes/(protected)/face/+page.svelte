@@ -30,8 +30,8 @@
 
 <FileUpload cameras={data.cameras} />
 <!-- Existing Cluster Display -->
-<ScrollArea class="h-full overflow-x-visible p-4 text-gray-200">
-	<h2 class="mb-4 text-xl font-semibold text-gray-100">Existing Clusters</h2>
+<ScrollArea class="h-full overflow-x-visible p-4">
+	<h2 class="mb-4 text-xl font-semibold">Existing Clusters</h2>
 	<div
 		class="grid grid-cols-1 gap-4 p-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
 	>
@@ -47,11 +47,11 @@
 				<Dialog.Trigger>
 					{#snippet child({ props: triggerProps })}
 						<div
-							class="relative cursor-pointer overflow-hidden rounded-lg bg-gray-800 shadow-md transition-all hover:shadow-xl hover:ring-2 hover:ring-blue-500"
+							class="relative cursor-pointer overflow-hidden rounded-lg shadow-md transition-all hover:shadow-xl hover:ring-2 hover:ring-blue-500 bg-secondary"
 							{...triggerProps}
 						>
 							<!-- Cluster Thumbnail -->
-							<div class="relative aspect-video bg-gray-700">
+							<div class="relative aspect-video">
 								{#if cluster.representative_thumbnail_url}
 									<img
 										src={cluster.representative_thumbnail_url}
@@ -65,7 +65,7 @@
 							</div>
 							<!-- Cluster Info -->
 							<div class="space-y-2 p-3 text-sm">
-								<div class="flex items-center justify-between text-gray-200">
+								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-1" title="Members in Cluster">
 										<UsersIcon class="h-4 w-4" />
 										<span>{cluster.member_count}</span>
@@ -82,7 +82,7 @@
 						</div>
 					{/snippet}
 				</Dialog.Trigger>
-				<Dialog.Content class="max-w-5xl border-gray-700 bg-background text-gray-200">
+				<Dialog.Content class="max-w-5xl border-gray-700 bg-background">
 					<!-- Cluster Detail View -->
 					<ClusterDialogContent cluster_id={cluster.cluster_id} />
 				</Dialog.Content>

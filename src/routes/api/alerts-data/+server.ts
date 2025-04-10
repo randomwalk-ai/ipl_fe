@@ -57,7 +57,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	const policeMonitoringData = await db.execute(sql`
 		SELECT 
 			camera_id,
-			'No police found' AS query,
+			'Missing Police Personnel' AS query,
 			from_timestamp as start_timestamp,
 			to_timestamp as end_timestamp,
 			missing_duration as duration,

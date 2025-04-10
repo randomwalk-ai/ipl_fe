@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { PUBLIC_AWAY_TEAM_COLOR, PUBLIC_AWAY_TEAM_NAME } from '$env/static/public';
 	import * as echarts from 'echarts';
 	import { mode } from 'mode-watcher';
 	import { onDestroy, onMount } from 'svelte';
@@ -20,9 +21,7 @@
 				maintainAspectRatio: false,
 				backgroundColor: 'transparent',
 				// Updated default colors.  These are overridden by the series-specific colors below.
-				color: ['#39FF14', '#FFFF3C', 
-				'#004B8D' //TODO: Opposite-team changes
-			], // Gray/Green, Yellow, Blue
+				color: ['#39FF14', '#FFFF3C', PUBLIC_AWAY_TEAM_COLOR], // Gray/Green, Yellow, Blue
 				tooltip: {
 					trigger: 'axis',
 					backgroundColor: $mode === 'dark' ? '#1e293b' : '#ffffff',
@@ -32,7 +31,7 @@
 					}
 				},
 				legend: {
-					data: ['Incoming', 'CSK', 'DC'],
+					data: ['Incoming', 'CSK', PUBLIC_AWAY_TEAM_NAME],
 					textStyle: {
 						color: $mode === 'dark' ? '#94a3b8' : '#475569'
 					}
@@ -151,7 +150,7 @@
 						data: timeData.team1
 					},
 					{
-						name: 'DC',
+						name: PUBLIC_AWAY_TEAM_NAME,
 						type: 'line',
 						smooth: true,
 						lineStyle: {

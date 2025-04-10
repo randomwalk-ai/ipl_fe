@@ -10,7 +10,7 @@
 	import { parseUtcToIstTime } from '$lib/utils';
 	import CamStats from './CamStats.svelte';
 	import AlertsOverview from './AlertsOverview.svelte';
-
+	import { PUBLIC_AWAY_TEAM_NAME, PUBLIC_AWAY_TEAM_COLOR } from '$env/static/public';
 	let { data } = $props();
 	// $inspect(data.camAttendance);
 
@@ -67,8 +67,8 @@
 							.totalJerseyYellow
 					},
 					team2: {
-						name: 'DC',
-						color: 'blue', // Blue
+						name: PUBLIC_AWAY_TEAM_NAME,
+						color: PUBLIC_AWAY_TEAM_COLOR, // Blue
 						fans: (data.attData.attendanceData.at(-1) ?? { totalJerseyBlue: 0 }).totalJerseyBlue,
 						prevFans: (data.attData.oldAttendanceData.at(-1) ?? { totalJerseyBlue: 0 })
 							.totalJerseyBlue,

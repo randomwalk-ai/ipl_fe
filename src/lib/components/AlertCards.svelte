@@ -490,7 +490,7 @@
                   <div class="p-3 flex-1">
                     <div class="flex flex-col gap-1.5">
                       <h3 class="text-base font-bold">{detail.query}</h3>
-                      <p class="text-xs text-muted-foreground">Camera ID: {detail.camera_id || 'N/A'}</p>
+                      <p class="text-xs text-muted-foreground">Camera: <span class="font-bold text-white bg-[#1E293B] rounded-md px-1 p-1">{detail.camera_id?.split('_').join(' ') || 'N/A'}</span></p>
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-1.5 mt-1.5">
                         <div>
                           <p class="text-xs font-medium">Start Time:</p>

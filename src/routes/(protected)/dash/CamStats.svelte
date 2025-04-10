@@ -12,7 +12,7 @@
 	import { ScrollArea, ScrollAreaScrollbar } from '$lib/components/ui/scroll-area';
 	import { CameraIcon } from '@lucide/svelte';
 	import type { CamAttendanceType } from '../types';
-
+	import { PUBLIC_AWAY_TEAM_NAME, PUBLIC_HOME_TEAM_NAME } from '$env/static/public';
 	// Define props for the component
 	type Props = {
 		/** Camera attendance data */
@@ -36,8 +36,8 @@
 				<TableRow>
 					<TableHead class="w-[100px]">Camera ID</TableHead>
 					<TableHead class="min-w-[100px] text-right">Camera Name</TableHead>
-					<TableHead class="min-w-[100px] text-right">DC</TableHead>
-					<TableHead class="min-w-[100px] text-right">CSK</TableHead>
+					<TableHead class="min-w-[100px] text-right">${PUBLIC_AWAY_TEAM_NAME}</TableHead>
+					<TableHead class="min-w-[100px] text-right">${PUBLIC_HOME_TEAM_NAME}</TableHead>
 					<TableHead class="min-w-[100px] text-right">Other</TableHead>
 					<TableHead class="min-w-[100px] text-right">Total Count</TableHead>
 				</TableRow>

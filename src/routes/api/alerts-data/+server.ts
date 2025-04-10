@@ -13,6 +13,9 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	const searchAlertData = await db.execute(sql`
 		SELECT 
+		* , 'data:image/png;base64,' || thumbnail AS thumbnail
+		FROM 
+		(SELECT 
 			DISTINCT 
 			alert_notifications.query AS query,
 			result_elem ->> 'id' AS id,
@@ -25,7 +28,9 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		FROM alert_notifications,
 		LATERAL jsonb_array_elements(alert_notifications.results -> 'results') AS result_elem
-		ORDER BY end_timestamp DESC;
+		ORDER BY end_timestamp DESC
+		)
+		;
 		`);
 
 	// Loitering Query

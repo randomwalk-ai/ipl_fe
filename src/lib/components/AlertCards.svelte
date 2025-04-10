@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import * as Card from '$lib/components/ui/card';
+  import * as Dialog from '$lib/components/ui/dialog';
   import { 
     FlagIcon, 
     PawPrintIcon, 
@@ -10,7 +11,9 @@
     FlameIcon, 
     AlertTriangleIcon, 
     PackageIcon, 
-    SwordIcon 
+    SwordIcon,
+    ImageIcon,
+    VideoIcon
   } from '@lucide/svelte';
   import { format } from 'date-fns';
 
@@ -23,6 +26,7 @@
     end_timestamp: string;
     duration?: number;
     clip_path?: string;
+    thumbnail?: string;
   };
 
   type AlertData = {
@@ -47,6 +51,11 @@
   let selectedAlertDetails: AlertDetail[] = [];
   let isLoading = false;
   let showCards = true;
+  
+  // Modal state
+  let modalOpen = false;
+  let currentDetail: AlertDetail | null = null;
+  let activeTab: 'clip' | 'snapshot' = 'clip';
 
   const iconMap = {
     FlagIcon,
@@ -100,6 +109,17 @@
     const alertData = alertsData.find(data => data.id === alertId);
     selectedAlertDetails = alertData ? alertData.details : [];
     showCards = false;
+  }
+
+  function openMediaModal(detail: AlertDetail) {
+    currentDetail = detail;
+    // Set default active tab based on what's available
+    if (detail.clip_path) {
+      activeTab = 'clip';
+    } else if (detail.thumb_path) {
+      activeTab = 'snapshot';
+    }
+    modalOpen = true;
   }
 
   function formatTimestamp(timestamp: string): string {
@@ -173,7 +193,7 @@
           </h2>
           <button 
             class="px-2.5 py-0.5 bg-muted rounded-md text-xs font-medium hover:bg-muted/80"
-            on:click={() => { selectedAlertId = null; selectedAlertDetails = []; showCards = true; }}
+            onclick={() => { selectedAlertId = null; selectedAlertDetails = []; showCards = true; }}
           >
             Back
           </button>
@@ -188,10 +208,16 @@
             {#each selectedAlertDetails as detail}
               <Card.Root class="w-full overflow-hidden">
                 <div class="flex flex-col md:flex-row">
-                  {#if detail.thumb_path}
-                    <div class="w-full md:w-1/4 h-36">
+                  {#if detail.thumb_path || detail.thumbnail}
+                    <div 
+                      class="w-full md:w-1/4 h-36 cursor-pointer" 
+                      onclick={() => openMediaModal(detail)} 
+                      onkeydown={(e) => e.key === 'Enter' && openMediaModal(detail)}
+                      role="button"
+                      tabindex={0}
+                    >
                       <img 
-                        src={detail.thumb_path} 
+                        src={detail.thumbnail || detail.thumb_path} 
                         alt={detail.query} 
                         class="w-full h-full object-cover"
                         loading="lazy"
@@ -218,16 +244,14 @@
                           </div>
                         {/if}
                       </div>
-                      {#if detail.clip_path}
+                      {#if detail.clip_path || detail.thumb_path}
                         <div class="mt-1.5">
-                          <a 
-                            href={detail.clip_path} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
+                          <button 
                             class="inline-flex items-center gap-1.5 bg-primary text-primary-foreground px-2.5 py-0.5 rounded-md text-xs"
+                            onclick={() => openMediaModal(detail)}
                           >
-                            View Clip
-                          </a>
+                            View Media
+                          </button>
                         </div>
                       {/if}
                     </div>
@@ -240,4 +264,82 @@
       </div>
     {/if}
   {/if}
-</div> 
+</div>
+
+<!-- Media Viewer Modal -->
+<Dialog.Root bind:open={modalOpen}>
+  <Dialog.Content class="sm:max-w-[90vw] max-h-[90vh] overflow-hidden">
+    <Dialog.Header>
+      <Dialog.Title>{currentDetail?.query || 'Media Viewer'}</Dialog.Title>
+      <Dialog.Description class="text-xs">
+        {currentDetail?.camera_id ? `Camera: ${currentDetail.camera_id}` : ''}
+        {currentDetail?.start_timestamp ? ` | Time: ${formatTimestamp(currentDetail.start_timestamp)}` : ''}
+      </Dialog.Description>
+    </Dialog.Header>
+    
+    {#if currentDetail}
+      <div class="flex justify-center gap-2 mb-2">
+        {#if currentDetail.clip_path}
+          <button 
+            class="px-3 py-1 rounded-md text-sm flex items-center gap-1.5 {activeTab === 'clip' ? 'bg-primary text-primary-foreground' : 'bg-muted'}"
+            onclick={() => activeTab = 'clip'}
+          >
+            <VideoIcon class="h-4 w-4" /> Clip
+          </button>
+        {/if}
+        {#if currentDetail.thumb_path || currentDetail.thumbnail}
+          <button 
+            class="px-3 py-1 rounded-md text-sm flex items-center gap-1.5 {activeTab === 'snapshot' ? 'bg-primary text-primary-foreground' : 'bg-muted'}"
+            onclick={() => activeTab = 'snapshot'}
+          >
+            <ImageIcon class="h-4 w-4" /> Snapshot
+          </button>
+        {/if}
+      </div>
+      
+      <div class="overflow-auto max-h-[60vh]">
+        {#if activeTab === 'clip' && currentDetail.clip_path}
+          <video 
+            controls 
+            class="w-full max-h-[60vh]" 
+            autoplay
+            preload="auto"
+            controlsList="nodownload"
+            crossorigin="anonymous"
+          >
+            <source src={currentDetail.clip_path} type="video/mp4">
+            <source src={currentDetail.clip_path} type="video/webm">
+            <source src={currentDetail.clip_path} type="application/x-mpegURL">
+            <track kind="captions" src="" label="English" />
+            Your browser does not support the video tag.
+          </video>
+          <div class="mt-2 text-center">
+            <a 
+              href={currentDetail.clip_path} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="text-xs text-primary underline"
+            >
+              Open video in new tab
+            </a>
+          </div>
+        {:else if activeTab === 'snapshot' && (currentDetail.thumb_path || currentDetail.thumbnail)}
+          <img 
+            src={currentDetail.thumbnail || currentDetail.thumb_path} 
+            alt={currentDetail.query} 
+            class="w-full max-h-[60vh] object-contain"
+            
+          />
+        {:else}
+          <div class="text-center p-8">
+            <p>No media available</p>
+          </div>
+        {/if}
+      </div>
+    {/if}
+    
+    <Dialog.Footer>
+      <Dialog.Close class="bg-muted px-3 py-1 rounded-md text-sm">Close</Dialog.Close>
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog.Root> 

@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { alertNotifications, anomaly, loiteringLog } from '$lib/server/db/schema';
+import { alertNotifications, anomaly, loiteringLog ,policeMonitoring} from '$lib/server/db/schema';
 import { desc, gt, sql } from 'drizzle-orm';
 
 export const GET: RequestHandler = async () => {
@@ -28,6 +28,9 @@ export const GET: RequestHandler = async () => {
 			limit: 200,
 			where: gt(loiteringLog.durationSeconds, 120)
 		});
+		const res4 = await db.query.policeMonitoring.findMany({
+			limit: 200,
+		});
 		// const res3 = await db.execute(sql`
 		// 	SELECT * FROM loitering_log
 		// 	where duration_seconds > 120
@@ -39,7 +42,8 @@ export const GET: RequestHandler = async () => {
 		return json({
 			alertsData: res,
 			anomaliesData: res2,
-			loiteringData: res3
+			loiteringData: res3,
+			policeMonitoringData: res4
 		});
 	} catch (error) {
 		console.error('Failed to fetch alerts:', error);

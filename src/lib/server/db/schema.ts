@@ -68,6 +68,15 @@ export const alertNotifications = pgTable('alert_notifications', {
 	results: jsonb(),
 	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
 });
+export const policeMonitoring = pgTable('police_monitoring', {
+	id: serial().primaryKey().notNull(),
+	cameraId: varchar('camera_id').notNull(),
+	missingDuration: integer('missing_duration').notNull(),
+	fromTimestamp: timestamp('from_timestamp', { withTimezone: true, mode: 'string' }).notNull(),
+	toTimestamp: timestamp('to_timestamp', { withTimezone: true, mode: 'string' }).notNull(),
+	clipPath: varchar('clip_path').notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow()
+});
 
 export const anomaly = pgTable('anomaly', {
 	id: serial().primaryKey().notNull(),

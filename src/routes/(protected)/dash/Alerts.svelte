@@ -2,13 +2,14 @@
 	import { BellRingIcon, SettingsIcon, BarChartIcon } from '@lucide/svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
-	import type { Alert as AlertType, AnomalyType, LoiteringData } from '../types';
+	import type { Alert as AlertType, AnomalyType, LoiteringData, PoliceMonitoringType } from '../types';
 	import { onMount, onDestroy } from 'svelte';
 	import { fly } from 'svelte/transition'; // Import a transition
 	import SimpleDialog from './SimpleDialog.svelte';
 	import { addHoursToDate, parseUtcToIstTime, timeAgo } from '$lib/utils';
 	import { ArrowLeftIcon } from '@lucide/svelte';
 	import BannersAndSlogans from './BannersAndSlogans.svelte';
+	import PoliceMonitoring from './PoliceMonitoring.svelte';
 
 	// Define a unified type for the combined list
 	interface CombinedAlertItem {
@@ -62,20 +63,16 @@
 			description: "Detection of Animals in the stadium areas."
 		}
 	]
+	// State for police monitoring view
+	let showingPoliceView = $state(false);
+
 	// Additional alert cards
 	const additionalAlertCards = [
-		
 		{
 			mainTitle: "Animals",
 			alertTitle: "dogs",
 			icon: "PawPrintIcon",
 			description: "Detection of animals in restricted areas."
-		},
-		{
-			mainTitle: "No Police",
-			alertTitle: "No police",
-			icon: "ShieldAlertIcon",
-			description: "Alert when no police personnel are detected in required areas."
 		},
 		{
 			mainTitle: "Loitering",
@@ -190,6 +187,7 @@
 			cameras: Array.from(queryGroup.cameras.values())
 		}));
 	});
+	let policeMonitoring = $state<PoliceMonitoringType[]>([]);
 	// Derive combined and sorted data
 	let combinedData = $derived.by(() => {
 		const mappedAlerts: CombinedAlertItem[] = (alerts ?? []).map((item) => ({
@@ -273,60 +271,6 @@
 		}));
 	});
 
-	// Analytics data for time-based chart
-	let analyticsData = $derived.by(() => {
-		// Use the selected time range for analytics
-		const fromTimestamp = new Date(fromDate).getTime();
-		const toTimestamp = new Date(toDate).getTime();
-		const timeRange = toTimestamp - fromTimestamp;
-		
-		// Create 8 time points evenly distributed across the selected range
-		const timePoints: Date[] = [];
-		const counts: number[] = [];
-		
-		// Create time intervals
-		for (let i = 0; i <= 8; i++) {
-			const timePoint = new Date(fromTimestamp + (i * timeRange / 8));
-			timePoints.push(timePoint);
-			
-			// Initialize count for this time point
-			if (i < 8) counts.push(0);
-		}
-		
-		// Count alerts in each time interval
-		combinedData.forEach(item => {
-			const itemTime = new Date(item.time).getTime();
-			
-			// Check which interval this alert belongs to
-			for (let i = 0; i < timePoints.length - 1; i++) {
-				if (itemTime >= timePoints[i].getTime() && itemTime < timePoints[i + 1].getTime()) {
-					counts[i]++;
-					break;
-				}
-			}
-		});
-		
-		// Format time labels (HH:MM format)
-		const timeLabels = timePoints.slice(0, 8).map(date => 
-			`${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
-		);
-		
-		// Find max count for y-axis scaling (minimum 5 for better visualization)
-		const maxCount = Math.max(...counts, 5);
-		
-		// Generate y-axis labels (5 points from 0 to maxCount)
-		const yLabels = Array.from({length: 5}, (_, i) => 
-			Math.round(maxCount * i / 4)
-		);
-		
-		return {
-			timeLabels,
-			counts,
-			yLabels,
-			maxCount
-		};
-	});
-
 	// Modal state for Alert iframe
 	let showAlertModal = $state(false);
 	let selectedAlertUrl = $state('');
@@ -365,6 +309,7 @@
 		selectedQuery = '';
 		showingBannerAlertsView = false;
 		showingBannerQueriesView = false;
+		showingPoliceView = false;
 		selectedCamera = '';
 		selectedBannerQuery = '';
 	}
@@ -420,8 +365,11 @@
 				alertsData: AlertType[];
 				anomaliesData: AnomalyType[];
 				loiteringData: LoiteringData[];
+				policeMonitoringData: PoliceMonitoringType[];
 			};
-
+			console.log(data.policeMonitoringData);
+			
+			policeMonitoring = data.policeMonitoringData ?? [];
 			// Process fetched data
 			alerts = data.alertsData ?? [];
 			anomalies = (data.anomaliesData ?? []).map((a) => ({
@@ -534,6 +482,11 @@
 		if (!showingBannerAlertsView || !selectedCamera) return [];
 		return bannerAlertsData.allAlerts.filter(item => item.cameraName === selectedCamera);
 	});
+
+	// Function to show police monitoring view
+	function showPoliceView() {
+		showingPoliceView = true;
+	}
 </script>
 
 <Card class="flex h-full w-full flex-col dark:bg-background dark:text-white">
@@ -559,6 +512,8 @@
 					Banner & Slogan Queries
 				{:else if showingBannerAlertsView}
 					Banner & Slogan Alerts - {selectedCamera}
+				{:else if showingPoliceView}
+					No Police Alerts
 				{:else}
 					Recent Alerts & Events
 				{/if}
@@ -619,81 +574,7 @@
 		<CardContent class="p-4">
 			{#if showingAnalytics}
 				<!-- Analytics View -->
-				<div class="flex flex-col h-full">
-					<h3 class="text-lg font-medium mb-4">Alert Frequency (Time-Based Analysis)</h3>
-					
-					<!-- Time range selector for analytics -->
-					<div class="mb-4 flex flex-col sm:flex-row gap-4 items-end">
-						<div class="flex flex-col gap-1 flex-1">
-							<label for="analytics-from-date" class="text-sm font-medium">From</label>
-							<input 
-								id="analytics-from-date" 
-								type="datetime-local" 
-								bind:value={fromDate} 
-								class="rounded-md border border-gray-300 dark:border-gray-700 bg-background p-2 text-sm"
-							/>
-						</div>
-						<div class="flex flex-col gap-1 flex-1">
-							<label for="analytics-to-date" class="text-sm font-medium">To</label>
-							<input 
-								id="analytics-to-date" 
-								type="datetime-local" 
-								bind:value={toDate} 
-								class="rounded-md border border-gray-300 dark:border-gray-700 bg-background p-2 text-sm"
-							/>
-						</div>
-						<button 
-							class="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm"
-							on:click={applyTimeRangeFilter}
-						>
-							Update Chart
-						</button>
-					</div>
-					
-					<div class="flex-1 flex flex-col">
-						<!-- Chart Container -->
-						<div class="relative h-64 mt-4">
-							<!-- Y-axis labels -->
-							<div class="absolute left-0 top-0 bottom-0 w-10 flex flex-col justify-between text-xs text-gray-500">
-								{#each analyticsData.yLabels.slice().reverse() as label}
-									<div>{label}</div>
-								{/each}
-							</div>
-							
-							<!-- Chart area -->
-							<div class="absolute left-12 right-0 top-0 bottom-16 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded">
-								<!-- Grid lines -->
-								<div class="absolute inset-0 flex flex-col justify-between">
-									{#each Array(5) as _, i}
-										<div class="border-b border-gray-200 dark:border-gray-700 h-0"></div>
-									{/each}
-								</div>
-								
-								<!-- Bars -->
-								<div class="absolute inset-0 flex justify-around items-end p-2">
-									{#each analyticsData.counts as count, i}
-										<div 
-											class="w-8 bg-primary transition-all duration-300 rounded-t"
-											style="height: {(count / analyticsData.maxCount * 100) || 0}%"
-											title="{count} alerts at {analyticsData.timeLabels[i]}"
-										></div>
-									{/each}
-								</div>
-							</div>
-							
-							<!-- X-axis labels -->
-							<div class="absolute left-12 right-0 bottom-0 h-16 flex justify-around items-start pt-2 text-xs text-gray-500">
-								{#each analyticsData.timeLabels as label}
-									<div class="text-center">{label}</div>
-								{/each}
-							</div>
-						</div>
-						
-						<div class="mt-4 text-sm text-center text-gray-500">
-							Time intervals based on selected time range
-						</div>
-					</div>
-				</div>
+				<div></div>
 			{:else if showingFilteredView}
 				<!-- Filtered view showing specific alerts -->
 				{#if filteredData.length === 0}
@@ -754,8 +635,16 @@
 					{backToGroupedView}
 					{openModal}
 				/>
+			{:else if showingPoliceView}
+				<!-- Police Monitoring View -->
+				<PoliceMonitoring
+					policeMonitoringData={policeMonitoring}
+					showingPoliceView={true}
+					{showPoliceView}
+					backToGroupedView={backToGroupedView}
+					MEDIA_BASE_URL={MEDIA_BASE_URL}
+				/>
 			{:else}
-				<!-- Grouped view showing alert categories -->
 				{#if groupedData.length === 0}
 					<p class="text-center text-gray-500 dark:text-gray-400">No recent events</p>
 				{:else}
@@ -779,24 +668,16 @@
 							{backToGroupedView}
 							{openModal}
 						/>
-						<!-- Banner & Slogans Card -->
-						<BannersAndSlogans
-							{bannerAndSlogansConfig}
-							{organized_grouped_alerts}
-							{bannerAlertsData}
-							{bannerQueries}
-							{MEDIA_BASE_URL}
-							{filteredBannerAlerts}
-							{showingBannerQueriesView}
-							{showingBannerAlertsView}
-							{selectedCamera}
-							{selectedBannerQuery}
-							{showBannerQueriesView}
-							{showBannerAlertsView}
-							{showBannerQueryAlerts}
+						
+						<!-- Police Monitoring Card -->
+						<PoliceMonitoring
+							policeMonitoringData={policeMonitoring}
+							{showingPoliceView}
+							{showPoliceView}
 							{backToGroupedView}
-							{openModal}
+							MEDIA_BASE_URL={MEDIA_BASE_URL}
 						/>
+						
 						<!-- Additional Alert Cards -->
 						{#each additionalAlertCards as card}
 							<div

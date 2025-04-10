@@ -19,8 +19,9 @@ export const GET: RequestHandler = async ({ url }) => {
 		FROM 
 		(SELECT 
 			DISTINCT 
+			alert_notifications.id AS id,
 			alert_notifications.query AS query,
-			result_elem ->> 'id' AS id,
+			result_elem ->> 'id' AS res_id,
 			result_elem ->> 'camera' AS camera_id,
 			result_elem ->> 'img_url' AS img_url,
 			result_elem ->> 'thumb_path' AS thumb_path,
@@ -43,6 +44,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			EXTRACT(EPOCH FROM (end_timestamp - start_timestamp)) AS duration
 		FROM (
 			SELECT 
+				id,
 				camera_id, 				
 				object_class || ' found loitering' AS query,
 				${PUBLIC_LOITERING_ENDPOINT} || '/snapshot/' || snapshot_path AS thumb_path,
@@ -56,6 +58,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	const policeMonitoringData = await db.execute(sql`
 		SELECT 
+			id,
 			camera_id,
 			'Missing Police Personnel' AS query,
 			from_timestamp as start_timestamp,
@@ -107,6 +110,5 @@ export const GET: RequestHandler = async ({ url }) => {
 		{ id: 'unattended-baggage', count: 0, details: [] },
 		{ id: 'weapons', count: 0, details: [] }
 	];
-
 	return json(alertData);
 };

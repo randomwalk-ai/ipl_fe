@@ -183,7 +183,16 @@
 			alert('Failed to download image. Please try again.');
 		} finally {
 			isDownloading = false;
-			isNotified = true;
+			// Load from localstorage the unNotifiedAlertIds and set the db records accordingly
+			const unNotifiedAlertIds = JSON.parse(localStorage.getItem('unNotifiedAlertIds') || '{}');
+			console.log('unNotifiedAlertIds', unNotifiedAlertIds);
+			fetch('/api/update-alert-ids', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ unNotifiedAlertIds })
+			});
 		}
 	};
 </script>
@@ -212,7 +221,7 @@
       >
         <Maximize2 class="h-4 w-4" />
       </button>
-      
+      {#if showNewOnly}
       <button 
         onclick={sendAlert}
         class="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-md disabled:opacity-50"
@@ -225,6 +234,7 @@
           <span>Send Alert</span>
         {/if}
       </button>
+      {/if}
     </div>
   </div>
   <div id="scroll-content" class="p-4 h-full">

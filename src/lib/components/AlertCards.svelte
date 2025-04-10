@@ -108,6 +108,16 @@
       }
       
       alertsData = await response.json();
+      // Store all alert ids in local storage in the format of { alertId : [ids,...] } only if the alert is not notified
+
+      const cachedAlertItems: { [key: string]: string[] } = {};
+      alertsData.forEach((item) => {
+        cachedAlertItems[item.id] = item.details
+          .filter((detail: AlertDetail) => detail.is_notified === false)
+          .map((detail: AlertDetail) => detail.id);
+      });
+      localStorage.setItem('unNotifiedAlertIds', JSON.stringify(cachedAlertItems));
+      
       applyFilters();
     } catch (error) {
       console.error('Error fetching alert data:', error);

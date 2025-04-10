@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BellRingIcon } from '@lucide/svelte';
+	import { BellRingIcon, SettingsIcon, BarChartIcon } from '@lucide/svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
 	import type { Alert as AlertType, AnomalyType, LoiteringData } from '../types';
@@ -7,6 +7,7 @@
 	import { fly } from 'svelte/transition'; // Import a transition
 	import SimpleDialog from './SimpleDialog.svelte';
 	import { addHoursToDate, parseUtcToIstTime, timeAgo } from '$lib/utils';
+	import { ArrowLeftIcon } from '@lucide/svelte';
 
 	// Define a unified type for the combined list
 	interface CombinedAlertItem {
@@ -30,6 +31,82 @@
 	let anomalies: AnomalyType[] | null = $state(null);
 	let loitering: LoiteringData[] | null = $state(null);
 	let refreshInterval: ReturnType<typeof setInterval>;
+	
+	// State for view management
+	let showingFilteredView = $state(false);
+	let selectedQuery = $state('');
+	
+	// Time range filter settings
+	let showTimeRangeSettings = $state(false);
+	let fromDate = $state(new Date(Date.now() - 5 * 60 * 1000).toISOString().slice(0, 16)); // Default: 5 minutes ago
+	let toDate = $state(new Date().toISOString().slice(0, 16)); // Default: now
+
+	// Analytics view state
+	let showingAnalytics = $state(false);
+
+	// Additional alert cards
+	const additionalAlertCards = [
+		{
+			mainTitle: "Banners & Slogans",
+			alertTitle: "person waving black",
+			icon: "FileTextIcon",
+			description: "Detection of unauthorized banners, posters, or slogans in restricted areas."
+		},
+		{
+			mainTitle: "Prohibited Items",
+			alertTitle: "Prohibited Items",
+			icon: "BanIcon",
+			description: "Detection of items not allowed in the premises."
+		},
+		{
+			mainTitle: "Animals",
+			alertTitle: "dogs",
+			icon: "PawPrintIcon",
+			description: "Detection of animals in restricted areas."
+		},
+		{
+			mainTitle: "No Police",
+			alertTitle: "motorcycle",
+			icon: "ShieldAlertIcon",
+			description: "Alert when no police personnel are detected in required areas."
+		},
+		{
+			mainTitle: "Stampede Risk",
+			alertTitle: "motorcycle",
+			icon: "UsersIcon",
+			description: "Detection of crowd conditions that may lead to stampede."
+		},
+		{
+			mainTitle: "Fire & Smoke",
+			alertTitle: "motorcycle",
+			icon: "FlameIcon",
+			description: "Detection of fire or smoke in monitored areas."
+		},
+		{
+			mainTitle: "Suspect Alert",
+			alertTitle: "motorcycle",
+			icon: "AlertTriangleIcon",
+			description: "Detection of known suspects or persons of interest."
+		},
+		{
+			mainTitle: "Loitering",
+			alertTitle: "motorcycle",
+			icon: "FootprintsIcon",
+			description: "Detection of suspicious loitering in specific areas."
+		},
+		{
+			mainTitle: "Unattended Baggage",
+			alertTitle: "motorcycle",
+			icon: "PackageIcon",
+			description: "Detection of bags or packages left unattended."
+		},
+		{
+			mainTitle: "Weapons",
+			alertTitle: "motorcycle",
+			icon: "SwordIcon",
+			description: "Detection of potential weapons in monitored areas."
+		}
+	];
 
 	// Derive combined and sorted data
 	let combinedData = $derived.by(() => {
@@ -57,9 +134,8 @@
 			media_url: item.filePath, // Store the relative path
 			cameraName: item.camera?.name
 		}));
-		console.log(loitering)
+		
 		const mappedLoitering: CombinedAlertItem[] = (loitering ?? []).map((item) => ({
-			
 			id: `loitering-${item.id}`, // Prefix ID
 			query: item.label || 'Loitering Detected',
 			time: item.timestampEntry, // Use entry time as the event time
@@ -77,6 +153,99 @@
 		);
 	});
 
+	// Filtered data based on selected query
+	let filteredData = $derived.by(() => {
+		if (!showingFilteredView || !selectedQuery) return [];
+		return combinedData.filter(item => item.query === selectedQuery);
+	});
+
+	// Group data by query with time range filter
+	let groupedData = $derived.by(() => {
+		const groups = new Map<string, { total: number, recent: number, uniqueCameras: Set<string>, items: CombinedAlertItem[] }>();
+		const fromTimestamp = new Date(fromDate).getTime();
+		const toTimestamp = new Date(toDate).getTime();
+		
+		combinedData.forEach(item => {
+			if (!groups.has(item.query)) {
+				groups.set(item.query, { total: 0, recent: 0, uniqueCameras: new Set(), items: [] });
+			}
+			
+			const group = groups.get(item.query)!;
+			group.total++;
+			group.items.push(item);
+			
+			const itemTime = new Date(item.time).getTime();
+			if (itemTime >= fromTimestamp && itemTime <= toTimestamp) {
+				group.recent++;
+				if (item.cameraName) {
+					group.uniqueCameras.add(item.cameraName);
+				}
+			}
+		});
+		
+		return Array.from(groups.entries()).map(([query, data]) => ({
+			query,
+			total: data.total,
+			recent: data.recent,
+			uniqueCamerasCount: data.uniqueCameras.size,
+			items: data.items
+		}));
+	});
+
+	// Analytics data for time-based chart
+	let analyticsData = $derived.by(() => {
+		// Use the selected time range for analytics
+		const fromTimestamp = new Date(fromDate).getTime();
+		const toTimestamp = new Date(toDate).getTime();
+		const timeRange = toTimestamp - fromTimestamp;
+		
+		// Create 8 time points evenly distributed across the selected range
+		const timePoints: Date[] = [];
+		const counts: number[] = [];
+		
+		// Create time intervals
+		for (let i = 0; i <= 8; i++) {
+			const timePoint = new Date(fromTimestamp + (i * timeRange / 8));
+			timePoints.push(timePoint);
+			
+			// Initialize count for this time point
+			if (i < 8) counts.push(0);
+		}
+		
+		// Count alerts in each time interval
+		combinedData.forEach(item => {
+			const itemTime = new Date(item.time).getTime();
+			
+			// Check which interval this alert belongs to
+			for (let i = 0; i < timePoints.length - 1; i++) {
+				if (itemTime >= timePoints[i].getTime() && itemTime < timePoints[i + 1].getTime()) {
+					counts[i]++;
+					break;
+				}
+			}
+		});
+		
+		// Format time labels (HH:MM format)
+		const timeLabels = timePoints.slice(0, 8).map(date => 
+			`${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+		);
+		
+		// Find max count for y-axis scaling (minimum 5 for better visualization)
+		const maxCount = Math.max(...counts, 5);
+		
+		// Generate y-axis labels (5 points from 0 to maxCount)
+		const yLabels = Array.from({length: 5}, (_, i) => 
+			Math.round(maxCount * i / 4)
+		);
+		
+		return {
+			timeLabels,
+			counts,
+			yLabels,
+			maxCount
+		};
+	});
+
 	// Modal state for Alert iframe
 	let showAlertModal = $state(false);
 	let selectedAlertUrl = $state('');
@@ -87,18 +256,42 @@
 	let selectedMediaUrl = $state('');
 	let selectedMediaTitle = $state('');
 
+	// Function to toggle time range settings
+	function toggleTimeRangeSettings() {
+		showTimeRangeSettings = !showTimeRangeSettings;
+	}
+
+	// Function to toggle analytics view
+	function toggleAnalyticsView() {
+		showingAnalytics = !showingAnalytics;
+	}
+
+	// Function to apply time range filter
+	function applyTimeRangeFilter() {
+		// The filter is automatically applied through the reactive $derived.by
+		showTimeRangeSettings = false;
+	}
+
+	// Function to show filtered view for a specific query
+	function showFilteredView(query: string) {
+		selectedQuery = query;
+		showingFilteredView = true;
+	}
+
+	// Function to go back to the grouped view
+	function backToGroupedView() {
+		showingFilteredView = false;
+		selectedQuery = '';
+	}
+
 	// Function to open the appropriate modal
 	function openModal(item: CombinedAlertItem) {
-		// console.log(item);
 		if (item.type === 'alert' && item.redirect_url) {
 			selectedAlertUrl = item.redirect_url;
 			selectedAlertTitle = item.query || 'Alert Details';
 			showAlertModal = true;
 		} else if ((item.type === 'anomaly' || item.type === 'loitering') && item.snapshot_filename) {
 			// Construct the full media URL here
-			// The slice(6) was specific to the previous anomaly path structure, adjust if needed for both types
-			// If media_url is already absolute or needs different prefixing, change this logic.
-			// Assuming relative path like '/media/...' for both
 			let fullUrl = '';
 			if (item.snapshot_filename.startsWith('/media/')) {
 				// Example adjustment based on common patterns
@@ -108,9 +301,7 @@
 				fullUrl = MEDIA_BASE_URL + item.media_url;
 			}
 			if (item.type === 'loitering') {
-				// fullUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_clips/"+item.media_url;
 				fullUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_snapshots/"+item.snapshot_filename;
-
 			}
 
 			selectedMediaUrl = fullUrl;
@@ -119,9 +310,7 @@
 			showMediaModal = true;
 		} else if (item.type === 'loitering' && !item.media_url) {
 			selectedMediaUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_snapshots/"+item.snapshot_filename;
-
-		} 
-		 else {
+		} else {
 			console.warn('No suitable URL found for item:', item);
 			// Optionally show a feedback message to the user
 		}
@@ -183,49 +372,283 @@
 <Card class="flex h-full w-full flex-col dark:bg-background dark:text-white">
 	<CardHeader class="flex h-14 flex-row items-center justify-between rounded-t-md bg-secondary p-4">
 		<div class="flex items-center gap-2">
+			{#if showingFilteredView}
+				<button 
+					class="flex items-center gap-1 text-sm hover:text-primary" 
+					on:click={backToGroupedView}
+				>
+					<ArrowLeftIcon class="h-4 w-4" />
+					<span>Back</span>
+				</button>
+				<span class="mx-2">|</span>
+			{/if}
 			<BellRingIcon class="h-5 w-5" />
-			<h3 class="font-medium">Recent Alerts & Events</h3>
+			<h3 class="font-medium">
+				{#if showingFilteredView}
+					{selectedQuery} Alerts
+				{:else if showingAnalytics}
+					Alert Analytics
+				{:else}
+					Recent Alerts & Events
+				{/if}
+			</h3>
 		</div>
+		{#if !showingFilteredView}
+			<div class="flex items-center gap-2">
+				<button 
+					class="flex items-center gap-1 text-sm hover:text-primary" 
+					on:click={toggleAnalyticsView}
+					aria-label="Analytics view"
+				>
+					<BarChartIcon class="h-4 w-4" />
+				</button>
+				<button 
+					class="flex items-center gap-1 text-sm hover:text-primary" 
+					on:click={toggleTimeRangeSettings}
+					aria-label="Time range settings"
+				>
+					<SettingsIcon class="h-4 w-4" />
+				</button>
+			</div>
+		{/if}
 	</CardHeader>
+	
+	{#if showTimeRangeSettings}
+		<div class="bg-secondary/50 p-4 border-b dark:border-gray-700">
+			<div class="flex flex-col sm:flex-row gap-4 items-end">
+				<div class="flex flex-col gap-1 flex-1">
+					<label for="from-date" class="text-sm font-medium">From</label>
+					<input 
+						id="from-date" 
+						type="datetime-local" 
+						bind:value={fromDate} 
+						class="rounded-md border border-gray-300 dark:border-gray-700 bg-background p-2 text-sm"
+					/>
+				</div>
+				<div class="flex flex-col gap-1 flex-1">
+					<label for="to-date" class="text-sm font-medium">To</label>
+					<input 
+						id="to-date" 
+						type="datetime-local" 
+						bind:value={toDate} 
+						class="rounded-md border border-gray-300 dark:border-gray-700 bg-background p-2 text-sm"
+					/>
+				</div>
+				<button 
+					class="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm"
+					on:click={applyTimeRangeFilter}
+				>
+					Apply
+				</button>
+			</div>
+		</div>
+	{/if}
+	
 	<ScrollArea class="flex-1">
-		<CardContent class="grid gap-4 p-4">
-			{#if combinedData.length === 0}
-				<p class="text-center text-gray-500 dark:text-gray-400">No recent events</p>
-			{:else}
-				{#each combinedData as item (item.id)}
-					<div
-						class="grid cursor-pointer gap-1 rounded-md p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-						role="button"
-						tabindex="0"
-						onclick={() => openModal(item)}
-						onkeydown={(e) => e.key === 'Enter' && openModal(item)}
-						in:fly={{ y: 10, duration: 200, delay: 50 }}
-						out:fly={{ y: -10, duration: 200 }}
-					>
-						<div class="flex items-center justify-between gap-2">
-							<!-- Maybe add an icon based on type? -->
-							<!-- Example: {#if item.type === 'anomaly'} <Icon.../> {/if} -->
-							<div class="flex grow flex-col gap-1">
-								<div
-									class="text-md flex w-full items-center justify-between font-medium leading-none"
-								>
-									<span class="truncate pr-2">
-										Detected {item.query}
-										{#if item.cameraName}
-											at {item.cameraName}
-										{/if}
-									</span>
-									<span class="flex-shrink-0 text-sm text-muted-foreground">
-										{timeAgo(item.time)}
-									</span>
+		<CardContent class="p-4">
+			{#if showingAnalytics}
+				<!-- Analytics View -->
+				<div class="flex flex-col h-full">
+					<h3 class="text-lg font-medium mb-4">Alert Frequency (Time-Based Analysis)</h3>
+					
+					<!-- Time range selector for analytics -->
+					<div class="mb-4 flex flex-col sm:flex-row gap-4 items-end">
+						<div class="flex flex-col gap-1 flex-1">
+							<label for="analytics-from-date" class="text-sm font-medium">From</label>
+							<input 
+								id="analytics-from-date" 
+								type="datetime-local" 
+								bind:value={fromDate} 
+								class="rounded-md border border-gray-300 dark:border-gray-700 bg-background p-2 text-sm"
+							/>
+						</div>
+						<div class="flex flex-col gap-1 flex-1">
+							<label for="analytics-to-date" class="text-sm font-medium">To</label>
+							<input 
+								id="analytics-to-date" 
+								type="datetime-local" 
+								bind:value={toDate} 
+								class="rounded-md border border-gray-300 dark:border-gray-700 bg-background p-2 text-sm"
+							/>
+						</div>
+						<button 
+							class="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm"
+							on:click={applyTimeRangeFilter}
+						>
+							Update Chart
+						</button>
+					</div>
+					
+					<div class="flex-1 flex flex-col">
+						<!-- Chart Container -->
+						<div class="relative h-64 mt-4">
+							<!-- Y-axis labels -->
+							<div class="absolute left-0 top-0 bottom-0 w-10 flex flex-col justify-between text-xs text-gray-500">
+								{#each analyticsData.yLabels.slice().reverse() as label}
+									<div>{label}</div>
+								{/each}
+							</div>
+							
+							<!-- Chart area -->
+							<div class="absolute left-12 right-0 top-0 bottom-16 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded">
+								<!-- Grid lines -->
+								<div class="absolute inset-0 flex flex-col justify-between">
+									{#each Array(5) as _, i}
+										<div class="border-b border-gray-200 dark:border-gray-700 h-0"></div>
+									{/each}
 								</div>
-								<span class="text-xs leading-tight text-muted-foreground">
-									{item.description}
-								</span>
+								
+								<!-- Bars -->
+								<div class="absolute inset-0 flex justify-around items-end p-2">
+									{#each analyticsData.counts as count, i}
+										<div 
+											class="w-8 bg-primary transition-all duration-300 rounded-t"
+											style="height: {(count / analyticsData.maxCount * 100) || 0}%"
+											title="{count} alerts at {analyticsData.timeLabels[i]}"
+										></div>
+									{/each}
+								</div>
+							</div>
+							
+							<!-- X-axis labels -->
+							<div class="absolute left-12 right-0 bottom-0 h-16 flex justify-around items-start pt-2 text-xs text-gray-500">
+								{#each analyticsData.timeLabels as label}
+									<div class="text-center">{label}</div>
+								{/each}
 							</div>
 						</div>
+						
+						<div class="mt-4 text-sm text-center text-gray-500">
+							Time intervals based on selected time range
+						</div>
 					</div>
-				{/each}
+				</div>
+			{:else if showingFilteredView}
+				<!-- Filtered view showing specific alerts -->
+				{#if filteredData.length === 0}
+					<p class="text-center text-gray-500 dark:text-gray-400">No alerts found for "{selectedQuery}"</p>
+				{:else}
+					<div class="grid gap-4">
+						{#each filteredData as item (item.id)}
+							<div
+								class="grid cursor-pointer gap-1 rounded-md p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+								role="button"
+								tabindex="0"
+								on:click={() => openModal(item)}
+								on:keydown={(e) => e.key === 'Enter' && openModal(item)}
+								in:fly={{ y: 10, duration: 200, delay: 50 }}
+								out:fly={{ y: -10, duration: 200 }}
+							>
+								<div class="flex items-center justify-between gap-2">
+									<div class="flex grow flex-col gap-1">
+										<div
+											class="text-md flex w-full items-center justify-between font-medium leading-none"
+										>
+											<span class="truncate pr-2">
+												{#if item.cameraName}
+													at {item.cameraName}
+												{:else}
+													Alert Details
+												{/if}
+											</span>
+											<span class="flex-shrink-0 text-sm text-muted-foreground">
+												{timeAgo(item.time)}
+											</span>
+										</div>
+										<span class="text-xs leading-tight text-muted-foreground">
+											{item.description}
+										</span>
+									</div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			{:else}
+				<!-- Grouped view showing alert categories -->
+				{#if groupedData.length === 0}
+					<p class="text-center text-gray-500 dark:text-gray-400">No recent events</p>
+				{:else}
+					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+						<!-- Additional Alert Cards -->
+						{#each additionalAlertCards as card}
+							<div
+								class="flex flex-col cursor-pointer items-center justify-center rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
+								role="button"
+								tabindex="0"
+								on:click={() => showFilteredView(card.alertTitle)}
+								on:keydown={(e) => e.key === 'Enter' && showFilteredView(card.alertTitle)}
+								in:fly={{ y: 10, duration: 200, delay: 50 }}
+							>
+								<h4 class="mb-2 text-lg font-semibold">{card.mainTitle}</h4>
+								<div class="mt-auto grid grid-cols-3 gap-2 text-sm items-center justify-center">
+									{#if groupedData.find(group => group.query === card.alertTitle)}
+										{#each [groupedData.find(group => group.query === card.alertTitle)] as matchedGroup}
+											{#if matchedGroup && matchedGroup.recent > 0}
+											<div class="flex flex-col items-center justify-center col-span-3">
+
+												<div class="mt-auto grid grid-cols-3 gap-2 text-sm flex-grow">
+													<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
+														<span class="font-medium">{matchedGroup.total}</span>
+														<span class="text-xs text-muted-foreground">Total</span>
+													</div>
+													<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
+														<span class="font-medium">{matchedGroup.recent}</span>
+														<span class="text-xs text-muted-foreground">In Range</span>
+													</div>
+													<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
+														<span class="font-medium">{matchedGroup.uniqueCamerasCount}</span>
+														<span class="text-xs text-muted-foreground">Cameras</span>
+													</div>
+												</div>
+											</div>
+											{:else if matchedGroup}
+												<div class="flex flex-col items-center justify-center col-span-3">
+														<span class="font-medium text-2xl">{matchedGroup.total}</span>
+														<span class="text-xs text-muted-foreground">Total</span>
+												</div>
+											{/if}
+										{/each}
+									{:else}
+										<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800 col-span-3">
+											<span class="font-medium">0</span>
+											<span class="text-xs text-muted-foreground">Total</span>
+										</div>
+									{/if}
+								</div>
+							</div>
+						{/each}
+
+						{#each groupedData as group (group.query)}
+							<div
+								class="flex flex-col cursor-pointer rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
+								role="button"
+								tabindex="0"
+								on:click={() => showFilteredView(group.query)}
+								on:keydown={(e) => e.key === 'Enter' && showFilteredView(group.query)}
+								in:fly={{ y: 10, duration: 200, delay: 50 }}
+							>
+								<h4 class="mb-2 text-lg font-semibold">{group.query}</h4>
+								<div class="mt-auto grid grid-cols-{group.recent > 0 ? '3' : '1'} gap-2 text-sm">
+									<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
+										<span class="font-medium">{group.total}</span>
+										<span class="text-xs text-muted-foreground">Total</span>
+									</div>
+									{#if group.recent > 0}
+										<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
+											<span class="font-medium">{group.recent}</span>
+											<span class="text-xs text-muted-foreground">In Range</span>
+										</div>
+										<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
+											<span class="font-medium">{group.uniqueCamerasCount}</span>
+											<span class="text-xs text-muted-foreground">Cameras</span>
+										</div>
+									{/if}
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
 			{/if}
 		</CardContent>
 	</ScrollArea>

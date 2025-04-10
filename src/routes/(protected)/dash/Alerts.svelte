@@ -114,6 +114,8 @@
 	// State for banner alerts view
 	let showingBannerAlertsView = $state(false);
 	let selectedCamera = $state('');
+	let showingBannerQueriesView = $state(false);
+	let selectedBannerQuery = $state('');
 	
 	// Organized alerts grouped by query and camera
 	let organized_grouped_alerts = $derived.by(() => {
@@ -349,6 +351,10 @@
 	function backToGroupedView() {
 		showingFilteredView = false;
 		selectedQuery = '';
+		showingBannerAlertsView = false;
+		showingBannerQueriesView = false;
+		selectedCamera = '';
+		selectedBannerQuery = '';
 	}
 
 	// Function to open the appropriate modal
@@ -435,16 +441,32 @@
 		if (refreshInterval) clearInterval(refreshInterval);
 	});
 
+	// Function to show banner queries view
+	function showBannerQueriesView() {
+		showingBannerQueriesView = true;
+		showingBannerAlertsView = false;
+		selectedCamera = '';
+	}
+
 	// Function to show banner alerts for a specific camera
 	function showBannerAlertsView(camera: string) {
 		selectedCamera = camera;
 		showingBannerAlertsView = true;
+		showingBannerQueriesView = false;
 	}
 	
 	// Function to go back from banner alerts view
 	function backFromBannerAlertsView() {
 		showingBannerAlertsView = false;
 		selectedCamera = '';
+	}
+
+	// Function to show alerts for a specific query
+	function showBannerQueryAlerts(query: string) {
+		selectedBannerQuery = query;
+		showingBannerQueriesView = false;
+		showingFilteredView = true;
+		selectedQuery = query;
 	}
 	
 	// Derived data for banner alerts
@@ -485,6 +507,15 @@
 			}))
 		};
 	});
+
+	// Get banner queries from organized_grouped_alerts
+	let bannerQueries = $derived.by(() => {
+		return organized_grouped_alerts.filter(group => 
+			bannerAndSlogansConfig.alertTitle.some(title => 
+				group.query.toLowerCase().includes(title.toLowerCase())
+			)
+		);
+	});
 	
 	// Filtered banner alerts for a specific camera
 	let filteredBannerAlerts = $derived.by(() => {
@@ -496,7 +527,7 @@
 <Card class="flex h-full w-full flex-col dark:bg-background dark:text-white">
 	<CardHeader class="flex h-14 flex-row items-center justify-between rounded-t-md bg-secondary p-4">
 		<div class="flex items-center gap-2">
-			{#if showingFilteredView}
+			{#if showingFilteredView || showingBannerAlertsView || showingBannerQueriesView}
 				<button 
 					class="flex items-center gap-1 text-sm hover:text-primary" 
 					on:click={backToGroupedView}
@@ -512,12 +543,16 @@
 					{selectedQuery} Alerts
 				{:else if showingAnalytics}
 					Alert Analytics
+				{:else if showingBannerQueriesView}
+					Banner & Slogan Queries
+				{:else if showingBannerAlertsView}
+					Banner & Slogan Alerts - {selectedCamera}
 				{:else}
 					Recent Alerts & Events
 				{/if}
 			</h3>
 		</div>
-		{#if !showingFilteredView}
+		{#if !showingFilteredView && !showingBannerAlertsView && !showingBannerQueriesView}
 			<div class="flex items-center gap-2">
 				<button 
 					class="flex items-center gap-1 text-sm hover:text-primary" 
@@ -688,21 +723,14 @@
 						{/each}
 					</div>
 				{/if}
-			{:else if showingBannerAlertsView}
-				<!-- Banner Alerts for specific camera view -->
+			{:else if showingBannerQueriesView}
+				<!-- Banner Queries View -->
 				<div class="mb-4">
-					<button 
-						class="flex items-center gap-1 text-sm hover:text-primary" 
-						on:click={backFromBannerAlertsView}
-					>
-						<ArrowLeftIcon class="h-4 w-4" />
-						<span>Back to Cameras</span>
-					</button>
-					<h3 class="mt-2 text-lg font-medium">Banner & Slogan Alerts - {selectedCamera}</h3>
+					<h3 class="text-lg font-medium mb-4">Banner & Slogan Queries</h3>
 				</div>
 				
-				{#if filteredBannerAlerts.length === 0}
-					<p class="text-center text-gray-500 dark:text-gray-400">No banner alerts found for this camera</p>
+				{#if bannerQueries.length === 0}
+					<p class="text-center text-gray-500 dark:text-gray-400">No banner and slogan alerts found</p>
 				{:else}
 					<div class="grid gap-4">
 						{#each filteredBannerAlerts as item (item.id)}
@@ -744,6 +772,7 @@
 							role="button"
 							tabindex="0"
 							on:click={() => {
+								console.log("organized_grouped_alerts", organized_grouped_alerts)
 								if (bannerAlertsData.byCameras.length > 0) {
 									// If there are cameras with alerts, show the camera view
 									showingBannerAlertsView = true;

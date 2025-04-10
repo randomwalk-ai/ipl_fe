@@ -65,6 +65,10 @@
   let currentDetail: AlertDetail | null = null;
   let activeTab: 'clip' | 'snapshot' = 'clip';
 
+  // Add these variables for query filtering
+  let uniqueQueries: string[] = [];
+  let selectedQuery: string | null = null;
+
   const iconMap = {
     FlagIcon,
     PawPrintIcon,
@@ -135,17 +139,36 @@
       selectedAlertDetails = alertData ? alertData.details : [];
       applyDetailFilters();
     }
+    uniqueQueries = [...new Set(selectedAlertDetails.map(detail => detail.query))];
+
   }
   
-  // Apply filters to the selected details
+  // Update the detail filters to include query filtering
   function applyDetailFilters() {
     // Start with all details
     let filtered = [...selectedAlertDetails];
+    
+    // Apply query filter if one is selected
+    if (selectedQuery) {
+      filtered = filtered.filter(detail => detail.query === selectedQuery);
+    }
     
     // Apply max results limit
     filtered = filtered.slice(0, maxResults);
     
     filteredAlertDetails = filtered;
+
+  }
+
+  // Handle query selection
+  function selectQuery(query: string | null) {
+    if (selectedQuery === query) {
+      // Toggle off if clicking the same query
+      selectedQuery = null;
+    } else {
+      selectedQuery = query;
+    }
+    applyDetailFilters();
   }
 
   onMount(() => {
@@ -251,11 +274,36 @@
           </h2>
           <button 
             class="px-2.5 py-0.5 bg-muted rounded-md text-xs font-medium hover:bg-muted/80"
-            onclick={() => { selectedAlertId = null; selectedAlertDetails = []; showCards = true; }}
+            onclick={() => { 
+              selectedAlertId = null; 
+              selectedAlertDetails = []; 
+              selectedQuery = null;
+              showCards = true; 
+            }}
           >
             Back
           </button>
         </div>
+        {console.log('uniqueQueries', uniqueQueries)}
+        <!-- Query filter tabs -->
+        {#if uniqueQueries.length > 0}
+          <div class="flex flex-wrap gap-2 mb-4 overflow-x-auto pb-2">
+            <button 
+              class="px-3 py-1 text-xs rounded-full {selectedQuery === null ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}"
+              onclick={() => selectQuery(null)}
+            >
+              All
+            </button>
+            {#each uniqueQueries as query}
+              <button 
+                class="px-3 py-1 text-xs rounded-full whitespace-nowrap {selectedQuery === query ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}"
+                onclick={() => selectQuery(query)}
+              >
+                {query}
+              </button>
+            {/each}
+          </div>
+        {/if}
         
         {#if filteredAlertDetails.length === 0}
           <div class="text-center p-6 bg-muted rounded-lg">

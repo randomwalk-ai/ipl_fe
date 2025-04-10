@@ -43,21 +43,16 @@
 
 	// Analytics view state
 	let showingAnalytics = $state(false);
-
+	// banner and slogans config
+	const bannerAndSlogansConfig = {
+			mainTitle: "Banners & Slogans",
+			alertTitle: ["person waving black flag","people holding placards"],
+			description: "Detection of unauthorized banners, posters, or slogans in restricted areas."
+		}
+		
 	// Additional alert cards
 	const additionalAlertCards = [
-		{
-			mainTitle: "Banners & Slogans",
-			alertTitle: "person waving black",
-			icon: "FileTextIcon",
-			description: "Detection of unauthorized banners, posters, or slogans in restricted areas."
-		},
-		{
-			mainTitle: "Prohibited Items",
-			alertTitle: "Prohibited Items",
-			icon: "BanIcon",
-			description: "Detection of items not allowed in the premises."
-		},
+		
 		{
 			mainTitle: "Animals",
 			alertTitle: "dogs",
@@ -66,27 +61,9 @@
 		},
 		{
 			mainTitle: "No Police",
-			alertTitle: "motorcycle",
+			alertTitle: "No police",
 			icon: "ShieldAlertIcon",
 			description: "Alert when no police personnel are detected in required areas."
-		},
-		{
-			mainTitle: "Stampede Risk",
-			alertTitle: "motorcycle",
-			icon: "UsersIcon",
-			description: "Detection of crowd conditions that may lead to stampede."
-		},
-		{
-			mainTitle: "Fire & Smoke",
-			alertTitle: "motorcycle",
-			icon: "FlameIcon",
-			description: "Detection of fire or smoke in monitored areas."
-		},
-		{
-			mainTitle: "Suspect Alert",
-			alertTitle: "motorcycle",
-			icon: "AlertTriangleIcon",
-			description: "Detection of known suspects or persons of interest."
 		},
 		{
 			mainTitle: "Loitering",
@@ -95,19 +72,110 @@
 			description: "Detection of suspicious loitering in specific areas."
 		},
 		{
+			mainTitle: "Prohibited Items",
+			alertTitle: "Prohibited Items",
+			icon: "BanIcon",
+			description: "Detection of items not allowed in the premises."
+		},
+		
+		{
+			mainTitle: "Stampede Risk",
+			alertTitle: "stampede risk",
+			icon: "UsersIcon",
+			description: "Detection of crowd conditions that may lead to stampede."
+		},
+		{
+			mainTitle: "Fire & Smoke",
+			alertTitle: "fire & smoke",
+			icon: "FlameIcon",
+			description: "Detection of fire or smoke in monitored areas."
+		},
+		{
+			mainTitle: "Suspect Alert",
+			alertTitle: "suspect",
+			icon: "AlertTriangleIcon",
+			description: "Detection of known suspects or persons of interest."
+		},
+		
+		{
 			mainTitle: "Unattended Baggage",
-			alertTitle: "motorcycle",
+			alertTitle: "unattended baggage",
 			icon: "PackageIcon",
 			description: "Detection of bags or packages left unattended."
 		},
 		{
 			mainTitle: "Weapons",
-			alertTitle: "motorcycle",
+			alertTitle: "weapons",
 			icon: "SwordIcon",
 			description: "Detection of potential weapons in monitored areas."
 		}
 	];
 
+	// State for banner alerts view
+	let showingBannerAlertsView = $state(false);
+	let selectedCamera = $state('');
+	
+	// Organized alerts grouped by query and camera
+	let organized_grouped_alerts = $derived.by(() => {
+		if (!alerts) return [];
+		
+		// Create a map to organize by query
+		const queryMap = new Map<string, {
+			query: string,
+			cameras: Map<string, {
+				cameraName: string,
+				alerts: Array<{
+					redirectURL: string,
+					thumbnail: string,
+					id: string,
+					end_time: string
+				}>
+			}>
+		}>();
+		// Process each alert
+		alerts.forEach(alert => {
+			const query = alert.query;
+			
+			// Initialize query group if it doesn't exist
+			if (!queryMap.has(query)) {
+				queryMap.set(query, {
+					query,
+					cameras: new Map()
+				});
+			}
+			
+			// Process each result in the alert
+			if (alert.results && alert.results.results) {
+				alert.results.results.forEach(result => {
+					if (result.camera) {
+						const cameraName = result.camera;
+						const queryGroup = queryMap.get(query)!;
+						
+						// Initialize camera group if it doesn't exist
+						if (!queryGroup.cameras.has(cameraName)) {
+							queryGroup.cameras.set(cameraName, {
+								cameraName,
+								alerts: []
+							});
+						}
+						
+						// Add alert details to camera group
+						queryGroup.cameras.get(cameraName)!.alerts.push({
+							redirectURL: alert.results.redirect_url || '',
+							thumbnail: result.thumbnail || '',
+							id: alert.id,
+							end_time: alert.createdAt
+						});
+					}
+				});
+			}
+		});
+		// Convert maps to arrays for easier iteration in the template
+		return Array.from(queryMap.values()).map(queryGroup => ({
+			query: queryGroup.query,
+			cameras: Array.from(queryGroup.cameras.values())
+		}));
+	});
 	// Derive combined and sorted data
 	let combinedData = $derived.by(() => {
 		const mappedAlerts: CombinedAlertItem[] = (alerts ?? []).map((item) => ({
@@ -146,7 +214,6 @@
 			snapshot_filename: item.snapshotFilename || undefined,
 			cameraName: item.cameraId!
 		}));
-
 		// Combine, sort by time (most recent first), and return
 		return [...mappedAlerts, ...mappedAnomalies, ...mappedLoitering].sort(
 			(a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
@@ -367,6 +434,63 @@
 	onDestroy(() => {
 		if (refreshInterval) clearInterval(refreshInterval);
 	});
+
+	// Function to show banner alerts for a specific camera
+	function showBannerAlertsView(camera: string) {
+		selectedCamera = camera;
+		showingBannerAlertsView = true;
+	}
+	
+	// Function to go back from banner alerts view
+	function backFromBannerAlertsView() {
+		showingBannerAlertsView = false;
+		selectedCamera = '';
+	}
+	
+	// Derived data for banner alerts
+	let bannerAlertsData = $derived.by(() => {
+		// Filter alerts related to banners and slogans
+		const bannerAlerts = combinedData.filter(item => 
+			bannerAndSlogansConfig.alertTitle.some(title => 
+				item.query.toLowerCase().includes(title.toLowerCase())
+			)
+		);
+		
+		// Group by camera
+		const cameraGroups = new Map<string, CombinedAlertItem[]>();
+		
+		bannerAlerts.forEach(alert => {
+			if (alert.cameraName) {
+				if (!cameraGroups.has(alert.cameraName)) {
+					cameraGroups.set(alert.cameraName, []);
+				}
+				cameraGroups.get(alert.cameraName)!.push(alert);
+			}
+		});
+		
+		// Sort alerts within each camera group by time (most recent first)
+		cameraGroups.forEach((alerts, camera) => {
+			cameraGroups.set(camera, alerts.sort((a, b) => 
+				new Date(b.time).getTime() - new Date(a.time).getTime()
+			));
+		});
+		
+		return {
+			allAlerts: bannerAlerts,
+			byCameras: Array.from(cameraGroups.entries()).map(([camera, alerts]) => ({
+				camera,
+				alerts,
+				latestAlert: alerts[0],
+				count: alerts.length
+			}))
+		};
+	});
+	
+	// Filtered banner alerts for a specific camera
+	let filteredBannerAlerts = $derived.by(() => {
+		if (!showingBannerAlertsView || !selectedCamera) return [];
+		return bannerAlertsData.allAlerts.filter(item => item.cameraName === selectedCamera);
+	});
 </script>
 
 <Card class="flex h-full w-full flex-col dark:bg-background dark:text-white">
@@ -564,12 +688,99 @@
 						{/each}
 					</div>
 				{/if}
+			{:else if showingBannerAlertsView}
+				<!-- Banner Alerts for specific camera view -->
+				<div class="mb-4">
+					<button 
+						class="flex items-center gap-1 text-sm hover:text-primary" 
+						on:click={backFromBannerAlertsView}
+					>
+						<ArrowLeftIcon class="h-4 w-4" />
+						<span>Back to Cameras</span>
+					</button>
+					<h3 class="mt-2 text-lg font-medium">Banner & Slogan Alerts - {selectedCamera}</h3>
+				</div>
+				
+				{#if filteredBannerAlerts.length === 0}
+					<p class="text-center text-gray-500 dark:text-gray-400">No banner alerts found for this camera</p>
+				{:else}
+					<div class="grid gap-4">
+						{#each filteredBannerAlerts as item (item.id)}
+							<div
+								class="grid cursor-pointer gap-1 rounded-md border p-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:border-gray-700"
+								role="button"
+								tabindex="0"
+								on:click={() => openModal(item)}
+								on:keydown={(e) => e.key === 'Enter' && openModal(item)}
+								in:fly={{ y: 10, duration: 200, delay: 50 }}
+							>
+								<div class="flex items-center justify-between gap-2">
+									<div class="flex grow flex-col gap-1">
+										<div class="text-md flex w-full items-center justify-between font-medium leading-none">
+											<span class="truncate pr-2">{item.query}</span>
+											<span class="flex-shrink-0 text-sm text-muted-foreground">
+												{timeAgo(item.time)}
+											</span>
+										</div>
+										<span class="text-xs leading-tight text-muted-foreground">
+											{item.description}
+										</span>
+									</div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
 			{:else}
 				<!-- Grouped view showing alert categories -->
 				{#if groupedData.length === 0}
 					<p class="text-center text-gray-500 dark:text-gray-400">No recent events</p>
 				{:else}
 					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+						
+						<!-- Banner & Slogans Card -->
+						<div
+							class="flex flex-col cursor-pointer items-center justify-center rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
+							role="button"
+							tabindex="0"
+							on:click={() => {
+								if (bannerAlertsData.byCameras.length > 0) {
+									// If there are cameras with alerts, show the camera view
+									showingBannerAlertsView = true;
+								} else {
+									// Otherwise show filtered view with all banner alerts
+									showFilteredView(bannerAndSlogansConfig.alertTitle[0]);
+								}
+							}}
+							on:keydown={(e) => e.key === 'Enter' && showFilteredView(bannerAndSlogansConfig.alertTitle[0])}
+							in:fly={{ y: 10, duration: 200, delay: 50 }}
+						>
+							<h4 class="mb-2 text-lg font-semibold">{bannerAndSlogansConfig.mainTitle}</h4>
+							<p class="text-xs text-center text-muted-foreground mb-3">{bannerAndSlogansConfig.description}</p>
+							
+							{#if bannerAlertsData.byCameras.length > 0}
+								<div class="mt-auto grid grid-cols-3 gap-2 text-sm items-center justify-center">
+									<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
+										<span class="font-medium">{bannerAlertsData.allAlerts.length}</span>
+										<span class="text-xs text-muted-foreground">Total</span>
+									</div>
+									<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
+										<span class="font-medium">{bannerAlertsData.byCameras.length}</span>
+										<span class="text-xs text-muted-foreground">Cameras</span>
+									</div>
+									<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
+										<span class="font-medium">{timeAgo(bannerAlertsData.allAlerts[0]?.time || '')}</span>
+										<span class="text-xs text-muted-foreground">Latest</span>
+									</div>
+								</div>
+							{:else}
+								<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800 w-full">
+									<span class="font-medium">0</span>
+									<span class="text-xs text-muted-foreground">Total</span>
+								</div>
+							{/if}
+						</div>
+						
 						<!-- Additional Alert Cards -->
 						{#each additionalAlertCards as card}
 							<div
@@ -613,35 +824,6 @@
 										<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800 col-span-3">
 											<span class="font-medium">0</span>
 											<span class="text-xs text-muted-foreground">Total</span>
-										</div>
-									{/if}
-								</div>
-							</div>
-						{/each}
-
-						{#each groupedData as group (group.query)}
-							<div
-								class="flex flex-col cursor-pointer rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
-								role="button"
-								tabindex="0"
-								on:click={() => showFilteredView(group.query)}
-								on:keydown={(e) => e.key === 'Enter' && showFilteredView(group.query)}
-								in:fly={{ y: 10, duration: 200, delay: 50 }}
-							>
-								<h4 class="mb-2 text-lg font-semibold">{group.query}</h4>
-								<div class="mt-auto grid grid-cols-{group.recent > 0 ? '3' : '1'} gap-2 text-sm">
-									<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
-										<span class="font-medium">{group.total}</span>
-										<span class="text-xs text-muted-foreground">Total</span>
-									</div>
-									{#if group.recent > 0}
-										<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
-											<span class="font-medium">{group.recent}</span>
-											<span class="text-xs text-muted-foreground">In Range</span>
-										</div>
-										<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
-											<span class="font-medium">{group.uniqueCamerasCount}</span>
-											<span class="text-xs text-muted-foreground">Cameras</span>
 										</div>
 									{/if}
 								</div>
@@ -700,3 +882,62 @@
 		{/if}
 	</div>
 </SimpleDialog>
+
+<!-- Add this new section for camera cards when in banner alerts view -->
+{#if showingBannerAlertsView && !selectedCamera}
+	<div class="p-4">
+		<button 
+			class="flex items-center gap-1 text-sm hover:text-primary mb-4" 
+			on:click={backToGroupedView}
+		>
+			<ArrowLeftIcon class="h-4 w-4" />
+			<span>Back to Categories</span>
+		</button>
+		
+		<h3 class="text-lg font-medium mb-4">Banner & Slogan Alerts by Camera</h3>
+		
+		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+			{#each bannerAlertsData.byCameras as cameraData}
+				<div
+					class="flex flex-col cursor-pointer rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
+					role="button"
+					tabindex="0"
+					on:click={() => showBannerAlertsView(cameraData.camera)}
+					on:keydown={(e) => e.key === 'Enter' && showBannerAlertsView(cameraData.camera)}
+				>
+					<div class="flex justify-between items-start mb-2">
+						<h4 class="text-md font-semibold">{cameraData.camera}</h4>
+						<span class="text-xs text-muted-foreground">{timeAgo(cameraData.latestAlert.time)}</span>
+					</div>
+					
+					{#if cameraData.latestAlert.snapshot_filename}
+						<div class="relative aspect-video bg-gray-200 dark:bg-gray-800 rounded-md overflow-hidden mb-2">
+							<img 
+								src={cameraData.latestAlert.snapshot_filename.startsWith('/') 
+									? `${MEDIA_BASE_URL}${cameraData.latestAlert.snapshot_filename.slice(1)}` 
+									: `${MEDIA_BASE_URL}mtqq_handlers/loitering_snapshots/${cameraData.latestAlert.snapshot_filename}`}
+								alt="Latest alert" 
+								class="w-full h-full object-cover"
+								on:error={(e) => {
+									e.currentTarget.src = '';
+									e.currentTarget.classList.add('bg-gray-300');
+								}}
+							/>
+						</div>
+					{:else}
+						<div class="relative aspect-video bg-gray-200 dark:bg-gray-800 rounded-md flex items-center justify-center mb-2">
+							<span class="text-xs text-gray-500">No thumbnail</span>
+						</div>
+					{/if}
+					
+					<div class="mt-auto flex justify-between items-center">
+						<span class="text-sm">{cameraData.latestAlert.query}</span>
+						<span class="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
+							{cameraData.count} alerts
+						</span>
+					</div>
+				</div>
+			{/each}
+		</div>
+	</div>
+{/if}

@@ -48,7 +48,7 @@
 	};
 </script>
 
-<div class="grid grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-5">
+<div class="grid grid-cols-1 gap-4 md:grid-cols-4 lg:grid-cols-4">
 	<!-- Attendance Card -->
 	<Card class="p-4">
 		<div class="flex flex-col gap-2">
@@ -65,7 +65,7 @@
 	</Card>
 
 	<!-- Alerts Card -->
-	<Card class="p-4">
+	<!-- <Card class="p-4">
 		<div class="flex flex-col gap-2">
 			<div class="flex items-center justify-between">
 				<span class="text-sm text-muted-foreground">Active Alerts</span>
@@ -73,24 +73,9 @@
 			</div>
 			<div class="flex items-end justify-between">
 				<span class="text-2xl font-bold">{data.alerts.count}</span>
-				<!-- <div
-					class={[
-						'flex items-center gap-1',
-						alertsPercentage > 0 ? 'text-rose-500' : 'text-emerald-500'
-					]}
-				>
-					{#if alertsPercentage > 0}
-						<TrendingUpIcon class="h-4 w-4" />
-						<span class="text-sm">{alertsPercentage}%</span>
-					{:else}
-						<TrendingDownIcon class="h-4 w-4" />
-						<span class="text-sm">{Math.abs(alertsPercentage)}%</span>
-					{/if}
-				</div> -->
 			</div>
-			<!-- <span class="text-xs text-muted-foreground">Last hour</span> -->
 		</div>
-	</Card>
+	</Card> -->
 
 	<!-- Cameras Card -->
 	<Card class="p-4">

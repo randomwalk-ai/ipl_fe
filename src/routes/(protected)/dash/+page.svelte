@@ -89,12 +89,12 @@
 
 <div class="flex h-full w-full flex-col gap-2 overflow-hidden">
 	<Grid data={analyticsData} />
-	<div class="flex min-h-0 flex-1 gap-2">
+	<div class="flex min-h-0 flex-1 gap-2 h-full">
 		<div class="flex min-h-0 flex-1 basis-1/2 flex-col gap-2">
 			<AttendanceCard data={attendanceData} />
 			<!-- <CamStats data={camAttendance} /> -->
 		</div>
-		<div class="min-h-0 flex-1 basis-1/2 overflow-y-auto">
+		<div class="min-h-0 flex-1 basis-1/2 overflow-y-auto h-full">
 			<!-- <Alerts /> -->
 			<AlertsOverview />
 		</div>

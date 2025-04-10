@@ -15,9 +15,14 @@
     PackageIcon, 
     SwordIcon,
     ImageIcon,
-    VideoIcon
+    VideoIcon,
+    ChevronDown,
+    X,
+    Loader2
   } from '@lucide/svelte';
   import { format } from 'date-fns';
+  import * as Select from '$lib/components/ui/select';
+  import * as Checkbox from '$lib/components/ui/checkbox';
 
   type AlertDetail = {
     id: string;
@@ -50,6 +55,7 @@
   export let alertItems: AlertItem[] = [];
   export let showNewOnly: boolean = true;
   export let maxResults: number = 1000;
+  export let isFullscreen: boolean = false;
   
   let alertsData: AlertData[] = [];
   let filteredAlertsData: AlertData[] = [];
@@ -65,9 +71,12 @@
   let currentDetail: AlertDetail | null = null;
   let activeTab: 'clip' | 'snapshot' = 'clip';
 
-  // Add these variables for query filtering
+  // Change these to arrays to support multiple selections
   let uniqueQueries: string[] = [];
-  let selectedQuery: string | null = null;
+  let selectedQueries: string[] = [];
+  
+  let uniqueCameras: string[] = [];
+  let selectedCameras: string[] = [];
 
   const iconMap = {
     FlagIcon,
@@ -137,37 +146,61 @@
     if (selectedAlertId) {
       const alertData = filteredAlertsData.find(data => data.id === selectedAlertId);
       selectedAlertDetails = alertData ? alertData.details : [];
+      
+      // Extract unique queries and cameras from the selected details
+      uniqueQueries = [...new Set(selectedAlertDetails.map(detail => detail.query))];
+      uniqueCameras = [...new Set(selectedAlertDetails.map(detail => detail.camera_id))]
+        .filter(camera => camera); // Filter out undefined/null/empty cameras
+      
       applyDetailFilters();
     }
-    uniqueQueries = [...new Set(selectedAlertDetails.map(detail => detail.query))];
-
   }
   
-  // Update the detail filters to include query filtering
+  // Update the detail filters to handle multiple selections
   function applyDetailFilters() {
     // Start with all details
     let filtered = [...selectedAlertDetails];
     
-    // Apply query filter if one is selected
-    if (selectedQuery) {
-      filtered = filtered.filter(detail => detail.query === selectedQuery);
+    // Apply query filters if any are selected
+    if (selectedQueries.length > 0) {
+      filtered = filtered.filter(detail => selectedQueries.includes(detail.query));
+    }
+    
+    // Apply camera filters if any are selected
+    if (selectedCameras.length > 0) {
+      filtered = filtered.filter(detail => selectedCameras.includes(detail.camera_id));
     }
     
     // Apply max results limit
     filtered = filtered.slice(0, maxResults);
     
     filteredAlertDetails = filtered;
-
   }
 
-  // Handle query selection
-  function selectQuery(query: string | null) {
-    if (selectedQuery === query) {
-      // Toggle off if clicking the same query
-      selectedQuery = null;
+  // Toggle a query selection
+  function toggleQuery(query: string) {
+    if (selectedQueries.includes(query)) {
+      selectedQueries = selectedQueries.filter(q => q !== query);
     } else {
-      selectedQuery = query;
+      selectedQueries = [...selectedQueries, query];
     }
+    applyDetailFilters();
+  }
+  
+  // Toggle a camera selection
+  function toggleCamera(camera: string) {
+    if (selectedCameras.includes(camera)) {
+      selectedCameras = selectedCameras.filter(c => c !== camera);
+    } else {
+      selectedCameras = [...selectedCameras, camera];
+    }
+    applyDetailFilters();
+  }
+  
+  // Reset all filters
+  function resetFilters() {
+    selectedQueries = [];
+    selectedCameras = [];
     applyDetailFilters();
   }
 
@@ -228,22 +261,18 @@
   }
 </script>
 
-<div class="flex flex-col gap-3 p-2">
+<div class="flex flex-col gap-3 p-2 h-full">
   {#if isLoading}
     <div class="flex justify-center items-center p-6">
-      <div class="animate-spin h-6 w-6 border-3 border-primary border-t-transparent rounded-full"></div>
+      <Loader2 class="h-8 w-8 animate-spin text-primary" />
     </div>
   {:else}
     {#if showCards}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 {isFullscreen ? 'xl:grid-cols-4 2xl:grid-cols-5' : 'xl:grid-cols-2'} gap-3">
         {#each alertsWithCounts.length ? alertsWithCounts : alertItems as alert}
           <Card.Root 
-            class="overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md {selectedAlertId === alert.id ? 'ring-2 ring-primary' : ''}" 
-            onclick={() => handleCardClick(alert.id)}
-            onkeydown={(e) => e.key === 'Enter' && handleCardClick(alert.id)}
-            tabindex={0}
-            role="button"
-            aria-pressed={selectedAlertId === alert.id}
+            class="overflow-hidden {alert.count ? 'cursor-pointer hover:shadow-md transition-shadow' : 'opacity-60'}"
+            onclick={() => alert.count && handleCardClick(alert.id)}
           >
             <Card.Header class="p-0 flex flex-row items-center justify-between">
               <div class="bg-[#1E293B] text-lg text-white font-bold h-9 w-full flex items-center justify-center">
@@ -264,9 +293,7 @@
           </Card.Root>
         {/each}
       </div>
-    {/if}
-
-    {#if selectedAlertId}
+    {:else}
       <div class="w-full">
         <div class="flex justify-between items-center mb-3">
           <h2 class="text-lg font-bold">
@@ -277,40 +304,137 @@
             onclick={() => { 
               selectedAlertId = null; 
               selectedAlertDetails = []; 
-              selectedQuery = null;
+              selectedQueries = [];
+              selectedCameras = [];
               showCards = true; 
             }}
           >
             Back
           </button>
         </div>
-        {console.log('uniqueQueries', uniqueQueries)}
-        <!-- Query filter tabs -->
-        {#if uniqueQueries.length > 0}
-          <div class="flex flex-wrap gap-2 mb-4 overflow-x-auto pb-2">
-            <button 
-              class="px-3 py-1 text-xs rounded-full {selectedQuery === null ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}"
-              onclick={() => selectQuery(null)}
-            >
-              All
-            </button>
-            {#each uniqueQueries as query}
-              <button 
-                class="px-3 py-1 text-xs rounded-full whitespace-nowrap {selectedQuery === query ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}"
-                onclick={() => selectQuery(query)}
-              >
-                {query}
-              </button>
-            {/each}
+        
+        <div class="space-y-3 mb-4">
+          {#if uniqueQueries.length > 0 || uniqueCameras.length > 0}
+            <div class="flex justify-between items-center">
+              <h3 class="text-sm font-medium">Filters</h3>
+              {#if selectedQueries.length > 0 || selectedCameras.length > 0}
+                <button 
+                  class="text-xs text-primary underline"
+                  onclick={resetFilters}
+                >
+                  Reset Filters
+                </button>
+              {/if}
+            </div>
+          {/if}
+          
+          <div class="grid grid-cols-1 {isFullscreen ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4">
+            {#if uniqueQueries.length > 0}
+              <div class="relative">
+                <label for="query-filter" class="text-xs font-medium block mb-1">Filter by Event Type:</label>
+                <div class="relative">
+                  <button 
+                    id="query-filter"
+                    class="flex justify-between items-center w-full px-3 py-2 text-sm border rounded-md bg-background"
+                    onclick={() => document.getElementById('query-dropdown')?.classList.toggle('hidden')}
+                    type="button"
+                  >
+                    <span>
+                      {selectedQueries.length === 0 
+                        ? 'All Event Types' 
+                        : selectedQueries.length === 1 
+                          ? selectedQueries[0] 
+                          : `${selectedQueries.length} types selected`}
+                    </span>
+                    <ChevronDown class="h-4 w-4" />
+                  </button>
+                  
+                  <div id="query-dropdown" class="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
+                    <div class="p-2 space-y-1">
+                      {#each uniqueQueries as query}
+                        <div class="flex items-center space-x-2 p-2 hover:bg-muted rounded-sm cursor-pointer" onclick={() => toggleQuery(query)}>
+                          <Checkbox.Root checked={selectedQueries.includes(query)} id={`query-${query}`} />
+                          <label for={`query-${query}`} class="text-sm cursor-pointer flex-1">{query}</label>
+                        </div>
+                      {/each}
+                    </div>
+                  </div>
+                </div>
+                
+                {#if selectedQueries.length > 0}
+                  <div class="flex flex-wrap gap-1 mt-2">
+                    {#each selectedQueries as query}
+                      <div class="inline-flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs">
+                        {query}
+                        <button onclick={() => toggleQuery(query)} class="text-muted-foreground hover:text-foreground">
+                          <X class="h-3 w-3" />
+                        </button>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+            {/if}
+            
+            {#if uniqueCameras.length > 0}
+              <div class="relative">
+                <label for="camera-filter" class="text-xs font-medium block mb-1">Filter by Camera:</label>
+                <div class="relative">
+                  <button 
+                    id="camera-filter"
+                    class="flex justify-between items-center w-full px-3 py-2 text-sm border rounded-md bg-background"
+                    onclick={() => document.getElementById('camera-dropdown')?.classList.toggle('hidden')}
+                    type="button"
+                  >
+                    <span>
+                      {selectedCameras.length === 0 
+                        ? 'All Cameras' 
+                        : selectedCameras.length === 1 
+                          ? selectedCameras[0] 
+                          : `${selectedCameras.length} cameras selected`}
+                    </span>
+                    <ChevronDown class="h-4 w-4" />
+                  </button>
+                  
+                  <div id="camera-dropdown" class="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
+                    <div class="p-2 space-y-1">
+                      {#each uniqueCameras as camera}
+                        <div class="flex items-center space-x-2 p-2 hover:bg-muted rounded-sm cursor-pointer" onclick={() => toggleCamera(camera)}>
+                          <Checkbox.Root checked={selectedCameras.includes(camera)} id={`camera-${camera}`} />
+                          <label for={`camera-${camera}`} class="text-sm cursor-pointer flex-1">{camera}</label>
+                        </div>
+                      {/each}
+                    </div>
+                  </div>
+                </div>
+                
+                {#if selectedCameras.length > 0}
+                  <div class="flex flex-wrap gap-1 mt-2">
+                    {#each selectedCameras as camera}
+                      <div class="inline-flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs">
+                        {camera}
+                        <button onclick={() => toggleCamera(camera)} class="text-muted-foreground hover:text-foreground">
+                          <X class="h-3 w-3" />
+                        </button>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+            {/if}
+            
+            {#if isFullscreen}
+              <!-- Additional filters could go here -->
+            {/if}
           </div>
-        {/if}
+        </div>
         
         {#if filteredAlertDetails.length === 0}
           <div class="text-center p-6 bg-muted rounded-lg">
             <p>No details available for this alert.</p>
           </div>
         {:else}
-          <div class="space-y-3">
+          <div class="space-y-3 {isFullscreen ? 'md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3' : ''}">
             {#each filteredAlertDetails as detail}
               <Card.Root class="w-full overflow-hidden">
                 <div class="flex flex-col md:flex-row">

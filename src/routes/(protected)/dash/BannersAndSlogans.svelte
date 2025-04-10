@@ -148,15 +148,6 @@
 {:else if showingBannerQueriesView && !showingBannerAlertsView}
     <!-- Cameras with Queries View -->
     <div class="p-4">
-        <button 
-            class="flex items-center gap-1 text-sm hover:text-primary mb-4" 
-            on:click={backToGroupedView}
-        >
-            <ArrowLeftIcon class="h-4 w-4" />
-            <span>Back to Categories</span>
-        </button>
-        
-        <h3 class="text-lg font-medium mb-4">Cameras with Banner & Slogan Alerts</h3>
         
         {#if camerasWithQueries.length === 0}
             <p class="text-center text-gray-500 dark:text-gray-400">No banner and slogan alerts found</p>
@@ -170,10 +161,16 @@
                         on:click={() => showBannerAlertsView(camera.cameraName)}
                         on:keydown={(e) => e.key === 'Enter' && showBannerAlertsView(camera.cameraName)}
                     >
-                            <h4 class="text-md font-semibold">{camera.cameraName.length > 15 ? '...' + camera.cameraName.slice(-15) : camera.cameraName}</h4>
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="text-md font-semibold truncate" title={camera.cameraName}>
+                                {camera.cameraName.length > 15 ? '...' + camera.cameraName.slice(-15) : camera.cameraName}
+                            </h4>
                             {#if camera.latestTime}
-                                <span class="text-xs text-muted-foreground">{timeAgo(camera.latestTime)}</span>
+                                <span class="text-xs text-muted-foreground ml-2 flex-shrink-0">
+                                    {timeAgo(camera.latestTime)}
+                                </span>
                             {/if}
+                        </div>
                         
                         <!-- Show thumbnail from first query if available -->
                         {#if camera.thumbnails.size > 0}
@@ -217,37 +214,57 @@
 {:else if showingBannerAlertsView && selectedCamera}
     <!-- Banner alerts for specific camera view -->
     <div class="p-4">
-        <button 
-            class="flex items-center gap-1 text-sm hover:text-primary mb-4" 
-            on:click={showBannerQueriesView}
-        >
-            <ArrowLeftIcon class="h-4 w-4" />
-            <span>Back to Cameras</span>
-        </button>
         
-        <h3 class="text-lg font-medium mb-4">Banner & Slogan Alerts - {selectedCamera}</h3>
-        
-        {#if filteredBannerAlerts.length === 0}
+        <!-- Get all alerts for this camera from organized_grouped_alerts -->
+        {#if camerasWithQueries.find(c => c.cameraName === selectedCamera)?.totalAlerts === 0}
             <p class="text-center text-gray-500 dark:text-gray-400">No banner alerts found for this camera</p>
         {:else}
             <div class="grid gap-4">
-                {#each filteredBannerAlerts as item (item.id)}
+                {#each organized_grouped_alerts
+                    .filter(group => bannerAndSlogansConfig.alertTitle.some(title => 
+                        group.query.toLowerCase().includes(title.toLowerCase())))
+                    .flatMap(group => 
+                        group.cameras
+                            .filter(camera => camera.cameraName === selectedCamera)
+                            .flatMap(camera => 
+                                camera.alerts.map(alert => ({
+                                    ...alert,
+                                    query: group.query,
+                                    cameraName: camera.cameraName
+                                }))
+                            )
+                    )
+                    .sort((a, b) => new Date(b.end_time).getTime() - new Date(a.end_time).getTime()) as alert}
                     <div
                         class="grid cursor-pointer gap-1 rounded-md border p-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:border-gray-700"
                         role="button"
                         tabindex="0"
-                        on:click={() => openModal(item)}
-                        on:keydown={(e) => e.key === 'Enter' && openModal(item)}
+                        on:click={() => openModal({
+                            id: alert.id,
+                            query: alert.query,
+                            time: alert.end_time,
+                            description: `Alert from ${alert.cameraName}`,
+                            type: 'alert',
+                            redirect_url: alert.redirectURL,
+                            cameraName: alert.cameraName
+                        })}
+                        on:keydown={(e) => e.key === 'Enter' && openModal({
+                            id: alert.id,
+                            query: alert.query,
+                            time: alert.end_time,
+                            description: `Alert from ${alert.cameraName}`,
+                            type: 'alert',
+                            redirect_url: alert.redirectURL,
+                            cameraName: alert.cameraName
+                        })}
                         in:fly={{ y: 10, duration: 200, delay: 50 }}
                     >
                         <div class="flex items-center gap-3">
                             <!-- Thumbnail if available -->
-                            {#if item.snapshot_filename}
+                            {#if alert.thumbnail}
                                 <div class="w-24 h-16 bg-gray-200 dark:bg-gray-800 rounded-md overflow-hidden flex-shrink-0">
                                     <img 
-                                        src={item.snapshot_filename.startsWith('/') 
-                                            ? `${MEDIA_BASE_URL}${item.snapshot_filename.slice(1)}` 
-                                            : `${MEDIA_BASE_URL}mtqq_handlers/loitering_snapshots/${item.snapshot_filename}`}
+                                        src={`data:image/jpeg;base64,${alert.thumbnail}`}
                                         alt="Alert thumbnail" 
                                         class="w-full h-full object-cover"
                                         on:error={(e) => {
@@ -256,17 +273,21 @@
                                         }}
                                     />
                                 </div>
+                            {:else}
+                                <div class="w-24 h-16 bg-gray-200 dark:bg-gray-800 rounded-md flex items-center justify-center flex-shrink-0">
+                                    <span class="text-xs text-gray-500">No thumbnail</span>
+                                </div>
                             {/if}
                             
                             <div class="flex grow flex-col gap-1">
                                 <div class="text-md flex w-full items-center justify-between font-medium leading-none">
-                                    <span class="truncate pr-2">{item.query}</span>
+                                    <span class="truncate pr-2">{alert.query}</span>
                                     <span class="flex-shrink-0 text-sm text-muted-foreground">
-                                        {timeAgo(item.time)}
+                                        {timeAgo(alert.end_time)}
                                     </span>
                                 </div>
                                 <span class="text-xs leading-tight text-muted-foreground">
-                                    {item.description}
+                                    Alert ID: {alert.id.substring(0, 8)}...
                                 </span>
                             </div>
                         </div>

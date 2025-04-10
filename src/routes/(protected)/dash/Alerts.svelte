@@ -50,7 +50,18 @@
 			alertTitle: ["person waving black flag","people holding placards"],
 			description: "Detection of unauthorized banners, posters, or slogans in restricted areas."
 		}
-		
+	const alertsWithThumbnails =[
+		{
+			mainTitle: "Banners & Slogans",
+			alertTitle: ["person waving black flag","people holding placards"],
+			description: "Detection of unauthorized banners, posters, or slogans in restricted areas."
+		},
+		{
+			mainTitle: "Animals",
+			alertTitle: ["dogs"],
+			description: "Detection of Animals in the stadium areas."
+		}
+	]
 	// Additional alert cards
 	const additionalAlertCards = [
 		
@@ -768,7 +779,24 @@
 							{backToGroupedView}
 							{openModal}
 						/>
-						
+						<!-- Banner & Slogans Card -->
+						<BannersAndSlogans
+							{bannerAndSlogansConfig}
+							{organized_grouped_alerts}
+							{bannerAlertsData}
+							{bannerQueries}
+							{MEDIA_BASE_URL}
+							{filteredBannerAlerts}
+							{showingBannerQueriesView}
+							{showingBannerAlertsView}
+							{selectedCamera}
+							{selectedBannerQuery}
+							{showBannerQueriesView}
+							{showBannerAlertsView}
+							{showBannerQueryAlerts}
+							{backToGroupedView}
+							{openModal}
+						/>
 						<!-- Additional Alert Cards -->
 						{#each additionalAlertCards as card}
 							<div

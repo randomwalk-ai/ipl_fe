@@ -259,6 +259,38 @@
     
     return result;
   }
+
+  // Add this function to handle image loading errors
+  function handleImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZWVlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGZpbGw9IiM5OTk5OTkiPkltYWdlIE5vdCBBdmFpbGFibGU8L3RleHQ+PC9zdmc+';
+  }
+  
+  // Add this function to preload images
+  async function preloadImage(src: string): Promise<string> {
+    return new Promise((resolve) => {
+      if (!src) {
+        resolve('');
+        return;
+      }
+      
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => resolve(src);
+      img.onerror = () => resolve('');
+      
+      img.src = src;
+    });
+  }
+  
+  // Preload images when alert details change
+  $: if (selectedAlertDetails.length > 0) {
+    selectedAlertDetails.forEach(detail => {
+      if (detail.thumb_path) preloadImage(detail.thumb_path);
+      if (detail.thumbnail) preloadImage(detail.thumbnail);
+    });
+  }
 </script>
 
 <div class="flex flex-col gap-3 p-2 h-full">
@@ -450,7 +482,8 @@
                         src={detail.thumbnail || detail.thumb_path} 
                         alt={detail.query} 
                         class="w-full h-full object-cover"
-                        loading="lazy"
+                        loading="eager"
+                        onerror={handleImageError}
                       />
                     </div>
                   {/if}
@@ -558,7 +591,7 @@
             src={currentDetail.thumbnail || currentDetail.thumb_path} 
             alt={currentDetail.query} 
             class="w-full max-h-[60vh] object-contain"
-            
+            onerror={handleImageError}
           />
         {:else}
           <div class="text-center p-8">

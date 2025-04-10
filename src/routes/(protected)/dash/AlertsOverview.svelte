@@ -18,7 +18,7 @@
 		try {
 			// Find the entire container that includes both the cards and the details view
 			const contentToCapture = document.querySelector('.container') as HTMLElement;
-      console.log('contentToCapture', contentToCapture);
+      		console.log('contentToCapture', contentToCapture);
 			if (!contentToCapture) {
 				console.error('Content element not found');
 				return;
@@ -44,76 +44,99 @@
 			tempContainer.style.top = '-9999px';
 			document.body.appendChild(tempContainer);
 
-			// Handle images - replace broken images with placeholders
+			// Handle images - preload all images to avoid CORS issues
 			const images = Array.from(tempContainer.querySelectorAll('img'));
 			console.log(`Found ${images.length} images to process`);
 			
 			// Set a placeholder for broken images
 			const placeholderImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZWVlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGZpbGw9IiM5OTk5OTkiPkltYWdlIE5vdCBBdmFpbGFibGU8L3RleHQ+PC9zdmc+';
-			// Remove all buttons
+			
+			// Remove all buttons and interactive elements
 			const buttons = Array.from(tempContainer.querySelectorAll('button'));
 			buttons.forEach(button => button.remove());
 
+			// Create a proxy endpoint for images to avoid CORS issues
+			const proxyImage = async (originalSrc: string): Promise<string> => {
+				// If it's already a data URL or a relative URL, no need to proxy
+				if (originalSrc.startsWith('data:') || originalSrc.startsWith('/')) {
+					return originalSrc;
+				}
+				
+				try {
+					// Try to fetch the image through your server proxy
+					const response = await fetch('/api/proxy-image', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ url: originalSrc })
+					});
+					
+					if (!response.ok) throw new Error('Proxy failed');
+					
+					const data = await response.json();
+					return data.dataUrl || placeholderImage;
+				} catch (error) {
+					console.error('Error proxying image:', error);
+					return placeholderImage;
+				}
+			};
 
-
-			// Process each image
-			const imagePromises = images.map((img, index) => {
-				return new Promise<void>((resolve) => {
-					// If image is already loaded successfully
-					if (img.complete && img.naturalWidth > 0) {
-						console.log(`Image ${index} already loaded`);
-						resolve();
-						return;
-					}
+			// Process each image - convert external URLs to data URLs via proxy
+			const imagePromises = images.map(async (img, index) => {
+				try {
+					// Save original source
+					const originalSrc = img.src;
 					
-					// Set a timeout to handle images that take too long
-					const timeoutId = setTimeout(() => {
-						console.log(`Image ${index} timed out, using placeholder`);
-						img.src = placeholderImage;
-						resolve();
-					}, 3000);
+					// Skip processing if image is already a data URL
+					if (originalSrc.startsWith('data:')) return;
 					
-					// Handle successful load
-					img.onload = () => {
-						console.log(`Image ${index} loaded successfully`);
-						clearTimeout(timeoutId);
-						resolve();
-					};
+					// Set a loading placeholder while we process
+					img.setAttribute('data-original-src', originalSrc);
+					img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZWVlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGZpbGw9IiM5OTk5OTkiPkxvYWRpbmcuLi48L3RleHQ+PC9zdmc+';
 					
-					// Handle failed load
-					img.onerror = () => {
-						console.log(`Image ${index} failed to load, using placeholder`);
-						img.src = placeholderImage;
-						clearTimeout(timeoutId);
-						resolve();
-					};
+					// Get data URL via proxy
+					const dataUrl = await proxyImage(originalSrc);
+					img.src = dataUrl;
 					
-					// Force reload the image if it's not already loading
-					if (!img.complete) {
-						const originalSrc = img.src;
-						img.src = '';
-						img.src = originalSrc;
-					}
-				});
+					// Return a promise that resolves when the image loads
+					return new Promise<void>((resolve) => {
+						img.onload = () => resolve();
+						img.onerror = () => {
+							console.log(`Image ${index} failed to load, using placeholder`);
+							img.src = placeholderImage;
+							resolve();
+						};
+						
+						// Set a timeout in case the image never loads
+						setTimeout(() => {
+							if (!img.complete || img.naturalWidth === 0) {
+								console.log(`Image ${index} timed out, using placeholder`);
+								img.src = placeholderImage;
+								resolve();
+							}
+						}, 3000);
+					});
+				} catch (error) {
+					console.error(`Error processing image ${index}:`, error);
+					img.src = placeholderImage;
+				}
 			});
 
-			console.log("Waiting for images to load");
+			// Wait for all images to be processed
 			await Promise.all(imagePromises);
 			console.log("All images processed");
 			
-			console.log("Converting to canvas");
 			// Use html2canvas with the properly prepared clone
 			const canvas = await html2canvas(tempContainer, {
 				backgroundColor: window.getComputedStyle(document.body).backgroundColor,
-				scale: 1, // Reduce scale for faster processing
-				logging: true, // Enable logging to debug issues
+				scale: 2,
+				logging: true,
 				useCORS: true,
 				allowTaint: true,
 				width: contentToCapture.offsetWidth,
 				height: Math.max(tempContainer.scrollHeight, contentToCapture.scrollHeight),
-				imageTimeout: 0, // Disable timeout since we handle it ourselves
+				imageTimeout: 0,
 				onclone: (clonedDoc, clonedElement) => {
-					// Remove unnecessary elements that don't need to be rendered
+					// Any final adjustments to the clone before rendering
 					const elementsToRemove = clonedElement.querySelectorAll('.can-be-removed');
 					elementsToRemove.forEach(el => el.remove());
 				}

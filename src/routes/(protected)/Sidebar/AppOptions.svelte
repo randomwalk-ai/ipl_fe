@@ -101,5 +101,14 @@
 				<span>{'topview'}</span>
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
+		<Sidebar.MenuItem>
+			<Sidebar.MenuButton
+				onclick={(e) => goto('/view')}
+				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
+			>
+				<Eye />
+				<span>{'view'}</span>
+			</Sidebar.MenuButton>
+		</Sidebar.MenuItem>
 	</Sidebar.Menu>
 </Sidebar.Group>

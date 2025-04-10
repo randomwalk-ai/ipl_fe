@@ -51,6 +51,11 @@
 
 	// Analytics view state
 	let showingAnalytics = $state(false);
+
+	let showAllAlerts = $state(false);
+	// Add a key to force re-render when data changes
+	let dataKey = $state(0);
+
 	// banner and slogans config
 	const bannerAndSlogansConfig = {
 		mainTitle: 'Banners & Slogans',
@@ -374,9 +379,9 @@
 	}
 
 	// Function to fetch all data types
-	async function fetchAllData() {
+	async function fetchAllData(showAllAlerts: boolean = false) {
 		try {
-			const res = await fetch('/api/alert-notifications');
+			const res = await fetch(`/api/alert-notifications?showAllAlerts=${showAllAlerts}`);
 			if (!res.ok) {
 				throw new Error(`API request failed with status ${res.status}`);
 			}
@@ -386,8 +391,7 @@
 				loiteringData: LoiteringData[];
 				policeMonitoringData: PoliceMonitoringType[];
 			};
-			console.log(data.policeMonitoringData);
-
+			// console.log('data', data);
 			policeMonitoring = data.policeMonitoringData ?? [];
 			// Process fetched data
 			alerts = data.alertsData ?? [];
@@ -402,6 +406,9 @@
 				updatedAt: l.updatedAt ? addHoursToDate(l.updatedAt) : null,
 				insertedAt: l.insertedAt ? addHoursToDate(l.insertedAt) : null
 			}));
+			
+			// Increment the key to force re-render
+			dataKey++;
 		} catch (error) {
 			console.error('Failed to fetch notification data:', error);
 			// Optionally reset data or show error state
@@ -411,9 +418,18 @@
 		}
 	}
 
+	// Watch for changes to showAllAlerts and re-fetch data
+	$effect(() => {
+		if (showAllAlerts !== undefined) {
+			console.log('showAllAlerts changed:', showAllAlerts);
+			fetchAllData(showAllAlerts);
+		}
+	});
+
 	onMount(() => {
-		fetchAllData();
-		refreshInterval = setInterval(fetchAllData, 30000); // Refresh every 30 seconds
+		console.log('showAllAlerts in onMount', showAllAlerts);
+		fetchAllData(showAllAlerts);
+		refreshInterval = setInterval(() => fetchAllData(showAllAlerts), 30000); // Refresh every 30 seconds
 	});
 
 	onDestroy(() => {
@@ -508,6 +524,7 @@
 		showingPoliceView = true;
 	}
 	import html2canvas from 'html2canvas';
+	import { Switch } from '$lib/components/ui/switch';
 
 	// Declare a reference to the ScrollArea
 	let scrollAreaRef;
@@ -684,6 +701,14 @@
 		<button on:click={downloadScrollAreaContent}>
 			<img src="/export.png" alt="Camera Lens" class="h-5 w-5" />
 		</button>
+		<!-- Add a switch component to toggle between all alerts and unnotified alerts-->
+		 <div>	
+			<div class="text-sm">Show All Alerts</div>
+			 <Switch
+				 bind:checked={showAllAlerts}
+			 >
+			 </Switch>
+		 </div>
 	</CardHeader>
 
 	{#if showTimeRangeSettings}
@@ -719,85 +744,55 @@
 
 	<ScrollArea class="flex-1" bind:this={scrollAreaRef}>
 		<CardContent class="p-4" id="scroll-content">
-			{#if showingAnalytics}
-				<!-- Analytics View -->
-				<div></div>
-			{:else if showingFilteredView}
-				<!-- Filtered view showing specific alerts -->
-				{#if filteredData.length === 0}
-					<p class="text-center text-gray-500 dark:text-gray-400">
-						No alerts found for "{selectedQuery}"
-					</p>
-				{:else}
-					<div class="grid gap-4">
-						{#each filteredData as item (item.id)}
-							<div
-								class="grid cursor-pointer gap-1 rounded-md p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-								role="button"
-								tabindex="0"
-								on:click={() => openModal(item)}
-								on:keydown={(e) => e.key === 'Enter' && openModal(item)}
-								in:fly={{ y: 10, duration: 200, delay: 50 }}
-								out:fly={{ y: -10, duration: 200 }}
-							>
-								<div class="flex items-center justify-between gap-2">
-									<div class="flex grow flex-col gap-1">
-										<div
-											class="text-md flex w-full items-center justify-between font-medium leading-none"
-										>
-											<span class="truncate pr-2">
-												{#if item.cameraName}
-													at {item.cameraName}
-												{:else}
-													Alert Details
-												{/if}
-											</span>
-											<span class="flex-shrink-0 text-sm text-muted-foreground">
-												{timeAgo(item.time)}
+			{#key dataKey}
+				{#if showingAnalytics}
+					<!-- Analytics View -->
+					<div></div>
+				{:else if showingFilteredView}
+					<!-- Filtered view showing specific alerts -->
+					{#if filteredData.length === 0}
+						<p class="text-center text-gray-500 dark:text-gray-400">
+							No alerts found for "{selectedQuery}"
+						</p>
+					{:else}
+						<div class="grid gap-4">
+							{#each filteredData as item (item.id)}
+								<div
+									class="grid cursor-pointer gap-1 rounded-md p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+									role="button"
+									tabindex="0"
+									on:click={() => openModal(item)}
+									on:keydown={(e) => e.key === 'Enter' && openModal(item)}
+									in:fly={{ y: 10, duration: 200, delay: 50 }}
+									out:fly={{ y: -10, duration: 200 }}
+								>
+									<div class="flex items-center justify-between gap-2">
+										<div class="flex grow flex-col gap-1">
+											<div
+												class="text-md flex w-full items-center justify-between font-medium leading-none"
+											>
+												<span class="truncate pr-2">
+													{#if item.cameraName}
+														at {item.cameraName}
+													{:else}
+														Alert Details
+													{/if}
+												</span>
+												<span class="flex-shrink-0 text-sm text-muted-foreground">
+													{timeAgo(item.time)}
+												</span>
+											</div>
+											<span class="text-xs leading-tight text-muted-foreground">
+												{item.description}
 											</span>
 										</div>
-										<span class="text-xs leading-tight text-muted-foreground">
-											{item.description}
-										</span>
 									</div>
 								</div>
-							</div>
-						{/each}
-					</div>
-				{/if}
-			{:else if showingBannerQueriesView || showingBannerAlertsView}
-				<!-- Use the new BannersAndSlogans component -->
-				<BannersAndSlogans
-					{bannerAndSlogansConfig}
-					{organized_grouped_alerts}
-					{bannerAlertsData}
-					{bannerQueries}
-					{MEDIA_BASE_URL}
-					{filteredBannerAlerts}
-					{showingBannerQueriesView}
-					{showingBannerAlertsView}
-					{selectedCamera}
-					{selectedBannerQuery}
-					{showBannerQueriesView}
-					{showBannerAlertsView}
-					{showBannerQueryAlerts}
-					{backToGroupedView}
-					{openModal}
-				/>
-			{:else if showingPoliceView}
-				<!-- Police Monitoring View -->
-				<PoliceMonitoring
-					policeMonitoringData={policeMonitoring}
-					showingPoliceView={true}
-					{showPoliceView}
-					{backToGroupedView}
-					MEDIA_BASE_URL={PUBLIC_POLICE_MONITORING_ENDPOINT}
-				/>
-			{:else if groupedData.length === 0}
-				<p class="text-center text-gray-500 dark:text-gray-400">No recent events</p>
-			{:else}
-				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-					<!-- Banner & Slogans Card -->
+							{/each}
+						</div>
+					{/if}
+				{:else if showingBannerQueriesView || showingBannerAlertsView}
+					<!-- Use the new BannersAndSlogans component -->
 					<BannersAndSlogans
 						{bannerAndSlogansConfig}
 						{organized_grouped_alerts}
@@ -815,73 +810,105 @@
 						{backToGroupedView}
 						{openModal}
 					/>
-
-					<!-- Police Monitoring Card -->
+				{:else if showingPoliceView}
+					<!-- Police Monitoring View -->
 					<PoliceMonitoring
 						policeMonitoringData={policeMonitoring}
-						{showingPoliceView}
+						showingPoliceView={true}
 						{showPoliceView}
 						{backToGroupedView}
-						MEDIA_BASE_URL="https://1020-49-207-184-66.ngrok-free.app/clip"
+						MEDIA_BASE_URL={PUBLIC_POLICE_MONITORING_ENDPOINT}
 					/>
+				{:else if groupedData.length === 0}
+					<p class="text-center text-gray-500 dark:text-gray-400">No recent events</p>
+				{:else}
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+						<!-- Banner & Slogans Card -->
+						<BannersAndSlogans
+							{bannerAndSlogansConfig}
+							{organized_grouped_alerts}
+							{bannerAlertsData}
+							{bannerQueries}
+							{MEDIA_BASE_URL}
+							{filteredBannerAlerts}
+							{showingBannerQueriesView}
+							{showingBannerAlertsView}
+							{selectedCamera}
+							{selectedBannerQuery}
+							{showBannerQueriesView}
+							{showBannerAlertsView}
+							{showBannerQueryAlerts}
+							{backToGroupedView}
+							{openModal}
+						/>
 
-					<!-- Additional Alert Cards -->
-					{#each additionalAlertCards as card}
-						<div
-							class="flex cursor-pointer flex-col items-center justify-center rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
-							role="button"
-							tabindex="0"
-							on:click={() => showFilteredView(card.alertTitle)}
-							on:keydown={(e) => e.key === 'Enter' && showFilteredView(card.alertTitle)}
-							in:fly={{ y: 10, duration: 200, delay: 50 }}
-						>
-							<h4 class="mb-2 text-lg font-semibold">{card.mainTitle}</h4>
-							<div class="mt-auto grid grid-cols-3 items-center justify-center gap-2 text-sm">
-								{#if groupedData.find((group) => group.query === card.alertTitle)}
-									{#each [groupedData.find((group) => group.query === card.alertTitle)] as matchedGroup}
-										{#if matchedGroup && matchedGroup.recent > 0}
-											<div class="col-span-3 flex flex-col items-center justify-center">
-												<div class="mt-auto grid flex-grow grid-cols-3 gap-2 text-sm">
-													<div
-														class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
-													>
-														<span class="font-medium">{matchedGroup.total}</span>
-														<span class="text-xs text-muted-foreground">Total</span>
-													</div>
-													<div
-														class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
-													>
-														<span class="font-medium">{matchedGroup.recent}</span>
-														<span class="text-xs text-muted-foreground">In Range</span>
-													</div>
-													<div
-														class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
-													>
-														<span class="font-medium">{matchedGroup.uniqueCamerasCount}</span>
-														<span class="text-xs text-muted-foreground">Cameras</span>
+						<!-- Police Monitoring Card -->
+						<PoliceMonitoring
+							policeMonitoringData={policeMonitoring}
+							{showingPoliceView}
+							{showPoliceView}
+							{backToGroupedView}
+							MEDIA_BASE_URL="https://1020-49-207-184-66.ngrok-free.app/clip"
+						/>
+
+						<!-- Additional Alert Cards -->
+						{#each additionalAlertCards as card}
+							<div
+								class="flex cursor-pointer flex-col items-center justify-center rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
+								role="button"
+								tabindex="0"
+								on:click={() => showFilteredView(card.alertTitle)}
+								on:keydown={(e) => e.key === 'Enter' && showFilteredView(card.alertTitle)}
+								in:fly={{ y: 10, duration: 200, delay: 50 }}
+							>
+								<h4 class="mb-2 text-lg font-semibold">{card.mainTitle}</h4>
+								<div class="mt-auto grid grid-cols-3 items-center justify-center gap-2 text-sm">
+									{#if groupedData.find((group) => group.query === card.alertTitle)}
+										{#each [groupedData.find((group) => group.query === card.alertTitle)] as matchedGroup}
+											{#if matchedGroup && matchedGroup.recent > 0}
+												<div class="col-span-3 flex flex-col items-center justify-center">
+													<div class="mt-auto grid flex-grow grid-cols-3 gap-2 text-sm">
+														<div
+															class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
+														>
+															<span class="font-medium">{matchedGroup.total}</span>
+															<span class="text-xs text-muted-foreground">Total</span>
+														</div>
+														<div
+															class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
+														>
+															<span class="font-medium">{matchedGroup.recent}</span>
+															<span class="text-xs text-muted-foreground">In Range</span>
+														</div>
+														<div
+															class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
+														>
+															<span class="font-medium">{matchedGroup.uniqueCamerasCount}</span>
+															<span class="text-xs text-muted-foreground">Cameras</span>
+														</div>
 													</div>
 												</div>
-											</div>
-										{:else if matchedGroup}
-											<div class="col-span-3 flex flex-col items-center justify-center">
-												<span class="text-2xl font-medium">{matchedGroup.total}</span>
-												<span class="text-xs text-muted-foreground">Total</span>
-											</div>
-										{/if}
-									{/each}
-								{:else}
-									<div
-										class="col-span-3 flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
-									>
-										<span class="font-medium">0</span>
-										<span class="text-xs text-muted-foreground">Total</span>
-									</div>
-								{/if}
+											{:else if matchedGroup}
+												<div class="col-span-3 flex flex-col items-center justify-center">
+													<span class="text-2xl font-medium">{matchedGroup.total}</span>
+													<span class="text-xs text-muted-foreground">Total</span>
+												</div>
+											{/if}
+										{/each}
+									{:else}
+										<div
+											class="col-span-3 flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
+										>
+											<span class="font-medium">0</span>
+											<span class="text-xs text-muted-foreground">Total</span>
+										</div>
+									{/if}
+								</div>
 							</div>
-						</div>
-					{/each}
-				</div>
-			{/if}
+						{/each}
+					</div>
+				{/if}
+			{/key}
 		</CardContent>
 	</ScrollArea>
 </Card>

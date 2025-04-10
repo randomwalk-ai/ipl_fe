@@ -53,14 +53,10 @@ export const GET: RequestHandler = async ({ url }) => {
 			to_timestamp as end_timestamp,
 			missing_duration as duration,
 			${PUBLIC_POLICE_MONITORING_ENDPOINT} || '/snapshot/' || snapshot_path AS thumb_path,
-			${PUBLIC_POLICE_MONITORING_ENDPOINT} || '/clip/' || snapshot_path AS clip_path
+			${PUBLIC_POLICE_MONITORING_ENDPOINT} || '/clip/' || clip_path AS clip_path
 		FROM police_monitoring
 		ORDER BY start_timestamp DESC;
 	`);
-
-	// console.log('searchAlertData', searchAlertData);
-	// console.log('searchAnomalyData', searchAnomalyData);
-	console.log('policeMonitoringData', policeMonitoringData);
 
 	// Banner Slogans
 	const bannerSlogansKeywords = ['person waving black flag', 'people holding placards'];
@@ -73,21 +69,34 @@ export const GET: RequestHandler = async ({ url }) => {
 		animalsKeywords.includes(alert.query as string)
 	);
 
-	// console.log('bannerSlogansData', bannerSlogansData.length);
-	// console.log('animalsData', animalsData.length);
-
-	const alertCounts = [
-		{ id: 'banners-slogans', count: bannerSlogansData.length },
-		{ id: 'animals', count: animalsData.length },
-		{ id: 'loitering', count: loiteringData.length },
-		{ id: 'missing-police', count: policeMonitoringData.length },
-		{ id: 'prohibited-items', count: 0 },
-		{ id: 'stampede-risk', count: 0 },
-		{ id: 'fire-smoke', count: 0 },
-		{ id: 'suspect-alert', count: 0 },
-		{ id: 'unattended-baggage', count: 0 },
-		{ id: 'weapons', count: 0 }
+	const alertData = [
+		{
+			id: 'banners-slogans',
+			count: bannerSlogansData.length,
+			details: bannerSlogansData
+		},
+		{
+			id: 'animals',
+			count: animalsData.length,
+			details: animalsData
+		},
+		{
+			id: 'loitering',
+			count: loiteringData.length,
+			details: loiteringData
+		},
+		{
+			id: 'missing-police',
+			count: policeMonitoringData.length,
+			details: policeMonitoringData
+		},
+		{ id: 'prohibited-items', count: 0, details: [] },
+		{ id: 'stampede-risk', count: 0, details: [] },
+		{ id: 'fire-smoke', count: 0, details: [] },
+		{ id: 'suspect-alert', count: 0, details: [] },
+		{ id: 'unattended-baggage', count: 0, details: [] },
+		{ id: 'weapons', count: 0, details: [] }
 	];
 
-	return json(alertCounts);
+	return json(alertData);
 };

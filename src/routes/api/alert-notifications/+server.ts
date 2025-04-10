@@ -2,16 +2,20 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { alertNotifications, anomaly, loiteringLog, policeMonitoring } from '$lib/server/db/schema';
-import { desc, gt, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, sql } from 'drizzle-orm';
 
-export const GET: RequestHandler = async () => {
+export const GET: RequestHandler = async ({ url }) => {
 	try {
-		const res = await db.query.alertNotifications.findMany({
+		const showAllAlerts = url.searchParams.get('showAllAlerts');
+		console.log('showAllAlerts in server', showAllAlerts, showAllAlerts === 'false');
+
+		const searchAlertData = await db.query.alertNotifications.findMany({
+			where: showAllAlerts === 'false' ? eq(alertNotifications.isNotified, false) : undefined,
 			orderBy: desc(alertNotifications.createdAt),
 			limit: 200
 		});
-		// const res2 = await db.select().from(anomaly).orderBy(desc(anomaly.createdAt)).limit(200);
-		const res2 = await db.query.anomaly.findMany({
+
+		const searchAnomalyData = await db.query.anomaly.findMany({
 			orderBy: desc(anomaly.createdAt),
 			limit: 200,
 			with: {
@@ -23,28 +27,28 @@ export const GET: RequestHandler = async () => {
 				}
 			}
 		});
-		const res3 = await db.query.loiteringLog.findMany({
+
+		const searchLoiteringData = await db.query.loiteringLog.findMany({
 			orderBy: desc(loiteringLog.insertedAt),
 			limit: 200,
-			where: gt(loiteringLog.durationSeconds, 120)
+			where:
+				showAllAlerts === 'false'
+					? and(gt(loiteringLog.durationSeconds, 120), eq(loiteringLog.isNotified, false))
+					: undefined
 		});
-		const res4 = await db.query.policeMonitoring.findMany({
+
+		const searchPoliceMonitoringData = await db.query.policeMonitoring.findMany({
 			limit: 200,
-			orderBy: desc(policeMonitoring.createdAt)
+			orderBy: desc(policeMonitoring.createdAt),
+			where: showAllAlerts === 'false' ? eq(policeMonitoring.isNotified, false) : undefined
 		});
-		// const res3 = await db.execute(sql`
-		// 	SELECT * FROM loitering_log
-		// 	where duration_seconds > 120
-		// 	ORDER BY inserted_at DESC
-		// 	LIMIT 200;
-		// `);
-		console.log('Raw alerts data:', res3);
-		// console.log(JSON.stringify(res[0], null, 2));
+		// console.log('searchPoliceMonitoringData', searchPoliceMonitoringData);
+
 		return json({
-			alertsData: res,
-			anomaliesData: res2,
-			loiteringData: res3,
-			policeMonitoringData: res4
+			alertsData: searchAlertData,
+			anomaliesData: searchAnomalyData,
+			loiteringData: searchLoiteringData,
+			policeMonitoringData: searchPoliceMonitoringData
 		});
 	} catch (error) {
 		console.error('Failed to fetch alerts:', error);

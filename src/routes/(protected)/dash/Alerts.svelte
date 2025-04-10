@@ -2,7 +2,12 @@
 	import { BellRingIcon, SettingsIcon, BarChartIcon } from '@lucide/svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
-	import type { Alert as AlertType, AnomalyType, LoiteringData, PoliceMonitoringType } from '../types';
+	import type {
+		Alert as AlertType,
+		AnomalyType,
+		LoiteringData,
+		PoliceMonitoringType
+	} from '../types';
 	import { onMount, onDestroy } from 'svelte';
 	import { fly } from 'svelte/transition'; // Import a transition
 	import SimpleDialog from './SimpleDialog.svelte';
@@ -33,11 +38,11 @@
 	let anomalies: AnomalyType[] | null = $state(null);
 	let loitering: LoiteringData[] | null = $state(null);
 	let refreshInterval: ReturnType<typeof setInterval>;
-	
+
 	// State for view management
 	let showingFilteredView = $state(false);
 	let selectedQuery = $state('');
-	
+
 	// Time range filter settings
 	let showTimeRangeSettings = $state(false);
 	let fromDate = $state(new Date(Date.now() - 5 * 60 * 1000).toISOString().slice(0, 16)); // Default: 5 minutes ago
@@ -47,76 +52,76 @@
 	let showingAnalytics = $state(false);
 	// banner and slogans config
 	const bannerAndSlogansConfig = {
-			mainTitle: "Banners & Slogans",
-			alertTitle: ["person waving black flag","people holding placards"],
-			description: "Detection of unauthorized banners, posters, or slogans in restricted areas."
-		}
-	const alertsWithThumbnails =[
+		mainTitle: 'Banners & Slogans',
+		alertTitle: ['person waving black flag', 'people holding placards'],
+		description: 'Detection of unauthorized banners, posters, or slogans in restricted areas.'
+	};
+	const alertsWithThumbnails = [
 		{
-			mainTitle: "Banners & Slogans",
-			alertTitle: ["person waving black flag","people holding placards"],
-			description: "Detection of unauthorized banners, posters, or slogans in restricted areas."
+			mainTitle: 'Banners & Slogans',
+			alertTitle: ['person waving black flag', 'people holding placards'],
+			description: 'Detection of unauthorized banners, posters, or slogans in restricted areas.'
 		},
 		{
-			mainTitle: "Animals",
-			alertTitle: ["dogs"],
-			description: "Detection of Animals in the stadium areas."
+			mainTitle: 'Animals',
+			alertTitle: ['dogs'],
+			description: 'Detection of Animals in the stadium areas.'
 		}
-	]
+	];
 	// State for police monitoring view
 	let showingPoliceView = $state(false);
 
 	// Additional alert cards
 	const additionalAlertCards = [
 		{
-			mainTitle: "Animals",
-			alertTitle: "dogs",
-			icon: "PawPrintIcon",
-			description: "Detection of animals in restricted areas."
+			mainTitle: 'Animals',
+			alertTitle: 'dogs',
+			icon: 'PawPrintIcon',
+			description: 'Detection of animals in restricted areas.'
 		},
 		{
-			mainTitle: "Loitering",
-			alertTitle: "motorcycle",
-			icon: "FootprintsIcon",
-			description: "Detection of suspicious loitering in specific areas."
+			mainTitle: 'Loitering',
+			alertTitle: 'motorcycle',
+			icon: 'FootprintsIcon',
+			description: 'Detection of suspicious loitering in specific areas.'
 		},
 		{
-			mainTitle: "Prohibited Items",
-			alertTitle: "Prohibited Items",
-			icon: "BanIcon",
-			description: "Detection of items not allowed in the premises."
+			mainTitle: 'Prohibited Items',
+			alertTitle: 'Prohibited Items',
+			icon: 'BanIcon',
+			description: 'Detection of items not allowed in the premises.'
 		},
-		
+
 		{
-			mainTitle: "Stampede Risk",
-			alertTitle: "stampede risk",
-			icon: "UsersIcon",
-			description: "Detection of crowd conditions that may lead to stampede."
-		},
-		{
-			mainTitle: "Fire & Smoke",
-			alertTitle: "fire & smoke",
-			icon: "FlameIcon",
-			description: "Detection of fire or smoke in monitored areas."
+			mainTitle: 'Stampede Risk',
+			alertTitle: 'stampede risk',
+			icon: 'UsersIcon',
+			description: 'Detection of crowd conditions that may lead to stampede.'
 		},
 		{
-			mainTitle: "Suspect Alert",
-			alertTitle: "suspect",
-			icon: "AlertTriangleIcon",
-			description: "Detection of known suspects or persons of interest."
-		},
-		
-		{
-			mainTitle: "Unattended Baggage",
-			alertTitle: "unattended baggage",
-			icon: "PackageIcon",
-			description: "Detection of bags or packages left unattended."
+			mainTitle: 'Fire & Smoke',
+			alertTitle: 'fire & smoke',
+			icon: 'FlameIcon',
+			description: 'Detection of fire or smoke in monitored areas.'
 		},
 		{
-			mainTitle: "Weapons",
-			alertTitle: "weapons",
-			icon: "SwordIcon",
-			description: "Detection of potential weapons in monitored areas."
+			mainTitle: 'Suspect Alert',
+			alertTitle: 'suspect',
+			icon: 'AlertTriangleIcon',
+			description: 'Detection of known suspects or persons of interest.'
+		},
+
+		{
+			mainTitle: 'Unattended Baggage',
+			alertTitle: 'unattended baggage',
+			icon: 'PackageIcon',
+			description: 'Detection of bags or packages left unattended.'
+		},
+		{
+			mainTitle: 'Weapons',
+			alertTitle: 'weapons',
+			icon: 'SwordIcon',
+			description: 'Detection of potential weapons in monitored areas.'
 		}
 	];
 
@@ -125,28 +130,34 @@
 	let selectedCamera = $state('');
 	let showingBannerQueriesView = $state(false);
 	let selectedBannerQuery = $state('');
-	
+
 	// Organized alerts grouped by query and camera
 	let organized_grouped_alerts = $derived.by(() => {
 		if (!alerts) return [];
-		
+
 		// Create a map to organize by query
-		const queryMap = new Map<string, {
-			query: string,
-			cameras: Map<string, {
-				cameraName: string,
-				alerts: Array<{
-					redirectURL: string,
-					thumbnail: string,
-					id: string,
-					end_time: string
-				}>
-			}>
-		}>();
+		const queryMap = new Map<
+			string,
+			{
+				query: string;
+				cameras: Map<
+					string,
+					{
+						cameraName: string;
+						alerts: Array<{
+							redirectURL: string;
+							thumbnail: string;
+							id: string;
+							end_time: string;
+						}>;
+					}
+				>;
+			}
+		>();
 		// Process each alert
-		alerts.forEach(alert => {
+		alerts.forEach((alert) => {
 			const query = alert.query;
-			
+
 			// Initialize query group if it doesn't exist
 			if (!queryMap.has(query)) {
 				queryMap.set(query, {
@@ -154,14 +165,14 @@
 					cameras: new Map()
 				});
 			}
-			
+
 			// Process each result in the alert
 			if (alert.results && alert.results.results) {
-				alert.results.results.forEach(result => {
+				alert.results.results.forEach((result) => {
 					if (result.camera) {
 						const cameraName = result.camera;
 						const queryGroup = queryMap.get(query)!;
-						
+
 						// Initialize camera group if it doesn't exist
 						if (!queryGroup.cameras.has(cameraName)) {
 							queryGroup.cameras.set(cameraName, {
@@ -169,7 +180,7 @@
 								alerts: []
 							});
 						}
-						
+
 						// Add alert details to camera group
 						queryGroup.cameras.get(cameraName)!.alerts.push({
 							redirectURL: alert.results.redirect_url || '',
@@ -182,7 +193,7 @@
 			}
 		});
 		// Convert maps to arrays for easier iteration in the template
-		return Array.from(queryMap.values()).map(queryGroup => ({
+		return Array.from(queryMap.values()).map((queryGroup) => ({
 			query: queryGroup.query,
 			cameras: Array.from(queryGroup.cameras.values())
 		}));
@@ -214,7 +225,7 @@
 			media_url: item.filePath, // Store the relative path
 			cameraName: item.camera?.name
 		}));
-		
+
 		const mappedLoitering: CombinedAlertItem[] = (loitering ?? []).map((item) => ({
 			id: `loitering-${item.id}`, // Prefix ID
 			query: item.label || 'Loitering Detected',
@@ -235,24 +246,27 @@
 	// Filtered data based on selected query
 	let filteredData = $derived.by(() => {
 		if (!showingFilteredView || !selectedQuery) return [];
-		return combinedData.filter(item => item.query === selectedQuery);
+		return combinedData.filter((item) => item.query === selectedQuery);
 	});
 
 	// Group data by query with time range filter
 	let groupedData = $derived.by(() => {
-		const groups = new Map<string, { total: number, recent: number, uniqueCameras: Set<string>, items: CombinedAlertItem[] }>();
+		const groups = new Map<
+			string,
+			{ total: number; recent: number; uniqueCameras: Set<string>; items: CombinedAlertItem[] }
+		>();
 		const fromTimestamp = new Date(fromDate).getTime();
 		const toTimestamp = new Date(toDate).getTime();
-		
-		combinedData.forEach(item => {
+
+		combinedData.forEach((item) => {
 			if (!groups.has(item.query)) {
 				groups.set(item.query, { total: 0, recent: 0, uniqueCameras: new Set(), items: [] });
 			}
-			
+
 			const group = groups.get(item.query)!;
 			group.total++;
 			group.items.push(item);
-			
+
 			const itemTime = new Date(item.time).getTime();
 			if (itemTime >= fromTimestamp && itemTime <= toTimestamp) {
 				group.recent++;
@@ -261,7 +275,7 @@
 				}
 			}
 		});
-		
+
 		return Array.from(groups.entries()).map(([query, data]) => ({
 			query,
 			total: data.total,
@@ -331,7 +345,9 @@
 				fullUrl = MEDIA_BASE_URL + item.media_url;
 			}
 			if (item.type === 'loitering') {
-				fullUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_snapshots/"+item.snapshot_filename;
+				fullUrl =
+					'https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_snapshots/' +
+					item.snapshot_filename;
 			}
 
 			selectedMediaUrl = fullUrl;
@@ -339,7 +355,9 @@
 				item.query || (item.type === 'anomaly' ? 'Anomaly Details' : 'Loitering Details');
 			showMediaModal = true;
 		} else if (item.type === 'loitering' && !item.media_url) {
-			selectedMediaUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_snapshots/"+item.snapshot_filename;
+			selectedMediaUrl =
+				'https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_snapshots/' +
+				item.snapshot_filename;
 		} else {
 			console.warn('No suitable URL found for item:', item);
 			// Optionally show a feedback message to the user
@@ -368,7 +386,7 @@
 				policeMonitoringData: PoliceMonitoringType[];
 			};
 			console.log(data.policeMonitoringData);
-			
+
 			policeMonitoring = data.policeMonitoringData ?? [];
 			// Process fetched data
 			alerts = data.alertsData ?? [];
@@ -414,7 +432,7 @@
 		showingBannerAlertsView = true;
 		showingBannerQueriesView = false;
 	}
-	
+
 	// Function to go back from banner alerts view
 	function backFromBannerAlertsView() {
 		showingBannerAlertsView = false;
@@ -428,20 +446,20 @@
 		showingFilteredView = true;
 		selectedQuery = query;
 	}
-	
+
 	// Derived data for banner alerts
 	let bannerAlertsData = $derived.by(() => {
 		// Filter alerts related to banners and slogans
-		const bannerAlerts = combinedData.filter(item => 
-			bannerAndSlogansConfig.alertTitle.some(title => 
+		const bannerAlerts = combinedData.filter((item) =>
+			bannerAndSlogansConfig.alertTitle.some((title) =>
 				item.query.toLowerCase().includes(title.toLowerCase())
 			)
 		);
-		
+
 		// Group by camera
 		const cameraGroups = new Map<string, CombinedAlertItem[]>();
-		
-		bannerAlerts.forEach(alert => {
+
+		bannerAlerts.forEach((alert) => {
 			if (alert.cameraName) {
 				if (!cameraGroups.has(alert.cameraName)) {
 					cameraGroups.set(alert.cameraName, []);
@@ -449,14 +467,15 @@
 				cameraGroups.get(alert.cameraName)!.push(alert);
 			}
 		});
-		
+
 		// Sort alerts within each camera group by time (most recent first)
 		cameraGroups.forEach((alerts, camera) => {
-			cameraGroups.set(camera, alerts.sort((a, b) => 
-				new Date(b.time).getTime() - new Date(a.time).getTime()
-			));
+			cameraGroups.set(
+				camera,
+				alerts.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+			);
 		});
-		
+
 		return {
 			allAlerts: bannerAlerts,
 			byCameras: Array.from(cameraGroups.entries()).map(([camera, alerts]) => ({
@@ -470,23 +489,118 @@
 
 	// Get banner queries from organized_grouped_alerts
 	let bannerQueries = $derived.by(() => {
-		return organized_grouped_alerts.filter(group => 
-			bannerAndSlogansConfig.alertTitle.some(title => 
+		return organized_grouped_alerts.filter((group) =>
+			bannerAndSlogansConfig.alertTitle.some((title) =>
 				group.query.toLowerCase().includes(title.toLowerCase())
 			)
 		);
 	});
-	
+
 	// Filtered banner alerts for a specific camera
 	let filteredBannerAlerts = $derived.by(() => {
 		if (!showingBannerAlertsView || !selectedCamera) return [];
-		return bannerAlertsData.allAlerts.filter(item => item.cameraName === selectedCamera);
+		return bannerAlertsData.allAlerts.filter((item) => item.cameraName === selectedCamera);
 	});
 
 	// Function to show police monitoring view
 	function showPoliceView() {
 		showingPoliceView = true;
 	}
+	import html2canvas from 'html2canvas';
+  
+  // Declare a reference to the ScrollArea
+  let scrollAreaRef;
+  
+  // Your existing code and imports here...
+  
+  // Function to download the ScrollArea content
+  const downloadScrollAreaContent = async () => {
+    try {
+      // Find the scroll content element
+      const scrollContent = document.getElementById('scroll-content');
+      
+      if (!scrollContent) {
+        console.error('Scroll content element not found');
+        return;
+      }
+      
+      // Create a temporary clone of the scroll content for better rendering
+      const tempContainer = document.createElement('div');
+      const clone = scrollContent.cloneNode(true);
+      
+      // Explicitly set the grid styles on the clone to ensure the layout is preserved
+      if (!showingFilteredView && !showingBannerQueriesView && !showingBannerAlertsView && !showingPoliceView && !showingAnalytics) {
+        // Find the grid container in the clone
+        const gridElement = clone.querySelector('.grid');
+        if (gridElement) {
+          // Force the grid to maintain 3 columns
+          gridElement.style.display = 'grid';
+          gridElement.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
+          gridElement.style.gap = '1rem';
+          gridElement.style.width = '100%';
+        }
+      }
+      
+      // Apply original styles to make sure the clone looks the same
+      const styles = window.getComputedStyle(scrollContent);
+      tempContainer.style.backgroundColor = styles.backgroundColor;
+      tempContainer.style.color = styles.color;
+      tempContainer.style.padding = styles.padding;
+      tempContainer.style.width = scrollContent.offsetWidth + 'px';
+      
+      // Append the clone to the temp container
+      tempContainer.appendChild(clone);
+      
+      // Make the temp container temporarily visible but off-screen
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '-9999px';
+      document.body.appendChild(tempContainer);
+      
+      // Wait for all images to load in the clone
+      const imagePromises = Array.from(tempContainer.querySelectorAll('img')).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      });
+      
+      await Promise.all(imagePromises);
+      
+      // Use html2canvas with the properly prepared clone
+      const canvas = await html2canvas(tempContainer, {
+        backgroundColor: window.getComputedStyle(document.body).backgroundColor,
+        scale: 2, // Higher quality
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        width: scrollContent.offsetWidth,
+        height: Math.max(tempContainer.scrollHeight, scrollContent.scrollHeight),
+        onclone: (clonedDoc, clonedElement) => {
+          // Additional modifications to the cloned document if needed
+        }
+      });
+      
+      // Clean up the temporary elements
+      document.body.removeChild(tempContainer);
+      
+      // Create a download link
+      const link = document.createElement('a');
+      link.download = `alerts-grid-${new Date().toISOString().slice(0,10)}.png`;
+      link.href = canvas.toDataURL('image/png');
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+    } catch (error) {
+      console.error('Error downloading scroll area content:', error);
+      // Show error notification if desired
+      alert('Failed to download image. Please try again.');
+    }
+  };
 </script>
 
 <Card class="flex h-full w-full flex-col dark:bg-background dark:text-white">
@@ -521,6 +635,9 @@
 		</div>
 		{#if !showingFilteredView && !showingBannerAlertsView && !showingBannerQueriesView}
 			<div class="flex items-center gap-2">
+				<button on:click={downloadScrollAreaContent}>
+					<img src="/camera-lens.png" alt="Camera Lens" class="h-5 w-5" />
+				</button>
 				<button 
 					class="flex items-center gap-1 text-sm hover:text-primary" 
 					on:click={toggleAnalyticsView}
@@ -528,6 +645,7 @@
 				>
 					<BarChartIcon class="h-4 w-4" />
 				</button>
+				
 				<button 
 					class="flex items-center gap-1 text-sm hover:text-primary" 
 					on:click={toggleTimeRangeSettings}
@@ -570,8 +688,8 @@
 		</div>
 	{/if}
 	
-	<ScrollArea class="flex-1">
-		<CardContent class="p-4">
+	<ScrollArea class="flex-1" bind:this={scrollAreaRef}>
+		<CardContent class="p-4" id="scroll-content">
 			{#if showingAnalytics}
 				<!-- Analytics View -->
 				<div></div>

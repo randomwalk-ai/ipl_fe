@@ -110,7 +110,7 @@
 				<span>{'Crowd Monitor'}</span>
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
-		<Sidebar.MenuItem>
+		<!-- <Sidebar.MenuItem>
 			<Sidebar.MenuButton
 				onclick={(e) => goto('/topview')}
 				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
@@ -118,14 +118,14 @@
 				<Eye />
 				<span>{'Top View'}</span>
 			</Sidebar.MenuButton>
-		</Sidebar.MenuItem>
+		</Sidebar.MenuItem> -->
 		<Sidebar.MenuItem>
 			<Sidebar.MenuButton
 				onclick={(e) => goto('/view')}
 				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
 			>
 				<Eye />
-				<span>{'view'}</span>
+				<span>{'Stadium View'}</span>
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
 	</Sidebar.Menu>

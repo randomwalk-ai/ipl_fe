@@ -1,0 +1,93 @@
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { db } from '$lib/server/db';
+import { PUBLIC_LOITERING_ENDPOINT, PUBLIC_POLICE_MONITORING_ENDPOINT } from '$env/static/public';
+
+import { alertNotifications, anomaly, loiteringLog, policeMonitoring } from '$lib/server/db/schema';
+
+import { and, desc, eq, gt, sql } from 'drizzle-orm';
+
+export const GET: RequestHandler = async ({ url }) => {
+	const showAllAlerts = url.searchParams.get('showAllAlerts');
+	console.log('showAllAlerts in server', showAllAlerts, showAllAlerts === 'false');
+
+	const searchAlertData = await db.execute(sql`
+		SELECT 
+			DISTINCT 
+			alert_notifications.query AS query,
+			result_elem ->> 'id' AS id,
+			result_elem ->> 'camera' AS camera_id,
+			result_elem ->> 'img_url' AS img_url,
+			result_elem ->> 'thumb_path' AS thumb_path,
+			TO_TIMESTAMP((result_elem ->> 'start_time')::DOUBLE PRECISION) AS start_timestamp,
+			TO_TIMESTAMP((result_elem ->> 'end_time')::DOUBLE PRECISION) AS end_timestamp,
+			result_elem ->> 'thumbnail' AS thumbnail
+
+		FROM alert_notifications,
+		LATERAL jsonb_array_elements(alert_notifications.results -> 'results') AS result_elem
+		ORDER BY end_timestamp DESC;
+		`);
+
+	// Loitering Query
+	const loiteringData = await db.execute(sql`
+		SELECT 
+			*,
+			EXTRACT(EPOCH FROM (end_timestamp - start_timestamp)) AS duration
+		FROM (
+			SELECT 
+				camera_id, 				
+				object_class || ' found loitering' AS query,
+				${PUBLIC_LOITERING_ENDPOINT} || '/snapshot/' || snapshot_path AS thumb_path,
+				(loitering_start_time AT TIME ZONE 'Asia/Kolkata') AT TIME ZONE 'UTC' AS start_timestamp,
+				created_at AT TIME ZONE 'UTC' AS end_timestamp
+			FROM loitering
+		) AS sub
+		ORDER BY start_timestamp DESC;	
+		`);
+
+	const policeMonitoringData = await db.execute(sql`
+		SELECT 
+			camera_id,
+			'No police found' AS query,
+			from_timestamp as start_timestamp,
+			to_timestamp as end_timestamp,
+			missing_duration as duration,
+			${PUBLIC_POLICE_MONITORING_ENDPOINT} || '/snapshot/' || snapshot_path AS thumb_path,
+			${PUBLIC_POLICE_MONITORING_ENDPOINT} || '/clip/' || snapshot_path AS clip_path
+		FROM police_monitoring
+		ORDER BY start_timestamp DESC;
+	`);
+
+	// console.log('searchAlertData', searchAlertData);
+	// console.log('searchAnomalyData', searchAnomalyData);
+	console.log('policeMonitoringData', policeMonitoringData);
+
+	// Banner Slogans
+	const bannerSlogansKeywords = ['person waving black flag', 'people holding placards'];
+	const bannerSlogansData = searchAlertData.filter((alert) =>
+		bannerSlogansKeywords.includes(alert.query as string)
+	);
+	// Animals
+	const animalsKeywords = ['dogs'];
+	const animalsData = searchAlertData.filter((alert) =>
+		animalsKeywords.includes(alert.query as string)
+	);
+
+	// console.log('bannerSlogansData', bannerSlogansData.length);
+	// console.log('animalsData', animalsData.length);
+
+	const alertCounts = [
+		{ id: 'banners-slogans', count: bannerSlogansData.length },
+		{ id: 'animals', count: animalsData.length },
+		{ id: 'loitering', count: loiteringData.length },
+		{ id: 'missing-police', count: policeMonitoringData.length },
+		{ id: 'prohibited-items', count: 0 },
+		{ id: 'stampede-risk', count: 0 },
+		{ id: 'fire-smoke', count: 0 },
+		{ id: 'suspect-alert', count: 0 },
+		{ id: 'unattended-baggage', count: 0 },
+		{ id: 'weapons', count: 0 }
+	];
+
+	return json(alertCounts);
+};

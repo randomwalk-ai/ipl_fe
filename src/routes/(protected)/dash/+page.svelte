@@ -9,6 +9,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { parseUtcToIstTime } from '$lib/utils';
 	import CamStats from './CamStats.svelte';
+	import AlertsOverview from './AlertsOverview.svelte';
 
 	let { data } = $props();
 	// $inspect(data.camAttendance);
@@ -93,8 +94,9 @@
 			<AttendanceCard data={attendanceData} />
 			<!-- <CamStats data={camAttendance} /> -->
 		</div>
-		<div class="min-h-0 flex-1 basis-1/2">
-			<Alerts />
+		<div class="min-h-0 flex-1 basis-1/2 overflow-y-auto">
+			<!-- <Alerts /> -->
+			<AlertsOverview />
 		</div>
 	</div>
 </div>

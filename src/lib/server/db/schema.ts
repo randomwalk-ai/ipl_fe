@@ -66,7 +66,8 @@ export const alertNotifications = pgTable('alert_notifications', {
 	alertId: varchar('alert_id'),
 	query: varchar(),
 	results: jsonb(),
-	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }),
+	isNotified: boolean('is_notified').default(false)
 });
 export const policeMonitoring = pgTable('police_monitoring', {
 	id: serial().primaryKey().notNull(),
@@ -76,7 +77,8 @@ export const policeMonitoring = pgTable('police_monitoring', {
 	toTimestamp: timestamp('to_timestamp', { withTimezone: true, mode: 'string' }).notNull(),
 	clipPath: varchar('clip_path').notNull(),
 	snapshotPath: varchar('snapshot_path').notNull(),
-	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow()
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow(),
+	isNotified: boolean('is_notified').default(false)
 });
 
 export const anomaly = pgTable('anomaly', {
@@ -154,7 +156,8 @@ export const loiteringLog = pgTable(
 		snapshotFilename: varchar('snapshot_filename', { length: 255 }),
 		status: varchar({ length: 15 }).default('active'),
 		insertedAt: timestamp('inserted_at', { withTimezone: true, mode: 'string' }).defaultNow(),
-		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }),
+		isNotified: boolean('is_notified').default(false)
 	},
 	(table) => [
 		index('idx_loitering_log_object_id_status').using(

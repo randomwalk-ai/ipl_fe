@@ -642,7 +642,7 @@
 					showingPoliceView={true}
 					{showPoliceView}
 					backToGroupedView={backToGroupedView}
-					MEDIA_BASE_URL={MEDIA_BASE_URL}
+					MEDIA_BASE_URL={"https://cb7c-49-207-184-66.ngrok-free.app/clip"}
 				/>
 			{:else}
 				{#if groupedData.length === 0}
@@ -675,7 +675,7 @@
 							{showingPoliceView}
 							{showPoliceView}
 							{backToGroupedView}
-							MEDIA_BASE_URL={MEDIA_BASE_URL}
+							MEDIA_BASE_URL="https://1020-49-207-184-66.ngrok-free.app/clip"
 						/>
 						
 						<!-- Additional Alert Cards -->

@@ -64,8 +64,9 @@
                             <!-- Video clip preview if available -->
                             <div class="w-24 h-16 bg-gray-200 dark:bg-gray-800 rounded-md overflow-hidden flex-shrink-0">
                                 {#if alert.clipPath}
-                                    <img 
-                                        src={`${MEDIA_BASE_URL}${alert.clipPath.replace(/\.mp4$/, '_thumbnail.jpg')}`}
+                                    {console.log(MEDIA_BASE_URL+alert.clipPath)}
+                                    <video 
+                                        src={`${MEDIA_BASE_URL}/${alert.clipPath}`}
                                         alt="Alert thumbnail" 
                                         class="w-full h-full object-cover"
                                         on:error={(e) => {

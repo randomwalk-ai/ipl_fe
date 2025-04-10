@@ -1,11 +1,144 @@
 <script lang="ts">
   import AlertCards from '$lib/components/AlertCards.svelte';
   import { alertItems } from '$lib/data/alertItems';
+	import html2canvas from 'html2canvas';
+  import { Loader2 } from '@lucide/svelte';
+  import { onMount } from 'svelte';
+  
+  let isDownloading = false;
+  
+  
+  const downloadScrollAreaContent = async () => {
+		if (isDownloading) return; // Prevent multiple clicks
+		
+		isDownloading = true;
+		try {
+			// Find the entire container that includes both the cards and the details view
+			const contentToCapture = document.querySelector('.container') as HTMLElement;
+      console.log('contentToCapture', contentToCapture);
+			if (!contentToCapture) {
+				console.error('Content element not found');
+				return;
+			}
+
+			// Create a temporary clone of the entire content
+			const tempContainer = document.createElement('div');
+			const clone = contentToCapture.cloneNode(true);
+
+
+				// Find the grid container in the clone
+      const gridElement = clone.querySelector('.grid') as HTMLElement;
+      if (gridElement) {
+        // Force the grid to maintain 3 columns
+        gridElement.style.display = 'grid';
+        gridElement.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
+        gridElement.style.gap = '1rem';
+        gridElement.style.width = '100%';
+      }
+    
+
+			// Apply original styles to make sure the clone looks the same
+			const styles = window.getComputedStyle(contentToCapture);
+			tempContainer.style.backgroundColor = styles.backgroundColor;
+			tempContainer.style.color = styles.color;
+			tempContainer.style.padding = styles.padding;
+			tempContainer.style.width = contentToCapture.offsetWidth + 'px';
+
+			// Append the clone to the temp container
+			tempContainer.appendChild(clone);
+
+			// Make the temp container temporarily visible but off-screen
+			tempContainer.style.position = 'absolute';
+			tempContainer.style.left = '-9999px';
+			tempContainer.style.top = '-9999px';
+			document.body.appendChild(tempContainer);
+
+			// Wait for all images to load in the clone
+			const imagePromises = Array.from(tempContainer.querySelectorAll('img')).map((img) => {
+				if (img.complete) return Promise.resolve();
+				return new Promise((resolve) => {
+					img.onload = resolve;
+					img.onerror = resolve;
+				});
+			});
+
+			await Promise.all(imagePromises);
+
+			// Use html2canvas with the properly prepared clone
+			const canvas = await html2canvas(tempContainer, {
+				backgroundColor: window.getComputedStyle(document.body).backgroundColor,
+				scale: 2, // Higher quality
+				logging: false,
+				useCORS: true,
+				allowTaint: true,
+				width: contentToCapture.offsetWidth,
+				height: Math.max(tempContainer.scrollHeight, contentToCapture.scrollHeight),
+				onclone: (clonedDoc, clonedElement) => {
+					// Additional modifications to the cloned document if needed
+				}
+			});
+
+			// Clean up the temporary elements
+			document.body.removeChild(tempContainer);
+
+			// Create a download link
+			const link = document.createElement('a');
+			link.download = `alerts-grid-${new Date().toISOString().slice(0, 10)}.png`;
+			link.href = canvas.toDataURL('image/png');
+			// Call an endpoint to send this image to notification service
+			fetch('/api/send-alerts-image', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ image: canvas.toDataURL('image/png') })
+			})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Failed to send alert image');
+				}
+				return response.json();
+			})
+			.then(data => {
+				console.log('Alert image sent successfully:', data);
+			})
+			.catch(error => {
+				console.error('Error sending alert image:', error);
+			});
+
+			// Trigger download
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		} catch (error) {
+			console.error('Error downloading scroll area content:', error);
+			// Show error notification if desired
+			alert('Failed to download image. Please try again.');
+		} finally {
+			isDownloading = false;
+		}
+	};
 </script>
 
 <div class="container mx-auto border border-[#1E293B] rounded-lg p-0">
-  <!-- Border only on top -->
-  <h1 class="text-2xl w-full font-bold mb-6 bg-[#1E293B] p-4 rounded-t-lg text-white">Alerts Overview</h1>
+  <!-- Header with title and download button -->
+  <div class="flex justify-between items-center bg-[#1E293B] p-4 rounded-t-lg text-white">
+    <h1 class="text-2xl font-bold">Alerts Overview</h1>
+    <button 
+      on:click={downloadScrollAreaContent}
+      class="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-md disabled:opacity-50"
+      disabled={isDownloading}
+    >
+      {#if isDownloading}
+        <Loader2 class="h-4 w-4 animate-spin" />
+        <span>Processing...</span>
+      {:else}
+        <span>Download</span>
+      {/if}
+    </button>
+  </div>
   
-  <AlertCards {alertItems} />
+  <div id="scroll-content" class="p-4">
+    <AlertCards alertItems={alertItems} />
+  </div>
 </div> 

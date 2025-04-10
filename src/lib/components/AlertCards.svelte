@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import * as Card from '$lib/components/ui/card';
   import * as Dialog from '$lib/components/ui/dialog';
+  import * as Switch from '$lib/components/ui/switch';
+  import * as Slider from '$lib/components/ui/slider';
   import { 
     FlagIcon, 
     PawPrintIcon, 
@@ -45,12 +47,17 @@
   };
 
   export let alertItems: AlertItem[] = [];
+  export let alertsData: AlertData[] = [];
   let alertsWithCounts: AlertItem[] = [];
-  let alertsData: AlertData[] = [];
   let selectedAlertId: string | null = null;
   let selectedAlertDetails: AlertDetail[] = [];
   let isLoading = false;
   let showCards = true;
+  
+  // Filter state
+  let showNewOnly = true;
+  let maxResults = 10;
+  let filteredAlertDetails: AlertDetail[] = [];
   
   // Modal state
   let modalOpen = false;
@@ -69,30 +76,64 @@
     SwordIcon
   };
 
+  // Watch for changes in alertsData
+  $: if (alertsData && alertsData.length) {
+    // Merge the counts with the alert items
+    alertsWithCounts = alertItems.map(item => {
+      const data = alertsData.find((data: AlertData) => data.id === item.id);
+      return {
+        ...item,
+        count: data ? data.count : 0
+      };
+    });
+  }
+  
+  // Apply filters when selectedAlertDetails or filter settings change
+  $: if (selectedAlertId && selectedAlertDetails.length) {
+    applyFilters();
+  }
+  
+  function applyFilters() {
+    // Start with all details
+    let filtered = [...selectedAlertDetails];
+    
+    // Apply new-only filter if enabled
+    if (showNewOnly) {
+      filtered = filtered.filter(detail => detail.is_notified === false);
+    }
+    
+    // Apply max results limit
+    filtered = filtered.slice(0, maxResults);
+    
+    filteredAlertDetails = filtered;
+  }
+
   onMount(async () => {
-    isLoading = true;
-    try {
-      const response = await fetch('/api/alerts-data');
-      if (!response.ok) {
-        throw new Error('Failed to fetch alert data');
+    if (!alertsData || alertsData.length === 0) {
+      isLoading = true;
+      try {
+        const response = await fetch('/api/alerts-data');
+        if (!response.ok) {
+          throw new Error('Failed to fetch alert data');
+        }
+        
+        alertsData = await response.json();
+        
+        // Merge the counts with the alert items
+        alertsWithCounts = alertItems.map(item => {
+          const data = alertsData.find((data: AlertData) => data.id === item.id);
+          return {
+            ...item,
+            count: data ? data.count : 0
+          };
+        });
+      } catch (error) {
+        console.error('Error fetching alert data:', error);
+        // If there's an error, just use the original items with count 0
+        alertsWithCounts = alertItems.map(item => ({ ...item, count: 0 }));
+      } finally {
+        isLoading = false;
       }
-      
-      alertsData = await response.json();
-      
-      // Merge the counts with the alert items
-      alertsWithCounts = alertItems.map(item => {
-        const data = alertsData.find((data: AlertData) => data.id === item.id);
-        return {
-          ...item,
-          count: data ? data.count : 0
-        };
-      });
-    } catch (error) {
-      console.error('Error fetching alert data:', error);
-      // If there's an error, just use the original items with count 0
-      alertsWithCounts = alertItems.map(item => ({ ...item, count: 0 }));
-    } finally {
-      isLoading = false;
     }
   });
 
@@ -101,6 +142,7 @@
       // If clicking the same card, toggle it off
       selectedAlertId = null;
       selectedAlertDetails = [];
+      filteredAlertDetails = [];
       showCards = true;
       return;
     }
@@ -108,6 +150,7 @@
     selectedAlertId = alertId;
     const alertData = alertsData.find(data => data.id === alertId);
     selectedAlertDetails = alertData ? alertData.details : [];
+    applyFilters(); // Apply filters to the selected details
     showCards = false;
   }
 
@@ -199,13 +242,44 @@
           </button>
         </div>
         
-        {#if selectedAlertDetails.length === 0}
+        <!-- Filter controls -->
+        <div class="p-3 bg-muted/30 rounded-md mb-3 flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-medium">Show New Only:</span>
+            <Switch.Root 
+              checked={showNewOnly} 
+              onCheckedChange={(checked) => { 
+                showNewOnly = checked; 
+                applyFilters();
+              }}
+            />
+          </div>
+          
+          <div class="flex flex-col w-full sm:w-1/3 gap-1">
+            <div class="flex justify-between">
+              <span class="text-xs font-medium">Max Results: {maxResults}</span>
+            </div>
+            <Slider.Root 
+              value={[maxResults]} 
+              onValueChange={(values) => { 
+                maxResults = values[0]; 
+                applyFilters();
+              }}
+              min={5}
+              max={50}
+              step={5}
+              className="w-full"
+            />
+          </div>
+        </div>
+        
+        {#if filteredAlertDetails.length === 0}
           <div class="text-center p-6 bg-muted rounded-lg">
             <p>No details available for this alert.</p>
           </div>
         {:else}
           <div class="space-y-3">
-            {#each selectedAlertDetails as detail}
+            {#each filteredAlertDetails as detail}
               <Card.Root class="w-full overflow-hidden">
                 <div class="flex flex-col md:flex-row">
                   {#if detail.thumb_path || detail.thumbnail}

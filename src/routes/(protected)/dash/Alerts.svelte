@@ -15,6 +15,7 @@
 	import { ArrowLeftIcon } from '@lucide/svelte';
 	import BannersAndSlogans from './BannersAndSlogans.svelte';
 	import PoliceMonitoring from './PoliceMonitoring.svelte';
+	import { PUBLIC_POLICE_MONITORING_ENDPOINT } from '$env/static/public';
 
 	// Define a unified type for the combined list
 	interface CombinedAlertItem {
@@ -631,7 +632,7 @@
 <Card class="flex h-full w-full flex-col dark:bg-background dark:text-white">
 	<CardHeader class="flex h-14 flex-row items-center justify-between rounded-t-md bg-secondary p-4">
 		<div class="flex items-center gap-2">
-			{#if showingFilteredView || showingBannerAlertsView || showingBannerQueriesView}
+			{#if showingFilteredView || showingBannerAlertsView || showingBannerQueriesView || showingPoliceView}
 				<button
 					class="flex items-center gap-1 text-sm hover:text-primary"
 					on:click={backToGroupedView}
@@ -790,7 +791,7 @@
 					showingPoliceView={true}
 					{showPoliceView}
 					{backToGroupedView}
-					MEDIA_BASE_URL={'https://cb7c-49-207-184-66.ngrok-free.app/clip'}
+					MEDIA_BASE_URL={PUBLIC_POLICE_MONITORING_ENDPOINT}
 				/>
 			{:else if groupedData.length === 0}
 				<p class="text-center text-gray-500 dark:text-gray-400">No recent events</p>

@@ -55,14 +55,15 @@ export type AnomalyType = {
 };
 
 export type PoliceMonitoringType = {
-    id: number;
-    camera_id: string;
-    missing_duration: number;
-    from_timestamp: string;
-    to_timestamp: string;
-    clip_path: string;
-    created_at: string;
-}
+	id: number;
+	camera_id: string;
+	missing_duration: number;
+	from_timestamp: string;
+	to_timestamp: string;
+	clip_path: string;
+	snapshot_path: string;
+	created_at: string;
+};
 
 // cam-attendance data type
 export interface Camera {

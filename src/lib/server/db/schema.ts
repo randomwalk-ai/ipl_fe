@@ -75,6 +75,7 @@ export const policeMonitoring = pgTable('police_monitoring', {
 	fromTimestamp: timestamp('from_timestamp', { withTimezone: true, mode: 'string' }).notNull(),
 	toTimestamp: timestamp('to_timestamp', { withTimezone: true, mode: 'string' }).notNull(),
 	clipPath: varchar('clip_path').notNull(),
+	snapshotPath: varchar('snapshot_path').notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow()
 });
 
@@ -169,10 +170,10 @@ export const loiteringLog = pgTable(
 	]
 );
 
-export const tweets = pgTable("tweets", {
-	tweetId: text("tweet_id").primaryKey().notNull(),
-	tweetUser: text("tweet_user"),
-	tweetDate: timestamp("tweet_date", { mode: 'string' }),
+export const tweets = pgTable('tweets', {
+	tweetId: text('tweet_id').primaryKey().notNull(),
+	tweetUser: text('tweet_user'),
+	tweetDate: timestamp('tweet_date', { mode: 'string' }),
 	text: text(),
 	comments: integer(),
 	retweets: integer(),
@@ -181,7 +182,7 @@ export const tweets = pgTable("tweets", {
 	pictures: text(),
 	videos: text(),
 	gifs: text(),
-	category: text().$type<"ticket" | "player">(),
-	sentiment: text().$type<"positive" | "negative" | "neutral">(),
-	input: text(),
+	category: text().$type<'ticket' | 'player'>(),
+	sentiment: text().$type<'positive' | 'negative' | 'neutral'>(),
+	input: text()
 });

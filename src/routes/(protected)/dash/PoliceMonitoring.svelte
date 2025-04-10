@@ -25,6 +25,24 @@
         const remainingSeconds = (seconds % 60).toFixed(2);
         return `${minutes}m ${remainingSeconds}s`;
     }
+    
+    // Modal state
+    let showModal = false;
+    let currentClipPath = '';
+    
+    // Function to open modal with clip
+    function openClipModal(clipPath: string) {
+        console.log('Opening Modal');
+        currentClipPath = clipPath;
+        showModal = true;
+    }
+    
+    // Function to close modal
+    function closeModal() {
+        showModal = false;
+        currentClipPath = '';
+    }
+
 </script>
 
 <!-- Police Monitoring Card for main view -->
@@ -53,7 +71,7 @@
             <p class="text-center text-gray-500 dark:text-gray-400">No police monitoring alerts found</p>
         {:else}
             <div class="grid gap-4">
-                {#each policeMonitoringData.sort((a, b) => new Date(b.fromTimestamp).getTime() - new Date(a.fromTimestamp).getTime()) as alert}
+                {#each policeMonitoringData as alert}
                     <div
                         class="grid cursor-pointer gap-1 rounded-md border p-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:border-gray-700"
                         role="button"
@@ -62,11 +80,17 @@
                     >
                         <div class="flex items-center gap-3">
                             <!-- Video clip preview if available -->
-                            <div class="w-24 h-16 bg-gray-200 dark:bg-gray-800 rounded-md overflow-hidden flex-shrink-0">
-                                {#if alert.clipPath}
-                                    {console.log(MEDIA_BASE_URL+alert.clipPath)}
-                                    <video 
-                                        src={`${MEDIA_BASE_URL}/${alert.clipPath}`}
+                            <div 
+                                class="w-24 h-16 bg-gray-200 dark:bg-gray-800 rounded-md overflow-hidden flex-shrink-0 cursor-pointer"
+                                on:click={() => alert.clipPath && openClipModal(alert.clipPath)}
+                                on:keydown={(e) => e.key === 'Enter' && alert.clipPath && openClipModal(alert.clipPath)}
+                                role="button"
+                                tabindex="0"
+                            >
+                                {#if alert.snapshotPath}
+                                    {console.log(alert.clipPath)}
+                                    <img
+                                        src={`${MEDIA_BASE_URL}/snapshot/${alert.snapshotPath}`}
                                         alt="Alert thumbnail" 
                                         class="w-full h-full object-cover"
                                         on:error={(e) => {
@@ -103,5 +127,51 @@
                 {/each}
             </div>
         {/if}
+    </div>
+{/if}
+
+<!-- Modal for displaying video clip -->
+{#if showModal}
+    <div 
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        on:click={closeModal}
+        on:keydown={(e) => e.key === 'Escape' && closeModal()}
+        role="dialog"
+        aria-modal="true"
+        tabindex="-1"
+    >
+        <div 
+            class="bg-white dark:bg-gray-800 p-4 rounded-lg max-w-3xl w-full mx-4 relative"
+            on:click|stopPropagation={() => {}}
+        >
+            <button 
+                class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                on:click={closeModal}
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            
+            <h3 class="text-lg font-semibold mb-4">Alert Video</h3>
+            
+            <div class="aspect-video bg-black rounded-md overflow-hidden">
+                {#if currentClipPath}
+                    <video 
+                        src={`${MEDIA_BASE_URL}/clip/${currentClipPath}`} 
+                        controls 
+                        autoplay 
+                        class="w-full h-full"
+                    >
+                        Your browser does not support the video tag.
+                    </video>
+                {:else}
+                    <div class="w-full h-full flex items-center justify-center text-white">
+                        No video available
+                    </div>
+                {/if}
+            </div>
+        </div>
     </div>
 {/if} 

@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { alertNotifications, anomaly, loiteringLog ,policeMonitoring} from '$lib/server/db/schema';
+import { alertNotifications, anomaly, loiteringLog, policeMonitoring } from '$lib/server/db/schema';
 import { desc, gt, sql } from 'drizzle-orm';
 
 export const GET: RequestHandler = async () => {
@@ -30,6 +30,7 @@ export const GET: RequestHandler = async () => {
 		});
 		const res4 = await db.query.policeMonitoring.findMany({
 			limit: 200,
+			orderBy: desc(policeMonitoring.createdAt)
 		});
 		// const res3 = await db.execute(sql`
 		// 	SELECT * FROM loitering_log

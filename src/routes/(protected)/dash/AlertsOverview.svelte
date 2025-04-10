@@ -1,17 +1,17 @@
 <script lang="ts">
   import AlertCards from '$lib/components/AlertCards.svelte';
-  import * as Switch from '$lib/components/ui/switch';
   import * as Dialog from '$lib/components/ui/dialog';
+  import * as Switch from '$lib/components/ui/switch';
   import { alertItems } from '$lib/data/alertItems';
   import { Loader2, Maximize2 } from '@lucide/svelte';
   import html2canvas from 'html2canvas';
-  import { onMount } from 'svelte';
   
   let isDownloading = false;
   let showNewOnly = true;
   let isModalOpen = false;  
+  let isNotified = false;
   
-  const downloadScrollAreaContent = async () => {
+  const sendAlert = async () => {
 		if (isDownloading) return; // Prevent multiple clicks
 		
 		isDownloading = true;
@@ -183,6 +183,7 @@
 			alert('Failed to download image. Please try again.');
 		} finally {
 			isDownloading = false;
+			isNotified = true;
 		}
 	};
 </script>
@@ -213,7 +214,7 @@
       </button>
       
       <button 
-        onclick={downloadScrollAreaContent}
+        onclick={sendAlert}
         class="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-md disabled:opacity-50"
         disabled={isDownloading}
       >

@@ -8,6 +8,7 @@
 	import SimpleDialog from './SimpleDialog.svelte';
 	import { addHoursToDate, parseUtcToIstTime, timeAgo } from '$lib/utils';
 	import { ArrowLeftIcon } from '@lucide/svelte';
+	import BannersAndSlogans from './BannersAndSlogans.svelte';
 
 	// Define a unified type for the combined list
 	interface CombinedAlertItem {
@@ -723,42 +724,25 @@
 						{/each}
 					</div>
 				{/if}
-			{:else if showingBannerQueriesView}
-				<!-- Banner Queries View -->
-				<div class="mb-4">
-					<h3 class="text-lg font-medium mb-4">Banner & Slogan Queries</h3>
-				</div>
-				
-				{#if bannerQueries.length === 0}
-					<p class="text-center text-gray-500 dark:text-gray-400">No banner and slogan alerts found</p>
-				{:else}
-					<div class="grid gap-4">
-						{#each filteredBannerAlerts as item (item.id)}
-							<div
-								class="grid cursor-pointer gap-1 rounded-md border p-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:border-gray-700"
-								role="button"
-								tabindex="0"
-								on:click={() => openModal(item)}
-								on:keydown={(e) => e.key === 'Enter' && openModal(item)}
-								in:fly={{ y: 10, duration: 200, delay: 50 }}
-							>
-								<div class="flex items-center justify-between gap-2">
-									<div class="flex grow flex-col gap-1">
-										<div class="text-md flex w-full items-center justify-between font-medium leading-none">
-											<span class="truncate pr-2">{item.query}</span>
-											<span class="flex-shrink-0 text-sm text-muted-foreground">
-												{timeAgo(item.time)}
-											</span>
-										</div>
-										<span class="text-xs leading-tight text-muted-foreground">
-											{item.description}
-										</span>
-									</div>
-								</div>
-							</div>
-						{/each}
-					</div>
-				{/if}
+			{:else if showingBannerQueriesView || showingBannerAlertsView}
+				<!-- Use the new BannersAndSlogans component -->
+				<BannersAndSlogans
+					{bannerAndSlogansConfig}
+					{organized_grouped_alerts}
+					{bannerAlertsData}
+					{bannerQueries}
+					{MEDIA_BASE_URL}
+					{filteredBannerAlerts}
+					{showingBannerQueriesView}
+					{showingBannerAlertsView}
+					{selectedCamera}
+					{selectedBannerQuery}
+					{showBannerQueriesView}
+					{showBannerAlertsView}
+					{showBannerQueryAlerts}
+					{backToGroupedView}
+					{openModal}
+				/>
 			{:else}
 				<!-- Grouped view showing alert categories -->
 				{#if groupedData.length === 0}
@@ -767,48 +751,23 @@
 					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 						
 						<!-- Banner & Slogans Card -->
-						<div
-							class="flex flex-col cursor-pointer items-center justify-center rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
-							role="button"
-							tabindex="0"
-							on:click={() => {
-								console.log("organized_grouped_alerts", organized_grouped_alerts)
-								if (bannerAlertsData.byCameras.length > 0) {
-									// If there are cameras with alerts, show the camera view
-									showingBannerAlertsView = true;
-								} else {
-									// Otherwise show filtered view with all banner alerts
-									showFilteredView(bannerAndSlogansConfig.alertTitle[0]);
-								}
-							}}
-							on:keydown={(e) => e.key === 'Enter' && showFilteredView(bannerAndSlogansConfig.alertTitle[0])}
-							in:fly={{ y: 10, duration: 200, delay: 50 }}
-						>
-							<h4 class="mb-2 text-lg font-semibold">{bannerAndSlogansConfig.mainTitle}</h4>
-							<p class="text-xs text-center text-muted-foreground mb-3">{bannerAndSlogansConfig.description}</p>
-							
-							{#if bannerAlertsData.byCameras.length > 0}
-								<div class="mt-auto grid grid-cols-3 gap-2 text-sm items-center justify-center">
-									<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
-										<span class="font-medium">{bannerAlertsData.allAlerts.length}</span>
-										<span class="text-xs text-muted-foreground">Total</span>
-									</div>
-									<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
-										<span class="font-medium">{bannerAlertsData.byCameras.length}</span>
-										<span class="text-xs text-muted-foreground">Cameras</span>
-									</div>
-									<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
-										<span class="font-medium">{timeAgo(bannerAlertsData.allAlerts[0]?.time || '')}</span>
-										<span class="text-xs text-muted-foreground">Latest</span>
-									</div>
-								</div>
-							{:else}
-								<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800 w-full">
-									<span class="font-medium">0</span>
-									<span class="text-xs text-muted-foreground">Total</span>
-								</div>
-							{/if}
-						</div>
+						<BannersAndSlogans
+							{bannerAndSlogansConfig}
+							{organized_grouped_alerts}
+							{bannerAlertsData}
+							{bannerQueries}
+							{MEDIA_BASE_URL}
+							{filteredBannerAlerts}
+							{showingBannerQueriesView}
+							{showingBannerAlertsView}
+							{selectedCamera}
+							{selectedBannerQuery}
+							{showBannerQueriesView}
+							{showBannerAlertsView}
+							{showBannerQueryAlerts}
+							{backToGroupedView}
+							{openModal}
+						/>
 						
 						<!-- Additional Alert Cards -->
 						{#each additionalAlertCards as card}
@@ -911,62 +870,3 @@
 		{/if}
 	</div>
 </SimpleDialog>
-
-<!-- Add this new section for camera cards when in banner alerts view -->
-{#if showingBannerAlertsView && !selectedCamera}
-	<div class="p-4">
-		<button 
-			class="flex items-center gap-1 text-sm hover:text-primary mb-4" 
-			on:click={backToGroupedView}
-		>
-			<ArrowLeftIcon class="h-4 w-4" />
-			<span>Back to Categories</span>
-		</button>
-		
-		<h3 class="text-lg font-medium mb-4">Banner & Slogan Alerts by Camera</h3>
-		
-		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-			{#each bannerAlertsData.byCameras as cameraData}
-				<div
-					class="flex flex-col cursor-pointer rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
-					role="button"
-					tabindex="0"
-					on:click={() => showBannerAlertsView(cameraData.camera)}
-					on:keydown={(e) => e.key === 'Enter' && showBannerAlertsView(cameraData.camera)}
-				>
-					<div class="flex justify-between items-start mb-2">
-						<h4 class="text-md font-semibold">{cameraData.camera}</h4>
-						<span class="text-xs text-muted-foreground">{timeAgo(cameraData.latestAlert.time)}</span>
-					</div>
-					
-					{#if cameraData.latestAlert.snapshot_filename}
-						<div class="relative aspect-video bg-gray-200 dark:bg-gray-800 rounded-md overflow-hidden mb-2">
-							<img 
-								src={cameraData.latestAlert.snapshot_filename.startsWith('/') 
-									? `${MEDIA_BASE_URL}${cameraData.latestAlert.snapshot_filename.slice(1)}` 
-									: `${MEDIA_BASE_URL}mtqq_handlers/loitering_snapshots/${cameraData.latestAlert.snapshot_filename}`}
-								alt="Latest alert" 
-								class="w-full h-full object-cover"
-								on:error={(e) => {
-									e.currentTarget.src = '';
-									e.currentTarget.classList.add('bg-gray-300');
-								}}
-							/>
-						</div>
-					{:else}
-						<div class="relative aspect-video bg-gray-200 dark:bg-gray-800 rounded-md flex items-center justify-center mb-2">
-							<span class="text-xs text-gray-500">No thumbnail</span>
-						</div>
-					{/if}
-					
-					<div class="mt-auto flex justify-between items-center">
-						<span class="text-sm">{cameraData.latestAlert.query}</span>
-						<span class="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
-							{cameraData.count} alerts
-						</span>
-					</div>
-				</div>
-			{/each}
-		</div>
-	</div>
-{/if}

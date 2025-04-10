@@ -507,117 +507,124 @@
 		showingPoliceView = true;
 	}
 	import html2canvas from 'html2canvas';
-  
-  // Declare a reference to the ScrollArea
-  let scrollAreaRef;
-  
-  // Your existing code and imports here...
-  
-  // Function to download the ScrollArea content
-  const downloadScrollAreaContent = async () => {
-    try {
-      // Find the scroll content element
-      const scrollContent = document.getElementById('scroll-content');
-      
-      if (!scrollContent) {
-        console.error('Scroll content element not found');
-        return;
-      }
-      
-      // Create a temporary clone of the scroll content for better rendering
-      const tempContainer = document.createElement('div');
-      const clone = scrollContent.cloneNode(true);
-      
-      // Explicitly set the grid styles on the clone to ensure the layout is preserved
-      if (!showingFilteredView && !showingBannerQueriesView && !showingBannerAlertsView && !showingPoliceView && !showingAnalytics) {
-        // Find the grid container in the clone
-        const gridElement = clone.querySelector('.grid');
-        if (gridElement) {
-          // Force the grid to maintain 3 columns
-          gridElement.style.display = 'grid';
-          gridElement.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
-          gridElement.style.gap = '1rem';
-          gridElement.style.width = '100%';
-        }
-      }
-      
-      // Apply original styles to make sure the clone looks the same
-      const styles = window.getComputedStyle(scrollContent);
-      tempContainer.style.backgroundColor = styles.backgroundColor;
-      tempContainer.style.color = styles.color;
-      tempContainer.style.padding = styles.padding;
-      tempContainer.style.width = scrollContent.offsetWidth + 'px';
-      
-      // Append the clone to the temp container
-      tempContainer.appendChild(clone);
-      
-      // Make the temp container temporarily visible but off-screen
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-9999px';
-      tempContainer.style.top = '-9999px';
-      document.body.appendChild(tempContainer);
-      
-      // Wait for all images to load in the clone
-      const imagePromises = Array.from(tempContainer.querySelectorAll('img')).map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise(resolve => {
-          img.onload = resolve;
-          img.onerror = resolve;
-        });
-      });
-      
-      await Promise.all(imagePromises);
-      
-      // Use html2canvas with the properly prepared clone
-      const canvas = await html2canvas(tempContainer, {
-        backgroundColor: window.getComputedStyle(document.body).backgroundColor,
-        scale: 2, // Higher quality
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        width: scrollContent.offsetWidth,
-        height: Math.max(tempContainer.scrollHeight, scrollContent.scrollHeight),
-        onclone: (clonedDoc, clonedElement) => {
-          // Additional modifications to the cloned document if needed
-        }
-      });
-      
-      // Clean up the temporary elements
-      document.body.removeChild(tempContainer);
-      
-      // Create a download link
-      const link = document.createElement('a');
-      link.download = `alerts-grid-${new Date().toISOString().slice(0,10)}.png`;
-      link.href = canvas.toDataURL('image/png');
-      
-      // Trigger download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-    } catch (error) {
-      console.error('Error downloading scroll area content:', error);
-      // Show error notification if desired
-      alert('Failed to download image. Please try again.');
-    }
-  };
+
+	// Declare a reference to the ScrollArea
+	let scrollAreaRef;
+
+	// Your existing code and imports here...
+
+	// Function to download the ScrollArea content
+	const downloadScrollAreaContent = async () => {
+		try {
+			// Find the scroll content element
+			const scrollContent = document.getElementById('scroll-content');
+
+			if (!scrollContent) {
+				console.error('Scroll content element not found');
+				return;
+			}
+
+			// Create a temporary clone of the scroll content for better rendering
+			const tempContainer = document.createElement('div');
+			const clone = scrollContent.cloneNode(true);
+
+			// Explicitly set the grid styles on the clone to ensure the layout is preserved
+			if (
+				!showingFilteredView &&
+				!showingBannerQueriesView &&
+				!showingBannerAlertsView &&
+				!showingPoliceView &&
+				!showingAnalytics
+			) {
+				// Find the grid container in the clone
+				const gridElement = clone.querySelector('.grid');
+				if (gridElement) {
+					// Force the grid to maintain 3 columns
+					gridElement.style.display = 'grid';
+					gridElement.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
+					gridElement.style.gap = '1rem';
+					gridElement.style.width = '100%';
+				}
+			}
+
+			// Apply original styles to make sure the clone looks the same
+			const styles = window.getComputedStyle(scrollContent);
+			tempContainer.style.backgroundColor = styles.backgroundColor;
+			tempContainer.style.color = styles.color;
+			tempContainer.style.padding = styles.padding;
+			tempContainer.style.width = scrollContent.offsetWidth + 'px';
+
+			// Append the clone to the temp container
+			tempContainer.appendChild(clone);
+
+			// Make the temp container temporarily visible but off-screen
+			tempContainer.style.position = 'absolute';
+			tempContainer.style.left = '-9999px';
+			tempContainer.style.top = '-9999px';
+			document.body.appendChild(tempContainer);
+
+			// Wait for all images to load in the clone
+			const imagePromises = Array.from(tempContainer.querySelectorAll('img')).map((img) => {
+				if (img.complete) return Promise.resolve();
+				return new Promise((resolve) => {
+					img.onload = resolve;
+					img.onerror = resolve;
+				});
+			});
+
+			await Promise.all(imagePromises);
+
+			// Use html2canvas with the properly prepared clone
+			const canvas = await html2canvas(tempContainer, {
+				backgroundColor: window.getComputedStyle(document.body).backgroundColor,
+				scale: 2, // Higher quality
+				logging: false,
+				useCORS: true,
+				allowTaint: true,
+				width: scrollContent.offsetWidth,
+				height: Math.max(tempContainer.scrollHeight, scrollContent.scrollHeight),
+				onclone: (clonedDoc, clonedElement) => {
+					// Additional modifications to the cloned document if needed
+				}
+			});
+
+			// Clean up the temporary elements
+			document.body.removeChild(tempContainer);
+
+			// Create a download link
+			const link = document.createElement('a');
+			link.download = `alerts-grid-${new Date().toISOString().slice(0, 10)}.png`;
+			link.href = canvas.toDataURL('image/png');
+
+			// Trigger download
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		} catch (error) {
+			console.error('Error downloading scroll area content:', error);
+			// Show error notification if desired
+			alert('Failed to download image. Please try again.');
+		}
+	};
 </script>
 
 <Card class="flex h-full w-full flex-col dark:bg-background dark:text-white">
 	<CardHeader class="flex h-14 flex-row items-center justify-between rounded-t-md bg-secondary p-4">
 		<div class="flex items-center gap-2">
 			{#if showingFilteredView || showingBannerAlertsView || showingBannerQueriesView}
-				<button 
-					class="flex items-center gap-1 text-sm hover:text-primary" 
+				<button
+					class="flex items-center gap-1 text-sm hover:text-primary"
 					on:click={backToGroupedView}
 				>
 					<ArrowLeftIcon class="h-4 w-4" />
 					<span>Back</span>
 				</button>
+
 				<span class="mx-2">|</span>
 			{/if}
+
 			<BellRingIcon class="h-5 w-5" />
-			<h3 class="font-medium">
+			<h3 class="font-medium truncate max-w-[30ch]">
 				{#if showingFilteredView}
 					{selectedQuery} Alerts
 				{:else if showingAnalytics}
@@ -635,19 +642,16 @@
 		</div>
 		{#if !showingFilteredView && !showingBannerAlertsView && !showingBannerQueriesView}
 			<div class="flex items-center gap-2">
-				<button on:click={downloadScrollAreaContent}>
-					<img src="/camera-lens.png" alt="Camera Lens" class="h-5 w-5" />
-				</button>
-				<button 
-					class="flex items-center gap-1 text-sm hover:text-primary" 
+				<button
+					class="flex items-center gap-1 text-sm hover:text-primary"
 					on:click={toggleAnalyticsView}
 					aria-label="Analytics view"
 				>
 					<BarChartIcon class="h-4 w-4" />
 				</button>
-				
-				<button 
-					class="flex items-center gap-1 text-sm hover:text-primary" 
+
+				<button
+					class="flex items-center gap-1 text-sm hover:text-primary"
 					on:click={toggleTimeRangeSettings}
 					aria-label="Time range settings"
 				>
@@ -655,31 +659,35 @@
 				</button>
 			</div>
 		{/if}
+
+		<button on:click={downloadScrollAreaContent}>
+			<img src="/camera-lens.png" alt="Camera Lens" class="h-5 w-5" />
+		</button>
 	</CardHeader>
-	
+
 	{#if showTimeRangeSettings}
-		<div class="bg-secondary/50 p-4 border-b dark:border-gray-700">
-			<div class="flex flex-col sm:flex-row gap-4 items-end">
-				<div class="flex flex-col gap-1 flex-1">
+		<div class="border-b bg-secondary/50 p-4 dark:border-gray-700">
+			<div class="flex flex-col items-end gap-4 sm:flex-row">
+				<div class="flex flex-1 flex-col gap-1">
 					<label for="from-date" class="text-sm font-medium">From</label>
-					<input 
-						id="from-date" 
-						type="datetime-local" 
-						bind:value={fromDate} 
-						class="rounded-md border border-gray-300 dark:border-gray-700 bg-background p-2 text-sm"
+					<input
+						id="from-date"
+						type="datetime-local"
+						bind:value={fromDate}
+						class="rounded-md border border-gray-300 bg-background p-2 text-sm dark:border-gray-700"
 					/>
 				</div>
-				<div class="flex flex-col gap-1 flex-1">
+				<div class="flex flex-1 flex-col gap-1">
 					<label for="to-date" class="text-sm font-medium">To</label>
-					<input 
-						id="to-date" 
-						type="datetime-local" 
-						bind:value={toDate} 
-						class="rounded-md border border-gray-300 dark:border-gray-700 bg-background p-2 text-sm"
+					<input
+						id="to-date"
+						type="datetime-local"
+						bind:value={toDate}
+						class="rounded-md border border-gray-300 bg-background p-2 text-sm dark:border-gray-700"
 					/>
 				</div>
-				<button 
-					class="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm"
+				<button
+					class="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground"
 					on:click={applyTimeRangeFilter}
 				>
 					Apply
@@ -687,7 +695,7 @@
 			</div>
 		</div>
 	{/if}
-	
+
 	<ScrollArea class="flex-1" bind:this={scrollAreaRef}>
 		<CardContent class="p-4" id="scroll-content">
 			{#if showingAnalytics}
@@ -696,7 +704,9 @@
 			{:else if showingFilteredView}
 				<!-- Filtered view showing specific alerts -->
 				{#if filteredData.length === 0}
-					<p class="text-center text-gray-500 dark:text-gray-400">No alerts found for "{selectedQuery}"</p>
+					<p class="text-center text-gray-500 dark:text-gray-400">
+						No alerts found for "{selectedQuery}"
+					</p>
 				{:else}
 					<div class="grid gap-4">
 						{#each filteredData as item (item.id)}
@@ -759,93 +769,97 @@
 					policeMonitoringData={policeMonitoring}
 					showingPoliceView={true}
 					{showPoliceView}
-					backToGroupedView={backToGroupedView}
-					MEDIA_BASE_URL={"https://cb7c-49-207-184-66.ngrok-free.app/clip"}
+					{backToGroupedView}
+					MEDIA_BASE_URL={'https://cb7c-49-207-184-66.ngrok-free.app/clip'}
 				/>
+			{:else if groupedData.length === 0}
+				<p class="text-center text-gray-500 dark:text-gray-400">No recent events</p>
 			{:else}
-				{#if groupedData.length === 0}
-					<p class="text-center text-gray-500 dark:text-gray-400">No recent events</p>
-				{:else}
-					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-						
-						<!-- Banner & Slogans Card -->
-						<BannersAndSlogans
-							{bannerAndSlogansConfig}
-							{organized_grouped_alerts}
-							{bannerAlertsData}
-							{bannerQueries}
-							{MEDIA_BASE_URL}
-							{filteredBannerAlerts}
-							{showingBannerQueriesView}
-							{showingBannerAlertsView}
-							{selectedCamera}
-							{selectedBannerQuery}
-							{showBannerQueriesView}
-							{showBannerAlertsView}
-							{showBannerQueryAlerts}
-							{backToGroupedView}
-							{openModal}
-						/>
-						
-						<!-- Police Monitoring Card -->
-						<PoliceMonitoring
-							policeMonitoringData={policeMonitoring}
-							{showingPoliceView}
-							{showPoliceView}
-							{backToGroupedView}
-							MEDIA_BASE_URL="https://1020-49-207-184-66.ngrok-free.app/clip"
-						/>
-						
-						<!-- Additional Alert Cards -->
-						{#each additionalAlertCards as card}
-							<div
-								class="flex flex-col cursor-pointer items-center justify-center rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
-								role="button"
-								tabindex="0"
-								on:click={() => showFilteredView(card.alertTitle)}
-								on:keydown={(e) => e.key === 'Enter' && showFilteredView(card.alertTitle)}
-								in:fly={{ y: 10, duration: 200, delay: 50 }}
-							>
-								<h4 class="mb-2 text-lg font-semibold">{card.mainTitle}</h4>
-								<div class="mt-auto grid grid-cols-3 gap-2 text-sm items-center justify-center">
-									{#if groupedData.find(group => group.query === card.alertTitle)}
-										{#each [groupedData.find(group => group.query === card.alertTitle)] as matchedGroup}
-											{#if matchedGroup && matchedGroup.recent > 0}
-											<div class="flex flex-col items-center justify-center col-span-3">
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+					<!-- Banner & Slogans Card -->
+					<BannersAndSlogans
+						{bannerAndSlogansConfig}
+						{organized_grouped_alerts}
+						{bannerAlertsData}
+						{bannerQueries}
+						{MEDIA_BASE_URL}
+						{filteredBannerAlerts}
+						{showingBannerQueriesView}
+						{showingBannerAlertsView}
+						{selectedCamera}
+						{selectedBannerQuery}
+						{showBannerQueriesView}
+						{showBannerAlertsView}
+						{showBannerQueryAlerts}
+						{backToGroupedView}
+						{openModal}
+					/>
 
-												<div class="mt-auto grid grid-cols-3 gap-2 text-sm flex-grow">
-													<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
+					<!-- Police Monitoring Card -->
+					<PoliceMonitoring
+						policeMonitoringData={policeMonitoring}
+						{showingPoliceView}
+						{showPoliceView}
+						{backToGroupedView}
+						MEDIA_BASE_URL="https://1020-49-207-184-66.ngrok-free.app/clip"
+					/>
+
+					<!-- Additional Alert Cards -->
+					{#each additionalAlertCards as card}
+						<div
+							class="flex cursor-pointer flex-col items-center justify-center rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
+							role="button"
+							tabindex="0"
+							on:click={() => showFilteredView(card.alertTitle)}
+							on:keydown={(e) => e.key === 'Enter' && showFilteredView(card.alertTitle)}
+							in:fly={{ y: 10, duration: 200, delay: 50 }}
+						>
+							<h4 class="mb-2 text-lg font-semibold">{card.mainTitle}</h4>
+							<div class="mt-auto grid grid-cols-3 items-center justify-center gap-2 text-sm">
+								{#if groupedData.find((group) => group.query === card.alertTitle)}
+									{#each [groupedData.find((group) => group.query === card.alertTitle)] as matchedGroup}
+										{#if matchedGroup && matchedGroup.recent > 0}
+											<div class="col-span-3 flex flex-col items-center justify-center">
+												<div class="mt-auto grid flex-grow grid-cols-3 gap-2 text-sm">
+													<div
+														class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
+													>
 														<span class="font-medium">{matchedGroup.total}</span>
 														<span class="text-xs text-muted-foreground">Total</span>
 													</div>
-													<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
+													<div
+														class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
+													>
 														<span class="font-medium">{matchedGroup.recent}</span>
 														<span class="text-xs text-muted-foreground">In Range</span>
 													</div>
-													<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800">
+													<div
+														class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
+													>
 														<span class="font-medium">{matchedGroup.uniqueCamerasCount}</span>
 														<span class="text-xs text-muted-foreground">Cameras</span>
 													</div>
 												</div>
 											</div>
-											{:else if matchedGroup}
-												<div class="flex flex-col items-center justify-center col-span-3">
-														<span class="font-medium text-2xl">{matchedGroup.total}</span>
-														<span class="text-xs text-muted-foreground">Total</span>
-												</div>
-											{/if}
-										{/each}
-									{:else}
-										<div class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800 col-span-3">
-											<span class="font-medium">0</span>
-											<span class="text-xs text-muted-foreground">Total</span>
-										</div>
-									{/if}
-								</div>
+										{:else if matchedGroup}
+											<div class="col-span-3 flex flex-col items-center justify-center">
+												<span class="text-2xl font-medium">{matchedGroup.total}</span>
+												<span class="text-xs text-muted-foreground">Total</span>
+											</div>
+										{/if}
+									{/each}
+								{:else}
+									<div
+										class="col-span-3 flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
+									>
+										<span class="font-medium">0</span>
+										<span class="text-xs text-muted-foreground">Total</span>
+									</div>
+								{/if}
 							</div>
-						{/each}
-					</div>
-				{/if}
+						</div>
+					{/each}
+				</div>
 			{/if}
 		</CardContent>
 	</ScrollArea>

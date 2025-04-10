@@ -1,13 +1,13 @@
 <script lang="ts">
   import AlertCards from '$lib/components/AlertCards.svelte';
+  import * as Switch from '$lib/components/ui/switch';
   import { alertItems } from '$lib/data/alertItems';
-	import html2canvas from 'html2canvas';
   import { Loader2 } from '@lucide/svelte';
-  import { onMount } from 'svelte';
+  import html2canvas from 'html2canvas';
   
   let isDownloading = false;
-  
-  
+  let showNewOnly = true;
+ 
   const downloadScrollAreaContent = async () => {
 		if (isDownloading) return; // Prevent multiple clicks
 		
@@ -62,21 +62,27 @@
 				});
 			});
 
-			await Promise.all(imagePromises);
-
+      console.log("Waiting for images to load")
+      await Promise.all(imagePromises);
+      console.log("imagePromises done")
+      console.log("Converting to canvas")
 			// Use html2canvas with the properly prepared clone
 			const canvas = await html2canvas(tempContainer, {
 				backgroundColor: window.getComputedStyle(document.body).backgroundColor,
-				scale: 2, // Higher quality
+				scale: 1, // Reduce scale for faster processing
 				logging: false,
 				useCORS: true,
 				allowTaint: true,
 				width: contentToCapture.offsetWidth,
 				height: Math.max(tempContainer.scrollHeight, contentToCapture.scrollHeight),
+				imageTimeout: 5000, // Add timeout for images
 				onclone: (clonedDoc, clonedElement) => {
-					// Additional modifications to the cloned document if needed
+					// Remove unnecessary elements that don't need to be rendered
+					const elementsToRemove = clonedElement.querySelectorAll('.can-be-removed');
+					elementsToRemove.forEach(el => el.remove());
 				}
 			});
+      console.log("canvas done")
 
 			// Clean up the temporary elements
 			document.body.removeChild(tempContainer);
@@ -85,6 +91,8 @@
 			const link = document.createElement('a');
 			link.download = `alerts-grid-${new Date().toISOString().slice(0, 10)}.png`;
 			link.href = canvas.toDataURL('image/png');
+
+      console.log("Sending image to notification service")
 			// Call an endpoint to send this image to notification service
 			fetch('/api/send-alerts-image', {
 				method: 'POST',
@@ -124,6 +132,18 @@
   <!-- Header with title and download button -->
   <div class="flex justify-between items-center bg-[#1E293B] p-4 rounded-t-lg text-white">
     <h1 class="text-2xl font-bold">Alerts Overview</h1>
+     <!-- Filter controls -->
+    <div class="p-4 bg-muted/30 border-b flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-medium">Show New Only:</span>
+        <Switch.Root 
+          checked={showNewOnly} 
+          onCheckedChange={(checked) => { 
+            showNewOnly = checked;
+          }}
+        />
+      </div>
+    </div>
     <button 
       on:click={downloadScrollAreaContent}
       class="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-md disabled:opacity-50"
@@ -133,12 +153,15 @@
         <Loader2 class="h-4 w-4 animate-spin" />
         <span>Processing...</span>
       {:else}
-        <span>Download</span>
+        <span>Send Alert</span>
       {/if}
     </button>
+     
   </div>
   
+
+  
   <div id="scroll-content" class="p-4">
-    <AlertCards alertItems={alertItems} />
+    <AlertCards alertItems={alertItems} showNewOnly={showNewOnly} />
   </div>
 </div> 

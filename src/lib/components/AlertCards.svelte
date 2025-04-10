@@ -26,6 +26,7 @@
     thumb_path: string;
     start_timestamp: string;
     end_timestamp: string;
+    is_notified: boolean;
     duration?: number;
     clip_path?: string;
     thumbnail?: string;
@@ -47,17 +48,17 @@
   };
 
   export let alertItems: AlertItem[] = [];
-  export let alertsData: AlertData[] = [];
+  export let showNewOnly: boolean = true;
+  export let maxResults: number = 1000;
+  
+  let alertsData: AlertData[] = [];
+  let filteredAlertsData: AlertData[] = [];
   let alertsWithCounts: AlertItem[] = [];
   let selectedAlertId: string | null = null;
   let selectedAlertDetails: AlertDetail[] = [];
+  let filteredAlertDetails: AlertDetail[] = [];
   let isLoading = false;
   let showCards = true;
-  
-  // Filter state
-  let showNewOnly = true;
-  let maxResults = 10;
-  let filteredAlertDetails: AlertDetail[] = [];
   
   // Modal state
   let modalOpen = false;
@@ -76,31 +77,70 @@
     SwordIcon
   };
 
-  // Watch for changes in alertsData
-  $: if (alertsData && alertsData.length) {
-    // Merge the counts with the alert items
+  // Watch for changes in showNewOnly to refetch data
+  $: if (showNewOnly !== undefined) {
+    fetchAlertData();
+  }
+  
+  async function fetchAlertData() {
+    isLoading = true;
+    try {
+      // const queryParams = new URLSearchParams();
+      // queryParams.set('newOnly', showNewOnly.toString());
+      // queryParams.set('limit', maxResults.toString());
+      
+      const response = await fetch(`/api/alerts-data`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch alert data');
+      }
+      
+      alertsData = await response.json();
+      applyFilters();
+    } catch (error) {
+      console.error('Error fetching alert data:', error);
+      // If there's an error, just use the original items with count 0
+      alertsWithCounts = alertItems.map(item => ({ ...item, count: 0 }));
+    } finally {
+      isLoading = false;
+    }
+  }
+  
+  function applyFilters() {
+    if (showNewOnly) {
+      // Create a filtered copy of alertsData where each alert's details are filtered
+      filteredAlertsData = alertsData.map(alert => {
+        const filteredDetails = alert.details.filter(detail => detail.is_notified === false);
+        return {
+          ...alert,
+          count: filteredDetails.length,
+          details: filteredDetails
+        };
+      });
+    } else {
+      filteredAlertsData = [...alertsData];
+    }
+    
+    // Update the counts in alertsWithCounts
     alertsWithCounts = alertItems.map(item => {
-      const data = alertsData.find((data: AlertData) => data.id === item.id);
+      const data = filteredAlertsData.find((data: AlertData) => data.id === item.id);
       return {
         ...item,
         count: data ? data.count : 0
       };
     });
+    
+    // If we have a selected alert, update its details too
+    if (selectedAlertId) {
+      const alertData = filteredAlertsData.find(data => data.id === selectedAlertId);
+      selectedAlertDetails = alertData ? alertData.details : [];
+      applyDetailFilters();
+    }
   }
   
-  // Apply filters when selectedAlertDetails or filter settings change
-  $: if (selectedAlertId && selectedAlertDetails.length) {
-    applyFilters();
-  }
-  
-  function applyFilters() {
+  // Apply filters to the selected details
+  function applyDetailFilters() {
     // Start with all details
     let filtered = [...selectedAlertDetails];
-    
-    // Apply new-only filter if enabled
-    if (showNewOnly) {
-      filtered = filtered.filter(detail => detail.is_notified === false);
-    }
     
     // Apply max results limit
     filtered = filtered.slice(0, maxResults);
@@ -108,33 +148,8 @@
     filteredAlertDetails = filtered;
   }
 
-  onMount(async () => {
-    if (!alertsData || alertsData.length === 0) {
-      isLoading = true;
-      try {
-        const response = await fetch('/api/alerts-data');
-        if (!response.ok) {
-          throw new Error('Failed to fetch alert data');
-        }
-        
-        alertsData = await response.json();
-        
-        // Merge the counts with the alert items
-        alertsWithCounts = alertItems.map(item => {
-          const data = alertsData.find((data: AlertData) => data.id === item.id);
-          return {
-            ...item,
-            count: data ? data.count : 0
-          };
-        });
-      } catch (error) {
-        console.error('Error fetching alert data:', error);
-        // If there's an error, just use the original items with count 0
-        alertsWithCounts = alertItems.map(item => ({ ...item, count: 0 }));
-      } finally {
-        isLoading = false;
-      }
-    }
+  onMount(() => {
+    fetchAlertData();
   });
 
   function handleCardClick(alertId: string) {
@@ -148,9 +163,9 @@
     }
 
     selectedAlertId = alertId;
-    const alertData = alertsData.find(data => data.id === alertId);
+    const alertData = filteredAlertsData.find(data => data.id === alertId);
     selectedAlertDetails = alertData ? alertData.details : [];
-    applyFilters(); // Apply filters to the selected details
+    applyDetailFilters(); // Apply filters to the selected details
     showCards = false;
   }
 
@@ -240,37 +255,6 @@
           >
             Back
           </button>
-        </div>
-        
-        <!-- Filter controls -->
-        <div class="p-3 bg-muted/30 rounded-md mb-3 flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-medium">Show New Only:</span>
-            <Switch.Root 
-              checked={showNewOnly} 
-              onCheckedChange={(checked) => { 
-                showNewOnly = checked; 
-                applyFilters();
-              }}
-            />
-          </div>
-          
-          <div class="flex flex-col w-full sm:w-1/3 gap-1">
-            <div class="flex justify-between">
-              <span class="text-xs font-medium">Max Results: {maxResults}</span>
-            </div>
-            <Slider.Root 
-              value={[maxResults]} 
-              onValueChange={(values) => { 
-                maxResults = values[0]; 
-                applyFilters();
-              }}
-              min={5}
-              max={50}
-              step={5}
-              className="w-full"
-            />
-          </div>
         </div>
         
         {#if filteredAlertDetails.length === 0}

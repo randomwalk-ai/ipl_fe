@@ -8,10 +8,10 @@ import { alertNotifications, anomaly, loiteringLog, policeMonitoring } from '$li
 import { and, desc, eq, gt, sql } from 'drizzle-orm';
 
 export const GET: RequestHandler = async ({ url }) => {
-	const newOnly = url.searchParams.get('newOnly') === 'true';
-	const limit = parseInt(url.searchParams.get('limit') || '1000', 10);
+	// const newOnly = url.searchParams.get('newOnly') === 'true';
+	// const limit = parseInt(url.searchParams.get('limit') || '1000', 10);
 
-	console.log('API params:', { newOnly, limit });
+	// console.log('API params:', { newOnly, limit });
 
 	const searchAlertData = await db.execute(sql`
 		SELECT 
@@ -31,9 +31,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		FROM alert_notifications,
 		LATERAL jsonb_array_elements(alert_notifications.results -> 'results') AS result_elem
-		${newOnly ? sql`WHERE alert_notifications.is_notified = false` : sql``}
 		ORDER BY end_timestamp DESC
-		LIMIT ${limit}
 		)
 		;
 		`);
@@ -52,10 +50,8 @@ export const GET: RequestHandler = async ({ url }) => {
 				created_at AT TIME ZONE 'UTC' AS end_timestamp,
 				is_notified
 			FROM loitering
-			${newOnly ? sql`WHERE is_notified = false` : sql``}
 		) AS sub
-		ORDER BY start_timestamp DESC
-		LIMIT ${limit};	
+		ORDER BY start_timestamp DESC;	
 		`);
 
 	const policeMonitoringData = await db.execute(sql`
@@ -66,7 +62,8 @@ export const GET: RequestHandler = async ({ url }) => {
 			to_timestamp as end_timestamp,
 			missing_duration as duration,
 			${PUBLIC_POLICE_MONITORING_ENDPOINT} || '/snapshot/' || snapshot_path AS thumb_path,
-			${PUBLIC_POLICE_MONITORING_ENDPOINT} || '/clip/' || clip_path AS clip_path
+			${PUBLIC_POLICE_MONITORING_ENDPOINT} || '/clip/' || clip_path AS clip_path,
+			is_notified
 		FROM police_monitoring
 		ORDER BY start_timestamp DESC;
 	`);

@@ -234,7 +234,7 @@
 			type: 'loitering',
 			redirect_url: undefined,
 			media_url: item.clipFilename || undefined, // Store relative path if available
-			snapshot_filename: item.snapshotFilename || undefined,
+			snapshot_filename: item.snapshotFilename as string | undefined,
 			cameraName: item.cameraId!
 		}));
 		// Combine, sort by time (most recent first), and return
@@ -537,7 +537,7 @@
 				!showingAnalytics
 			) {
 				// Find the grid container in the clone
-				const gridElement = clone.querySelector('.grid');
+				const gridElement = clone.querySelector('.grid') as HTMLElement;
 				if (gridElement) {
 					// Force the grid to maintain 3 columns
 					gridElement.style.display = 'grid';
@@ -595,6 +595,26 @@
 			const link = document.createElement('a');
 			link.download = `alerts-grid-${new Date().toISOString().slice(0, 10)}.png`;
 			link.href = canvas.toDataURL('image/png');
+			// Call an endpoint to send this image to notification service
+			fetch('/api/send-alerts-image', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ image: canvas.toDataURL('image/png') })
+			})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Failed to send alert image');
+				}
+				return response.json();
+			})
+			.then(data => {
+				console.log('Alert image sent successfully:', data);
+			})
+			.catch(error => {
+				console.error('Error sending alert image:', error);
+			});
 
 			// Trigger download
 			document.body.appendChild(link);
@@ -661,7 +681,7 @@
 		{/if}
 
 		<button on:click={downloadScrollAreaContent}>
-			<img src="/camera-lens.png" alt="Camera Lens" class="h-5 w-5" />
+			<img src="/export.png" alt="Camera Lens" class="h-5 w-5" />
 		</button>
 	</CardHeader>
 

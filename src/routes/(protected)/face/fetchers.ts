@@ -15,7 +15,16 @@ export default async function getAllClusters() {
     if (!response.ok) {
         throw new Error('Network response was not ok');
     }
-    return response.json() as Promise<Cluster[]>;
+    return (response.json() as Promise<Cluster[]>).then((e) => {
+        // remap representative_thumbnail_url
+        return e.map((cluster) => {
+            return {
+                ...cluster,
+                representative_thumbnail_url: `${PUBLIC_SERVICE_ENDPOINT}/cluster_images/${cluster.cluster_id}.jpg`
+            }
+        })
+    });
+    // remap representative_thumbnail_url
 }
 export interface Face {
     embedding_id: string
@@ -35,7 +44,16 @@ export async function getClusterFaces(cluster_id: string) {
     if (!response.ok) {
         throw new Error('Network response was not ok');
     }
-    return response.json() as Promise<Face[]>;
+    return (response.json() as Promise<Face[]>).then((e) => {
+        // remap representative_thumbnail_url
+        return e.map((face) => {
+            return {
+                ...face,
+                thumbnail_url: `${PUBLIC_SERVICE_ENDPOINT}/face_thumbnails/${face.source_snapshot_filename}`
+            }
+        })
+    }
+    );
 }
 
 export interface FaceSearchResult {
@@ -169,6 +187,25 @@ export async function searchByImage(
     }
 
     // Type assertion is okay here if we trust the backend adheres to the contract
-    return response.json() as Promise<SearchResponse>;
+    return (response.json() as Promise<SearchResponse>).then((data) => {
+        // Remap thumbnail URLs for faces
+        data.matches = data.matches.map((match) => {
+            if ('thumbnail_url' in match && match.thumbnail_url) {
+                return {
+                    ...match,
+                    thumbnail_url: `${PUBLIC_SERVICE_ENDPOINT}/face_thumbnails/${match.source_snapshot_filename}`
+                };
+            }
+            if ('representative_thumbnail_url' in match && match.representative_thumbnail_url) {
+                return {
+                    ...match,
+                    representative_thumbnail_url: `${PUBLIC_SERVICE_ENDPOINT}/cluster_images/${match.cluster_id}.jpg`
+                };
+            }
+            return match;
+        });
+        return data;
+    }
+    );
 }
 

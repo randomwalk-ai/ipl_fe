@@ -181,6 +181,7 @@ export const frigateInstances = [
 	{
 		name: 'ipl-frigate-6', url: '162.243.219.217:5010' }
 ]
+
 export const ipl_players_lookup: {
 	[key: string]: string;
 } = {

@@ -323,7 +323,7 @@
         >
           <Maximize2 class="h-4 w-4" />
         </button>
-        {#if showNewOnly}
+        <!-- {#if showNewOnly} -->
         <button 
           onclick={sendAlert}
           class="flex items-center justify-center w-9 h-9 text-white rounded-2xl disabled:opacity-50 hover:bg-primary/90 transition-colors"
@@ -336,7 +336,7 @@
             <Send class="h-4 w-4" />
           {/if}
         </button>
-        {/if}
+        <!-- {/if} -->
       </div>
     </div>
   </div>

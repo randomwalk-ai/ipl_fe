@@ -363,9 +363,15 @@
     if (!timestamp) return 'N/A';
     
     try {
-      const date = new Date(timestamp);
+      let  date = new Date(timestamp + ' UTC'); // Convert to UTC
+      const indianTimeOffset = 5.5 * 60 * 60 * 1000; // Indian Standard Time offset in milliseconds
+      const indianDate = new Date(date.getTime() + indianTimeOffset); // Convert to Indian Time
+      date=indianDate;
+
       const now = new Date();
-      
+      if(date>now){
+        date=new Date(timestamp+' UTC');
+      }
       const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
       
       if (diffInSeconds < 60) {

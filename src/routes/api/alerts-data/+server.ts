@@ -48,7 +48,7 @@ export const GET: RequestHandler = async ({ url }) => {
 				camera_id, 				
 				object_class || ' found loitering' AS query,
 				${PUBLIC_LOITERING_ENDPOINT} || '/snapshot/' || snapshot_path AS thumb_path,
-				(loitering_start_time AT TIME ZONE 'Asia/Kolkata') AT TIME ZONE 'UTC' AS start_timestamp,
+				loitering_start_time AT TIME ZONE 'UTC' AS start_timestamp,
 				created_at AT TIME ZONE 'UTC' AS end_timestamp,
 				is_notified
 			FROM loitering

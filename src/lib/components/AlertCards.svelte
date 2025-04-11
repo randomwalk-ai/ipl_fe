@@ -357,6 +357,37 @@
       if (detail.thumbnail) preloadImage(detail.thumbnail);
     });
   }
+
+  // Add this function to calculate time ago
+  function getTimeAgo(timestamp: string): string {
+    if (!timestamp) return 'N/A';
+    
+    try {
+      const date = new Date(timestamp);
+      const now = new Date();
+      
+      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+      
+      if (diffInSeconds < 60) {
+        return `${diffInSeconds} second${diffInSeconds !== 1 ? 's' : ''} ago`;
+      }
+      
+      const diffInMinutes = Math.floor(diffInSeconds / 60);
+      if (diffInMinutes < 60) {
+        return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+      }
+      
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      if (diffInHours < 24) {
+        return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+      }
+      
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
+    } catch (e) {
+      return 'N/A';
+    }
+  }
 </script>
 
 <div class="flex flex-col gap-3 p-2 h-full">
@@ -551,6 +582,7 @@
                   <div class="flex flex-col gap-1.5">
                     <h3 class="text-base font-bold">{detail.query}</h3>
                     <p class="text-xs text-muted-foreground">Camera: <span class="font-bold text-white bg-[#1E293B] rounded-md px-1 p-1">{detail.camera_id?.split('_').join(' ') || 'N/A'}</span></p>
+                    <p class="text-xs font-medium text-primary">{getTimeAgo(detail.start_timestamp)}</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-1.5 mt-1.5">
                       <div>
                         <p class="text-xs font-medium">Start Time:</p>

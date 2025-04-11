@@ -169,17 +169,23 @@ export const formatDate = (dateString: string) => {
 
 export const frigateInstances = [
 	{
-		name: 'galleries', url: '107.170.8.107:5010' },
+		name: 'galleries', url: '107.170.8.107:5010', semanticUrl: "107.170.8.107:8089"
+	},
 	{
-		name: 'external', url: '107.170.29.114:5010' },
+		name: 'external', url: '107.170.29.114:5010', semanticUrl: "107.170.29.114:8089"
+	},
 	{
-		name: 'gate-concourse', url: '162.243.3.182:5010' },
+		name: 'gate-concourse', url: '162.243.3.182:5010', semanticUrl: "162.243.3.182:8089"
+	},
 	{
-		name: 'Hospitality', url: '162.243.248.150:5010' },
+		name: 'Hospitality', url: '162.243.248.150:5010', semanticUrl: "162.243.248.150:8089"
+	},
 	{
-		name: 'Foodstalls', url: '162.243.253.121:5010' },
+		name: 'Foodstalls', url: '162.243.253.121:5010', semanticUrl: "162.243.253.121:8089"
+	},
 	{
-		name: 'ipl-frigate-6', url: '162.243.219.217:5010' }
+		name: 'ipl-frigate-6', url: '162.243.219.217:5010', semanticUrl: "162.243.219.217:8089"
+	}
 ]
 
 export const ipl_players_lookup: {

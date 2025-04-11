@@ -90,11 +90,51 @@
     SwordIcon
   };
 
+  // Replace the reactive timer with a more controlled approach
+  let refreshInterval: number;
+
   // Watch for changes in showNewOnly to refetch data
   $: if (showNewOnly !== undefined) {
     fetchAlertData();
   }
-  
+
+  // Replace the entire refreshData function with this simpler version
+  export function refreshData() {
+    console.log("refreshData called, showCards:", showCards);
+    
+    if (showCards) {
+      // If we're in card view, refresh immediately
+      console.log("Refreshing data immediately");
+      fetchAlertData();
+    } else {
+      // If in detail view, set a flag to refresh later
+      console.log("Setting flag to refresh on return to cards");
+      needsRefreshOnReturn = true;
+    }
+  }
+
+  // Make sure this is defined at the script level
+  let needsRefreshOnReturn = false;
+
+  // Add this function to handle back button click
+  function handleBackClick() {
+    console.log("Back button clicked, needsRefreshOnReturn:", needsRefreshOnReturn);
+    
+    // Reset all state
+    selectedAlertId = null;
+    selectedAlertDetails = [];
+    selectedQueries = [];
+    selectedCameras = [];
+    showCards = true;
+    
+    // Check if we need to refresh
+    if (needsRefreshOnReturn) {
+      console.log("Refreshing data after returning to cards");
+      setTimeout(() => fetchAlertData(), 0); // Use setTimeout to ensure state is updated first
+      needsRefreshOnReturn = false;
+    }
+  }
+
   async function fetchAlertData() {
     isLoading = true;
     try {
@@ -117,7 +157,6 @@
           .map((detail: AlertDetail) => detail.id);
       });
       localStorage.setItem('unNotifiedAlertIds', JSON.stringify(cachedAlertItems));
-      
       applyFilters();
     } catch (error) {
       console.error('Error fetching alert data:', error);
@@ -215,7 +254,18 @@
   }
 
   onMount(() => {
+    // Initial fetch
     fetchAlertData();
+    
+    // Set up interval for periodic refreshes
+    refreshInterval = window.setInterval(() => {
+      fetchAlertData();
+    }, 5000);
+    
+    // Clean up interval on component destruction
+    return () => {
+      clearInterval(refreshInterval);
+    };
   });
 
   function handleCardClick(alertId: string) {
@@ -304,239 +354,233 @@
 </script>
 
 <div class="flex flex-col gap-3 p-2 h-full">
-  {#if isLoading}
-    <div class="flex justify-center items-center p-6">
-      <Loader2 class="h-8 w-8 animate-spin text-primary" />
+
+  {#if showCards}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 {isFullscreen ? 'xl:grid-cols-4 2xl:grid-cols-5' : 'xl:grid-cols-2'} gap-3">
+      {#each alertsWithCounts.length ? alertsWithCounts : alertItems as alert}
+        <Card.Root 
+          class="overflow-hidden {alert.count ? 'cursor-pointer hover:shadow-md transition-shadow' : 'opacity-30'}"
+          onclick={() => alert.count && handleCardClick(alert.id)}
+        >
+          <Card.Header class="p-0 flex flex-row items-center justify-between">
+            <div class="bg-[#1E293B] text-lg text-white font-bold h-9 w-full flex items-center justify-center">
+              {#if isLoading}
+                <Loader2 class="h-8 w-8 animate-spin text-primary" />
+            {:else}
+              {alert.count ?? 0}
+              {/if}
+            </div>
+          </Card.Header>
+
+          <Card.Footer class="p-3 flex justify-between items-center">
+            <Card.Title class="text-xs">{alert.mainTitle}</Card.Title>
+            <div class="bg-primary/10 p-1.5 rounded-full">
+              {#if alert.icon && iconMap[alert.icon as keyof typeof iconMap]}
+                <svelte:component this={iconMap[alert.icon as keyof typeof iconMap]} class="h-4 w-4 text-primary" />
+              {:else}
+                <AlertTriangleIcon class="h-4 w-4 text-primary" />
+              {/if}
+            </div>
+          </Card.Footer>
+        </Card.Root>
+      {/each}
     </div>
   {:else}
-    {#if showCards}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 {isFullscreen ? 'xl:grid-cols-4 2xl:grid-cols-5' : 'xl:grid-cols-2'} gap-3">
-        {#each alertsWithCounts.length ? alertsWithCounts : alertItems as alert}
-          <Card.Root 
-            class="overflow-hidden {alert.count ? 'cursor-pointer hover:shadow-md transition-shadow' : 'opacity-60'}"
-            onclick={() => alert.count && handleCardClick(alert.id)}
-          >
-            <Card.Header class="p-0 flex flex-row items-center justify-between">
-              <div class="bg-[#1E293B] text-lg text-white font-bold h-9 w-full flex items-center justify-center">
-                {alert.count ?? 0}
-              </div>
-            </Card.Header>
-
-            <Card.Footer class="p-3 flex justify-between items-center">
-              <Card.Title class="text-xs">{alert.mainTitle}</Card.Title>
-              <div class="bg-primary/10 p-1.5 rounded-full">
-                {#if alert.icon && iconMap[alert.icon as keyof typeof iconMap]}
-                  <svelte:component this={iconMap[alert.icon as keyof typeof iconMap]} class="h-4 w-4 text-primary" />
-                {:else}
-                  <AlertTriangleIcon class="h-4 w-4 text-primary" />
-                {/if}
-              </div>
-            </Card.Footer>
-          </Card.Root>
-        {/each}
+    <div class="w-full">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-bold">
+          {alertItems.find(item => item.id === selectedAlertId)?.mainTitle}
+        </h2>
+        <button 
+          class="px-2.5 py-0.5 bg-muted rounded-md text-xs font-medium hover:bg-muted/80"
+          onclick={handleBackClick}
+        >
+          Back
+        </button>
       </div>
-    {:else}
-      <div class="w-full">
-        <div class="flex justify-between items-center mb-3">
-          <h2 class="text-lg font-bold">
-            {alertItems.find(item => item.id === selectedAlertId)?.mainTitle}
-          </h2>
-          <button 
-            class="px-2.5 py-0.5 bg-muted rounded-md text-xs font-medium hover:bg-muted/80"
-            onclick={() => { 
-              selectedAlertId = null; 
-              selectedAlertDetails = []; 
-              selectedQueries = [];
-              selectedCameras = [];
-              showCards = true; 
-            }}
-          >
-            Back
-          </button>
-        </div>
+      
+      <div class="space-y-3 mb-4">
+        {#if uniqueQueries.length > 0 || uniqueCameras.length > 0}
+          <div class="flex justify-between items-center">
+            <h3 class="text-sm font-medium">Filters</h3>
+            {#if selectedQueries.length > 0 || selectedCameras.length > 0}
+              <button 
+                class="text-xs text-primary underline"
+                onclick={resetFilters}
+              >
+                Reset Filters
+              </button>
+            {/if}
+          </div>
+        {/if}
         
-        <div class="space-y-3 mb-4">
-          {#if uniqueQueries.length > 0 || uniqueCameras.length > 0}
-            <div class="flex justify-between items-center">
-              <h3 class="text-sm font-medium">Filters</h3>
-              {#if selectedQueries.length > 0 || selectedCameras.length > 0}
+        <div class="grid grid-cols-1 {isFullscreen ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4">
+          {#if uniqueQueries.length > 0}
+            <div class="relative">
+              <label for="query-filter" class="text-xs font-medium block mb-1">Filter by Event Type:</label>
+              <div class="relative">
                 <button 
-                  class="text-xs text-primary underline"
-                  onclick={resetFilters}
+                  id="query-filter"
+                  class="flex justify-between items-center w-full px-3 py-2 text-sm border rounded-md bg-background"
+                  onclick={() => document.getElementById('query-dropdown')?.classList.toggle('hidden')}
+                  type="button"
                 >
-                  Reset Filters
+                  <span>
+                    {selectedQueries.length === 0 
+                      ? 'All Event Types' 
+                      : selectedQueries.length === 1 
+                        ? selectedQueries[0] 
+                        : `${selectedQueries.length} types selected`}
+                  </span>
+                  <ChevronDown class="h-4 w-4" />
                 </button>
+                
+                <div id="query-dropdown" class="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
+                  <div class="p-2 space-y-1">
+                    {#each uniqueQueries as query}
+                      <div class="flex items-center space-x-2 p-2 hover:bg-muted rounded-sm cursor-pointer" onclick={() => toggleQuery(query)}>
+                        <Checkbox.Root checked={selectedQueries.includes(query)} id={`query-${query}`} />
+                        <label for={`query-${query}`} class="text-sm cursor-pointer flex-1">{query}</label>
+                      </div>
+                    {/each}
+                  </div>
+                </div>
+              </div>
+              
+              {#if selectedQueries.length > 0}
+                <div class="flex flex-wrap gap-1 mt-2">
+                  {#each selectedQueries as query}
+                    <div class="inline-flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs">
+                      {query}
+                      <button onclick={() => toggleQuery(query)} class="text-muted-foreground hover:text-foreground">
+                        <X class="h-3 w-3" />
+                      </button>
+                    </div>
+                  {/each}
+                </div>
               {/if}
             </div>
           {/if}
           
-          <div class="grid grid-cols-1 {isFullscreen ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4">
-            {#if uniqueQueries.length > 0}
+          {#if uniqueCameras.length > 0}
+            <div class="relative">
+              <label for="camera-filter" class="text-xs font-medium block mb-1">Filter by Camera:</label>
               <div class="relative">
-                <label for="query-filter" class="text-xs font-medium block mb-1">Filter by Event Type:</label>
-                <div class="relative">
-                  <button 
-                    id="query-filter"
-                    class="flex justify-between items-center w-full px-3 py-2 text-sm border rounded-md bg-background"
-                    onclick={() => document.getElementById('query-dropdown')?.classList.toggle('hidden')}
-                    type="button"
-                  >
-                    <span>
-                      {selectedQueries.length === 0 
-                        ? 'All Event Types' 
-                        : selectedQueries.length === 1 
-                          ? selectedQueries[0] 
-                          : `${selectedQueries.length} types selected`}
-                    </span>
-                    <ChevronDown class="h-4 w-4" />
-                  </button>
-                  
-                  <div id="query-dropdown" class="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
-                    <div class="p-2 space-y-1">
-                      {#each uniqueQueries as query}
-                        <div class="flex items-center space-x-2 p-2 hover:bg-muted rounded-sm cursor-pointer" onclick={() => toggleQuery(query)}>
-                          <Checkbox.Root checked={selectedQueries.includes(query)} id={`query-${query}`} />
-                          <label for={`query-${query}`} class="text-sm cursor-pointer flex-1">{query}</label>
-                        </div>
-                      {/each}
-                    </div>
-                  </div>
-                </div>
+                <button 
+                  id="camera-filter"
+                  class="flex justify-between items-center w-full px-3 py-2 text-sm border rounded-md bg-background"
+                  onclick={() => document.getElementById('camera-dropdown')?.classList.toggle('hidden')}
+                  type="button"
+                >
+                  <span>
+                    {selectedCameras.length === 0 
+                      ? 'All Cameras' 
+                      : selectedCameras.length === 1 
+                        ? selectedCameras[0] 
+                        : `${selectedCameras.length} cameras selected`}
+                  </span>
+                  <ChevronDown class="h-4 w-4" />
+                </button>
                 
-                {#if selectedQueries.length > 0}
-                  <div class="flex flex-wrap gap-1 mt-2">
-                    {#each selectedQueries as query}
-                      <div class="inline-flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs">
-                        {query}
-                        <button onclick={() => toggleQuery(query)} class="text-muted-foreground hover:text-foreground">
-                          <X class="h-3 w-3" />
-                        </button>
+                <div id="camera-dropdown" class="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
+                  <div class="p-2 space-y-1">
+                    {#each uniqueCameras as camera}
+                      <div class="flex items-center space-x-2 p-2 hover:bg-muted rounded-sm cursor-pointer" onclick={() => toggleCamera(camera)}>
+                        <Checkbox.Root checked={selectedCameras.includes(camera)} id={`camera-${camera}`} />
+                        <label for={`camera-${camera}`} class="text-sm cursor-pointer flex-1">{camera}</label>
                       </div>
                     {/each}
                   </div>
-                {/if}
-              </div>
-            {/if}
-            
-            {#if uniqueCameras.length > 0}
-              <div class="relative">
-                <label for="camera-filter" class="text-xs font-medium block mb-1">Filter by Camera:</label>
-                <div class="relative">
-                  <button 
-                    id="camera-filter"
-                    class="flex justify-between items-center w-full px-3 py-2 text-sm border rounded-md bg-background"
-                    onclick={() => document.getElementById('camera-dropdown')?.classList.toggle('hidden')}
-                    type="button"
-                  >
-                    <span>
-                      {selectedCameras.length === 0 
-                        ? 'All Cameras' 
-                        : selectedCameras.length === 1 
-                          ? selectedCameras[0] 
-                          : `${selectedCameras.length} cameras selected`}
-                    </span>
-                    <ChevronDown class="h-4 w-4" />
-                  </button>
-                  
-                  <div id="camera-dropdown" class="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
-                    <div class="p-2 space-y-1">
-                      {#each uniqueCameras as camera}
-                        <div class="flex items-center space-x-2 p-2 hover:bg-muted rounded-sm cursor-pointer" onclick={() => toggleCamera(camera)}>
-                          <Checkbox.Root checked={selectedCameras.includes(camera)} id={`camera-${camera}`} />
-                          <label for={`camera-${camera}`} class="text-sm cursor-pointer flex-1">{camera}</label>
-                        </div>
-                      {/each}
-                    </div>
-                  </div>
                 </div>
-                
-                {#if selectedCameras.length > 0}
-                  <div class="flex flex-wrap gap-1 mt-2">
-                    {#each selectedCameras as camera}
-                      <div class="inline-flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs">
-                        {camera}
-                        <button onclick={() => toggleCamera(camera)} class="text-muted-foreground hover:text-foreground">
-                          <X class="h-3 w-3" />
-                        </button>
-                      </div>
-                    {/each}
-                  </div>
-                {/if}
               </div>
-            {/if}
-            
-            {#if isFullscreen}
-              <!-- Additional filters could go here -->
-            {/if}
-          </div>
+              
+              {#if selectedCameras.length > 0}
+                <div class="flex flex-wrap gap-1 mt-2">
+                  {#each selectedCameras as camera}
+                    <div class="inline-flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs">
+                      {camera}
+                      <button onclick={() => toggleCamera(camera)} class="text-muted-foreground hover:text-foreground">
+                        <X class="h-3 w-3" />
+                      </button>
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          {/if}
+          
+          {#if isFullscreen}
+            <!-- Additional filters could go here -->
+          {/if}
         </div>
-        
-        {#if filteredAlertDetails.length === 0}
-          <div class="text-center p-6 bg-muted rounded-lg">
-            <p>No details available for this alert.</p>
-          </div>
-        {:else}
-          <div class="space-y-3 {isFullscreen ? 'md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3' : ''}">
-            {#each filteredAlertDetails as detail}
-              <Card.Root class="w-full overflow-hidden">
-                <div class="flex flex-col md:flex-row">
-                  {#if detail.thumb_path || detail.thumbnail}
-                    <div 
-                      class="w-full md:w-1/4 h-36 cursor-pointer" 
-                      onclick={() => openMediaModal(detail)} 
-                      onkeydown={(e) => e.key === 'Enter' && openMediaModal(detail)}
-                      role="button"
-                      tabindex={0}
-                    >
-                      <img 
-                        src={detail.thumbnail || detail.thumb_path} 
-                        alt={detail.query} 
-                        class="w-full h-full object-cover"
-                        loading="eager"
-                        onerror={handleImageError}
-                      />
-                    </div>
-                  {/if}
-                  <div class="p-3 flex-1">
-                    <div class="flex flex-col gap-1.5">
-                      <h3 class="text-base font-bold">{detail.query}</h3>
-                      <p class="text-xs text-muted-foreground">Camera: <span class="font-bold text-white bg-[#1E293B] rounded-md px-1 p-1">{detail.camera_id?.split('_').join(' ') || 'N/A'}</span></p>
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-1.5 mt-1.5">
-                        <div>
-                          <p class="text-xs font-medium">Start Time:</p>
-                          <p class="text-xs">{formatTimestamp(detail.start_timestamp)}</p>
-                        </div>
-                        <div>
-                          <p class="text-xs font-medium">End Time:</p>
-                          <p class="text-xs">{formatTimestamp(detail.end_timestamp)}</p>
-                        </div>
-                        {#if detail.duration !== undefined}
-                          <div>
-                            <p class="text-xs font-medium">Duration:</p>
-                            <p class="text-xs">{formatDuration(detail.duration)}</p>
-                          </div>
-                        {/if}
+      </div>
+      
+      {#if filteredAlertDetails.length === 0}
+        <div class="text-center p-6 bg-muted rounded-lg">
+          <p>No details available for this alert.</p>
+        </div>
+      {:else}
+        <div class="space-y-3 {isFullscreen ? 'md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3' : ''}">
+          {#each filteredAlertDetails as detail}
+            <Card.Root class="w-full overflow-hidden">
+              <div class="flex flex-col md:flex-row">
+                {#if detail.thumb_path || detail.thumbnail}
+                  <div 
+                    class="w-full md:w-1/4 h-36 cursor-pointer" 
+                    onclick={() => openMediaModal(detail)} 
+                    onkeydown={(e) => e.key === 'Enter' && openMediaModal(detail)}
+                    role="button"
+                    tabindex={0}
+                  >
+                    <img 
+                      src={detail.thumbnail || detail.thumb_path} 
+                      alt={detail.query} 
+                      class="w-full h-full object-cover"
+                      loading="eager"
+                      onerror={handleImageError}
+                    />
+                  </div>
+                {/if}
+                <div class="p-3 flex-1">
+                  <div class="flex flex-col gap-1.5">
+                    <h3 class="text-base font-bold">{detail.query}</h3>
+                    <p class="text-xs text-muted-foreground">Camera: <span class="font-bold text-white bg-[#1E293B] rounded-md px-1 p-1">{detail.camera_id?.split('_').join(' ') || 'N/A'}</span></p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-1.5 mt-1.5">
+                      <div>
+                        <p class="text-xs font-medium">Start Time:</p>
+                        <p class="text-xs">{formatTimestamp(detail.start_timestamp)}</p>
                       </div>
-                      {#if detail.clip_path || detail.thumb_path}
-                        <div class="mt-1.5">
-                          <button 
-                            class="inline-flex items-center gap-1.5 bg-primary text-primary-foreground px-2.5 py-0.5 rounded-md text-xs"
-                            onclick={() => openMediaModal(detail)}
-                          >
-                            View Media
-                          </button>
+                      <div>
+                        <p class="text-xs font-medium">End Time:</p>
+                        <p class="text-xs">{formatTimestamp(detail.end_timestamp)}</p>
+                      </div>
+                      {#if detail.duration !== undefined}
+                        <div>
+                          <p class="text-xs font-medium">Duration:</p>
+                          <p class="text-xs">{formatDuration(detail.duration)}</p>
                         </div>
                       {/if}
                     </div>
+                    {#if detail.clip_path || detail.thumb_path}
+                      <div class="mt-1.5">
+                        <button 
+                          class="inline-flex items-center gap-1.5 bg-primary text-primary-foreground px-2.5 py-0.5 rounded-md text-xs"
+                          onclick={() => openMediaModal(detail)}
+                        >
+                          View Media
+                        </button>
+                      </div>
+                    {/if}
                   </div>
                 </div>
-              </Card.Root>
-            {/each}
-          </div>
-        {/if}
-      </div>
-    {/if}
+              </div>
+            </Card.Root>
+          {/each}
+        </div>
+      {/if}
+    </div>
   {/if}
+
 </div>
 
 <!-- Media Viewer Modal -->

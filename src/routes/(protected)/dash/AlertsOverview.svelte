@@ -2,7 +2,7 @@
   import AlertCards from '$lib/components/AlertCards.svelte';
   import * as Dialog from '$lib/components/ui/dialog';
   import * as Switch from '$lib/components/ui/switch';
-  import { alertItems } from '$lib/data/alertItems';
+  import { alertItems as importedAlertItems } from '$lib/data/alertItems';
   import { Loader2, Maximize2 } from '@lucide/svelte';
   import html2canvas from 'html2canvas';
   
@@ -10,6 +10,34 @@
   let showNewOnly = true;
   let isModalOpen = false;  
   let isNotified = false;
+  
+  // Declare alertItems variable
+  let alertItems = JSON.parse(JSON.stringify(importedAlertItems));
+  
+  // Add a refresh counter to force reactivity
+  let refreshCounter = 0;
+  
+  // Add a reference to the AlertCards component
+  let alertCardsComponent: AlertCards;
+  
+  $: {
+    // This reactive statement will re-run whenever refreshCounter changes
+    refreshCounter;
+    // Re-fetch the alert items from the imported data
+    alertItems = JSON.parse(JSON.stringify(importedAlertItems));
+  }
+  
+  // Function to refresh alert items
+  const refreshAlertItems = () => {
+    refreshCounter += 1; // Increment the counter to trigger the reactive statement
+    
+    // Force the AlertCards component to re-render by temporarily changing showNewOnly
+    const currentShowNewOnly = showNewOnly;
+    showNewOnly = !currentShowNewOnly;
+    setTimeout(() => {
+      showNewOnly = currentShowNewOnly;
+    }, 10);
+  };
   
   const sendAlert = async () => {
 		if (isDownloading) return; // Prevent multiple clicks
@@ -192,6 +220,24 @@
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({ unNotifiedAlertIds })
+			})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Failed to update alert ids');
+				}
+				return response.json();
+			})
+			.then(data => {
+				console.log('Alert ids updated successfully:', data);
+				// Clear localStorage after successful update
+				localStorage.removeItem('unNotifiedAlertIds');
+				// Directly call the refresh method on the component
+				if (alertCardsComponent) {
+					alertCardsComponent.refreshData();
+				}
+			})
+			.catch(error => {
+				console.error('Error updating alert ids:', error);
 			});
 		}
 	};
@@ -238,7 +284,11 @@
     </div>
   </div>
   <div id="scroll-content" class="p-4 h-full">
-    <AlertCards alertItems={alertItems} showNewOnly={showNewOnly} />
+    <AlertCards 
+      bind:this={alertCardsComponent}
+      alertItems={alertItems} 
+      showNewOnly={showNewOnly} 
+    />
   </div>
 </div>
 

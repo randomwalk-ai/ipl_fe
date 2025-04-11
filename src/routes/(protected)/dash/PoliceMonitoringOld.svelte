@@ -10,13 +10,15 @@
         showingPoliceView,
         showPoliceView,
         backToGroupedView,
-        MEDIA_BASE_URL
+        MEDIA_BASE_URL,
+        isSelected
     } = $props<{
         policeMonitoringData: PoliceMonitoringType[];
         showingPoliceView: boolean;
         showPoliceView: () => void;
         backToGroupedView: () => void;
         MEDIA_BASE_URL: string;
+        isSelected: boolean;
     }>();
 
     // Format duration in seconds to minutes and seconds
@@ -35,7 +37,7 @@
 <!-- Police Monitoring Card for main view -->
 {#if !showingPoliceView}
     <div
-        class="flex flex-col cursor-pointer items-center justify-center rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
+        class="flex flex-col cursor-pointer items-center justify-center rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700 {isSelected ? 'ring-2 ring-primary' : ''}"
         role="button"
         tabindex="0"
         on:click={showPoliceView}

@@ -2,25 +2,15 @@
     import { ArrowLeftIcon } from '@lucide/svelte';
     import { fly } from 'svelte/transition';
     import { timeAgo } from '$lib/utils';
-    import type { CombinedAlertItem } from './types';
+    import SimpleDialog from './SimpleDialog.svelte';
 
-    // Props using runes syntax
+    // Simplified props using runes syntax
     const {
         bannerAndSlogansConfig,
         organized_grouped_alerts,
-        bannerAlertsData,
-        bannerQueries,
         MEDIA_BASE_URL,
-        filteredBannerAlerts,
-        showingBannerQueriesView,
-        showingBannerAlertsView,
-        selectedCamera,
-        selectedBannerQuery,
-        showBannerQueriesView,
-        showBannerAlertsView,
-        showBannerQueryAlerts,
-        backToGroupedView,
-        openModal
+        selectedCardType,
+        onCardSelect
     } = $props<{
         bannerAndSlogansConfig: {
             mainTitle: string;
@@ -39,39 +29,67 @@
                 }>;
             }>;
         }>;
-        bannerAlertsData: {
-            allAlerts: CombinedAlertItem[];
-            byCameras: Array<{
-                camera: string;
-                alerts: CombinedAlertItem[];
-                latestAlert: CombinedAlertItem;
-                count: number;
-            }>;
-        };
-        bannerQueries: Array<{
-            query: string;
-            cameras: Array<{
-                cameraName: string;
-                alerts: Array<{
-                    redirectURL: string;
-                    thumbnail: string;
-                    id: string;
-                    end_time: string;
-                }>;
-            }>;
-        }>;
         MEDIA_BASE_URL: string;
-        filteredBannerAlerts: CombinedAlertItem[];
-        showingBannerQueriesView: boolean;
-        showingBannerAlertsView: boolean;
-        selectedCamera: string;
-        selectedBannerQuery: string;
-        showBannerQueriesView: () => void;
-        showBannerAlertsView: (camera: string) => void;
-        showBannerQueryAlerts: (query: string) => void;
-        backToGroupedView: () => void;
-        openModal: (item: CombinedAlertItem) => void;
+        selectedCardType: string;
+        onCardSelect: (cardType: string) => void;
     }>();
+
+    // Local state management
+    let showingBannerQueriesView = $state(false);
+    let showingBannerAlertsView = $state(false);
+    let selectedCamera = $state('');
+    let selectedBannerQuery = $state('');
+
+    // Modal state
+    let showAlertModal = $state(false);
+    let selectedAlertUrl = $state('');
+    let selectedAlertTitle = $state('');
+
+    // Function to show banner queries view
+    function showBannerQueriesView() {
+        onCardSelect(bannerAndSlogansConfig.mainTitle);
+        showingBannerQueriesView = true;
+        showingBannerAlertsView = false;
+        selectedCamera = '';
+    }
+
+    // Function to show banner alerts for a specific camera
+    function showBannerAlertsView(camera: string) {
+        selectedCamera = camera;
+        showingBannerAlertsView = true;
+        showingBannerQueriesView = false;
+    }
+
+    // Function to go back to the grouped view
+    function backToGroupedView() {
+        onCardSelect('');
+        showingBannerAlertsView = false;
+        showingBannerQueriesView = false;
+        selectedCamera = '';
+        selectedBannerQuery = '';
+    }
+
+    // Function to open modal for an alert
+    function openModal(alert: {
+        id: string;
+        query: string;
+        end_time: string;
+        cameraName: string;
+        redirectURL: string;
+    }) {
+        if (alert.redirectURL) {
+            selectedAlertUrl = alert.redirectURL;
+            selectedAlertTitle = alert.query || 'Alert Details';
+            showAlertModal = true;
+        } else {
+            console.warn('No suitable URL found for alert:', alert);
+        }
+    }
+
+    // Function to close the alert modal
+    function closeAlertModal() {
+        showAlertModal = false;
+    }
 
     // Organize cameras with their queries
     let camerasWithQueries = $derived.by(() => {
@@ -126,12 +144,21 @@
         return Array.from(cameraMap.values())
             .sort((a, b) => a.cameraName.localeCompare(b.cameraName));
     });
+
+    // Filtered banner queries
+    let bannerQueries = $derived.by(() => {
+        return organized_grouped_alerts.filter(group => 
+            bannerAndSlogansConfig.alertTitle.some(title => 
+                group.query.toLowerCase().includes(title.toLowerCase())
+            )
+        );
+    });
 </script>
 
 <!-- Banner & Slogans Card for main view -->
 {#if !showingBannerQueriesView && !showingBannerAlertsView}
     <div
-        class="flex flex-col cursor-pointer items-center justify-center rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
+        class="flex flex-col cursor-pointer items-center justify-center rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700 {selectedCardType === bannerAndSlogansConfig.mainTitle ? 'ring-2 ring-primary' : ''}"
         role="button"
         tabindex="0"
         on:click={showBannerQueriesView}
@@ -148,9 +175,19 @@
 {:else if showingBannerQueriesView && !showingBannerAlertsView}
     <!-- Cameras with Queries View -->
     <div class="p-4">
+        <div class="flex items-center gap-2 mb-4">
+            <button 
+                class="flex items-center gap-1 text-sm hover:text-primary" 
+                on:click={backToGroupedView}
+            >
+                <ArrowLeftIcon class="h-4 w-4" />
+                <span>Back</span>
+            </button>
+            <h3 class="font-medium">{bannerAndSlogansConfig.mainTitle} Queries</h3>
+        </div>
         
         {#if camerasWithQueries.length === 0}
-            <p class="text-center text-gray-500 dark:text-gray-400">No banner and slogan alerts found</p>
+            <p class="text-center text-gray-500 dark:text-gray-400">No {bannerAndSlogansConfig.mainTitle} alerts found</p>
         {:else}
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {#each camerasWithQueries as camera}
@@ -214,10 +251,20 @@
 {:else if showingBannerAlertsView && selectedCamera}
     <!-- Banner alerts for specific camera view -->
     <div class="p-4">
+        <div class="flex items-center gap-2 mb-4">
+            <button 
+                class="flex items-center gap-1 text-sm hover:text-primary" 
+                on:click={() => showingBannerQueriesView = true && (showingBannerAlertsView = false)}
+            >
+                <ArrowLeftIcon class="h-4 w-4" />
+                <span>Back</span>
+            </button>
+            <h3 class="font-medium">{bannerAndSlogansConfig.mainTitle} Alerts - {selectedCamera}</h3>
+        </div>
         
         <!-- Get all alerts for this camera from organized_grouped_alerts -->
         {#if camerasWithQueries.find(c => c.cameraName === selectedCamera)?.totalAlerts === 0}
-            <p class="text-center text-gray-500 dark:text-gray-400">No banner alerts found for this camera</p>
+            <p class="text-center text-gray-500 dark:text-gray-400">No {bannerAndSlogansConfig.mainTitle} alerts found for this camera</p>
         {:else}
             <div class="grid gap-4">
                 {#each organized_grouped_alerts
@@ -239,24 +286,8 @@
                         class="grid cursor-pointer gap-1 rounded-md border p-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:border-gray-700"
                         role="button"
                         tabindex="0"
-                        on:click={() => openModal({
-                            id: alert.id,
-                            query: alert.query,
-                            time: alert.end_time,
-                            description: `Alert from ${alert.cameraName}`,
-                            type: 'alert',
-                            redirect_url: alert.redirectURL,
-                            cameraName: alert.cameraName
-                        })}
-                        on:keydown={(e) => e.key === 'Enter' && openModal({
-                            id: alert.id,
-                            query: alert.query,
-                            time: alert.end_time,
-                            description: `Alert from ${alert.cameraName}`,
-                            type: 'alert',
-                            redirect_url: alert.redirectURL,
-                            cameraName: alert.cameraName
-                        })}
+                        on:click={() => openModal(alert)}
+                        on:keydown={(e) => e.key === 'Enter' && openModal(alert)}
                         in:fly={{ y: 10, duration: 200, delay: 50 }}
                     >
                         <div class="flex items-center gap-3">
@@ -296,4 +327,26 @@
             </div>
         {/if}
     </div>
-{/if} 
+{/if}
+
+<!-- Alert Modal (iframe) -->
+<SimpleDialog
+    bind:open={showAlertModal}
+    title={selectedAlertTitle}
+    fullHeight={true}
+    fullWidth={true}
+    on:close={closeAlertModal}
+>
+    <div class="h-full w-full">
+        {#if selectedAlertUrl}
+            <iframe
+                src={selectedAlertUrl}
+                title="Alert Details"
+                class="h-full w-full border-0"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+            ></iframe>
+        {:else}
+            <p class="p-4 text-center">Content for this alert is not available.</p>
+        {/if}
+    </div>
+</SimpleDialog> 

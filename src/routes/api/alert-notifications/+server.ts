@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { alertNotifications, anomaly, loiteringLog ,policeMonitoring} from '$lib/server/db/schema';
-import { desc, gt, sql } from 'drizzle-orm';
+import { desc, eq, gt, sql } from 'drizzle-orm';
 
 export const GET: RequestHandler = async () => {
 	try {
@@ -37,13 +37,18 @@ export const GET: RequestHandler = async () => {
 		// 	ORDER BY inserted_at DESC
 		// 	LIMIT 200;
 		// `);
+		const res5 = await db.query.policeMonitoring.findMany({
+				limit: 200,
+				where: eq(policeMonitoring.is_notified, false)
+			});
 		console.log('Raw alerts data:', res3);
 		// console.log(JSON.stringify(res[0], null, 2));
 		return json({
 			alertsData: res,
 			anomaliesData: res2,
 			loiteringData: res3,
-			policeMonitoringData: res4
+			policeMonitoringData: res4,
+			policeMonitoringDataRecent: res5
 		});
 	} catch (error) {
 		console.error('Failed to fetch alerts:', error);

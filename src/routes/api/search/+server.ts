@@ -4,7 +4,7 @@ import { frigateInstances } from '$lib/utils';
 import type { FrigateEvent, FrigateSearchResponse } from '../../(protected)/types';
 import { z } from 'zod';
 
-const frigateUrls = frigateInstances.map((el) => el.url);
+const frigateUrls = frigateInstances.map((el) => el.semanticUrl);
 
 // Updated Zod Schema
 const searchSchema = z.object({

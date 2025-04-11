@@ -143,6 +143,11 @@ export interface FrigateEventData {
 	score: number;
 	top_score: number;
 	type: string;
+	box?: number[];
+	region?: number[];
+	attributes?: {
+		[key: string]: any;
+	};
 }
 
 export interface FrigateEvent {

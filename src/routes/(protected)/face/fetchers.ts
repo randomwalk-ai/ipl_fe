@@ -160,7 +160,7 @@ export async function searchByImage(
         try {
             errorBody = JSON.parse(errorBody); // Try parsing as JSON if possible (FastAPI often returns JSON errors)
         } catch (e) {
-             // Keep as text if not JSON
+            // Keep as text if not JSON
         }
         console.error("Search request failed:", response.status, response.statusText, errorBody);
         // Construct a more informative error message

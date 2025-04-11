@@ -88,6 +88,9 @@
 						aria-hidden="true"
 						title={`Box: [${face.detection_box?.map((n) => n.toFixed(0)).join(', ')}] Quality: ${face.image_quality.toFixed(2)}`}
 					></div>
+					<div class="absolute bottom-0 right-0 bg-slate-400/50 p-1 text-xs">{
+						new Date(face.timestamp).toLocaleTimeString()	
+					}</div>
 				</div>
 			{/each}
 		</div>

@@ -158,18 +158,13 @@ export const formatDate = (dateString: string) => {
 // stand_entry - http://107.170.54.225:5010
 
 export const frigateInstances = [
-	{ name: 'Stands Entry/Exit', url: 'https://frigate-stand.randomwalk.ai' },
-	{ name: 'Galleries', url: 'https://frigate-kmk.randomwalk.ai' },
-	{ name: 'Gates & Concourse', url: 'https://frigate-concourse.randomwalk.ai' },
-	{ name: 'External Road Cameras', url: 'https://frigate-external.randomwalk.ai' },
-	{ name: 'Food Stalls & Media', url: 'https://frigate-media.randomwalk.ai' },
-	{ name: 'Hospitality Offices', url: 'https://frigate-hospitality.randomwalk.ai' }
-	// { name: 'Stands Entry/Exit', url: 'http://107.170.54.225:5010' },
-	// { name: 'Galleries', url: 'http://162.243.227.227:5010' },
-	// { name: 'Gates & Concourse', url: 'http://162.243.75.102:5010' },
-	// { name: 'External Road Cameras', url: 'http://107.170.74.160:5010' },
-	// { name: 'Food Stalls & Media', url: 'http://192.241.185.241:5010' },
-	// { name: 'Hospitality Offices', url: 'http://107.170.123.140:5010' }
+	{
+		name: "Test", url: "http://localhost:5020", semanticUrl: "http://localhost:8089"
+	},
+	// { name: 'Stands Entry/Exit', url: 'https://162.243.212.38', semanticUrl: 'https://162.243.212.38:8089' },
+	// { name: 'Media', url: 'https://68.183.197.229', semanticUrl: 'https://68.183.197.229:8089'},
+	// { name: 'Hospitality Offices', url: 'https://107.170.59.75', semanticUrl: 'https://107.170.59.75:8089' },
+	// { name: 'Concourse', url: 'https://138.197.135.188', semanticUrl: 'https://138.197.135.188:8089' }
 ];
 
 export const ipl_players_lookup: {

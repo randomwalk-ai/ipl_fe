@@ -492,7 +492,7 @@
 <Card class="flex h-full w-full flex-col dark:bg-background dark:text-white">
 	<CardHeader class="flex h-14 flex-row items-center justify-between rounded-t-md bg-secondary p-4">
 		<div class="flex items-center gap-2">
-			{#if showingFilteredView || showingBannerAlertsView || showingBannerQueriesView}
+			{#if showingFilteredView || showingBannerAlertsView || showingBannerQueriesView || showingPoliceView}
 				<button 
 					class="flex items-center gap-1 text-sm hover:text-primary" 
 					on:click={backToGroupedView}
@@ -572,10 +572,7 @@
 	
 	<ScrollArea class="flex-1">
 		<CardContent class="p-4">
-			{#if showingAnalytics}
-				<!-- Analytics View -->
-				<div></div>
-			{:else if showingFilteredView}
+			{#if showingFilteredView}
 				<!-- Filtered view showing specific alerts -->
 				{#if filteredData.length === 0}
 					<p class="text-center text-gray-500 dark:text-gray-400">No alerts found for "{selectedQuery}"</p>

@@ -25,6 +25,11 @@
         const remainingSeconds = (seconds % 60).toFixed(2);
         return `${minutes}m ${remainingSeconds}s`;
     }
+
+    // Sort police monitoring data outside of the template to avoid state mutation
+    const sortedPoliceMonitoringData = () => {
+        return [...policeMonitoringData].sort((a, b) => new Date(b.fromTimestamp).getTime() - new Date(a.fromTimestamp).getTime());
+    };
 </script>
 
 <!-- Police Monitoring Card for main view -->
@@ -47,13 +52,11 @@
 {:else}
     <!-- Police Monitoring Alerts View -->
     <div class="p-4">
-       
-        
         {#if policeMonitoringData.length === 0}
             <p class="text-center text-gray-500 dark:text-gray-400">No police monitoring alerts found</p>
         {:else}
             <div class="grid gap-4">
-                {#each policeMonitoringData.sort((a, b) => new Date(b.fromTimestamp).getTime() - new Date(a.fromTimestamp).getTime()) as alert}
+                {#each sortedPoliceMonitoringData() as alert}
                     <div
                         class="grid cursor-pointer gap-1 rounded-md border p-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:border-gray-700"
                         role="button"
@@ -64,14 +67,14 @@
                             <!-- Video clip preview if available -->
                             <div class="w-24 h-16 bg-gray-200 dark:bg-gray-800 rounded-md overflow-hidden flex-shrink-0">
                                 {#if alert.clipPath}
-                                    {console.log(MEDIA_BASE_URL+alert.clipPath)}
+                                    {console.log(MEDIA_BASE_URL + alert.clipPath)}
                                     <video 
                                         src={`${MEDIA_BASE_URL}/${alert.clipPath}`}
-                                        alt="Alert thumbnail" 
                                         class="w-full h-full object-cover"
                                         on:error={(e) => {
-                                            e.currentTarget.src = '';
-                                            e.currentTarget.classList.add('bg-gray-300');
+                                            const target = e.currentTarget as HTMLVideoElement;
+                                            target.src = '';
+                                            target.classList.add('bg-gray-300');
                                         }}
                                     />
                                 {:else}
@@ -83,7 +86,7 @@
                             
                             <div class="flex grow flex-col gap-1">
                                 <div class="text-md flex w-full items-center justify-between font-medium leading-none">
-                                    <span class="truncate pr-2">Camera ID: {alert.camera_id}</span>
+                                    <span class="truncate pr-2">Camera ID: {alert.cameraId}</span>
                                     <span class="flex-shrink-0 text-sm text-muted-foreground">
                                         {timeAgo(alert.fromTimestamp)}
                                     </span>

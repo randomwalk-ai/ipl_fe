@@ -69,13 +69,15 @@ export const alertNotifications = pgTable('alert_notifications', {
 	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
 });
 export const policeMonitoring = pgTable('police_monitoring', {
-	id: serial().primaryKey().notNull(),
-	cameraId: varchar('camera_id').notNull(),
-	missingDuration: integer('missing_duration').notNull(),
-	fromTimestamp: timestamp('from_timestamp', { withTimezone: true, mode: 'string' }).notNull(),
-	toTimestamp: timestamp('to_timestamp', { withTimezone: true, mode: 'string' }).notNull(),
-	clipPath: varchar('clip_path').notNull(),
-	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow()
+	id: serial('id').primaryKey().notNull().default(sql`nextval('police_monitoring_id_seq1'::regclass)`),
+	cameraId: text('camera_id').notNull(),
+	missingDuration: doublePrecision('missing_duration').notNull(),
+	fromTimestamp: timestamp('from_timestamp', { withTimezone: false }).notNull(),
+	toTimestamp: timestamp('to_timestamp', { withTimezone: false }).notNull(),
+	clipPath: text('clip_path'),
+	snapshotPath: text('snapshot_path'),
+	createdAt: timestamp('created_at', { withTimezone: false }).defaultNow(),
+	is_notified: boolean('is_notified').default(false)
 });
 
 export const anomaly = pgTable('anomaly', {

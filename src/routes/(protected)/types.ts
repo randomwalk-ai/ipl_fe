@@ -55,13 +55,16 @@ export type AnomalyType = {
 };
 
 export type PoliceMonitoringType = {
-    id: number;
-    camera_id: string;
-    missing_duration: number;
-    from_timestamp: string;
-    to_timestamp: string;
-    clip_path: string;
-    created_at: string;
+	id: number; // Primary key
+	cameraId: string; // Camera ID
+	missingDuration: number; // Duration of missing time in seconds
+	fromTimestamp: string; // Start time of the monitoring period
+	toTimestamp: string; // End time of the monitoring period
+	clipPath?: string; // Optional path to the video clip
+	snapshotPath?: string; // Optional path to the snapshot
+	createdAt?: string; // Timestamp of creation, defaults to CURRENT_TIMESTAMP
+	isNotified?: boolean; // Indicates if a notification has been sent, defaults to false
+
 }
 
 // cam-attendance data type

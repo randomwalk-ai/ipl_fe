@@ -156,12 +156,15 @@ export const formatDate = (dateString: string) => {
 // gate_concourse - http://162.243.75.102:5010
 // hospitality_offices - http://107.170.123.140:5010
 // stand_entry - http://107.170.54.225:5010
-
+// 162.243.212.38:5010
+// 107.170.59.75:5010
+// 68.183.197.229:5010
+// 138.197.135.188:5010
 export const frigateInstances = [
-	{ name: 'Stands Entry/Exit', url: 'https://frigate-stand.randomwalk.ai' },
-	{ name: 'Galleries', url: 'https://frigate-kmk.randomwalk.ai' },
-	{ name: 'Gates & Concourse', url: 'https://frigate-concourse.randomwalk.ai' },
-	{ name: 'External Road Cameras', url: 'https://frigate-external.randomwalk.ai' },
+	{ name: 'Stands Entry/Exit', url: 'https://162.243.212.38:5010' },
+	{ name: 'Galleries', url: 'https://107.170.59.75:5010' },
+	{ name: 'Gates & Concourse', url: 'https://68.183.197.229:5010' },
+	{ name: 'External Road Cameras', url: 'https://138.197.135.188:5010' },
 	{ name: 'Food Stalls & Media', url: 'https://frigate-media.randomwalk.ai' },
 	{ name: 'Hospitality Offices', url: 'https://frigate-hospitality.randomwalk.ai' }
 	// { name: 'Stands Entry/Exit', url: 'http://107.170.54.225:5010' },

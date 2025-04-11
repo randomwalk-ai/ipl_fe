@@ -10,7 +10,7 @@
 		{
 			name: 'Gate 1 IN(3)Enterance',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_1_IN3ENTERANCE',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_1_IN3ENTERANCE',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_3.jpg'],
 			top: 8500,
 			left: 8100
@@ -18,7 +18,7 @@
 		{
 			name: 'Gate 1 OUT(4)Exit view',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_1_OUT4EXIT_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_1_OUT4EXIT_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_4.jpg'],
 			top: 8500,
 			left: 8600
@@ -26,7 +26,7 @@
 		{
 			name: 'Gate 4 IN(5)Queue View',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_4_IN5QUEUE_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_4_IN5QUEUE_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_5.jpg'],
 			top: 6500,
 			left: 8200
@@ -34,7 +34,7 @@
 		{
 			name: 'Gate 4 OUT(6)Road view',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_4_OUT6ROAD_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_4_OUT6ROAD_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_6.jpg'],
 			top: 6500,
 			left: 8600
@@ -42,7 +42,7 @@
 		{
 			name: 'Gate 5 OUT(7)Parking view',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_5_OUT7PARKING_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_5_OUT7PARKING_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_7.jpg'],
 			top: 5657,
 			left: 8290
@@ -50,7 +50,7 @@
 		{
 			name: 'Gate 6 IN(8)Parking view',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_6_IN8PARKING_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_6_IN8PARKING_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_8.jpg'],
 			top: 4625,
 			left: 8666
@@ -58,7 +58,7 @@
 		{
 			name: 'Gate 6 OUT(9)Road view',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_6_OUT9ROAD_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_6_OUT9ROAD_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_9.jpg'],
 			top: 4625,
 			left: 8250
@@ -66,7 +66,7 @@
 		{
 			name: 'Gate 8 IN(10)Blurr ',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_8_IN10BLURR',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_8_IN10BLURR',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_10.jpg'],
 			top: 1535,
 			left: 6150
@@ -74,7 +74,7 @@
 		{
 			name: 'Gate 9 IN(11)Road view',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_9_IN11ROAD_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_9_IN11ROAD_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_11.jpg'],
 			top: 1673,
 			left: 5169
@@ -82,7 +82,7 @@
 		{
 			name: 'Gate 10 OUT(12)Road view',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_10_OUT12ROAD_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_10_OUT12ROAD_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_12.jpg'],
 			top: 2000,
 			left: 4789
@@ -90,7 +90,7 @@
 		{
 			name: 'Gate 11 IN(13)Parking view',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_11_IN13PARKING_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_11_IN13PARKING_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_13.jpg'],
 			top: 1568,
 			left: 4188
@@ -98,7 +98,7 @@
 		{
 			name: 'Gate 13 IN(14)Parking view',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_13_IN14PARKING_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_13_IN14PARKING_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_14.jpg'],
 			top: 4000,
 			left: 1957
@@ -106,7 +106,7 @@
 		{
 			name: 'Gate 13 OUT(15)Blurr ',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_13_OUT15BLURR',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_13_OUT15BLURR',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_15.jpg'],
 			top: 4000,
 			left: 1650
@@ -114,7 +114,7 @@
 		{
 			name: 'Gate 14 IN(16)Entrance checking view',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_14_IN16ENTRANCE_CHECKING_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_14_IN16ENTRANCE_CHECKING_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_16.jpg'],
 			top: 4700,
 			left: 2050
@@ -122,7 +122,7 @@
 		{
 			name: 'Gate 14 OUT(17)Queue View',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_14_OUT17QUEUE_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_14_OUT17QUEUE_VIEW',
 			snapshot_urls: [''],
 			top: 4700,
 			left: 1600
@@ -130,7 +130,7 @@
 		{
 			name: 'Gate 15 OUT(18)Blurr ',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_15_OUT18BLURR',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_15_OUT18BLURR',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_18.jpg'],
 			top: 5550,
 			left: 2050
@@ -138,7 +138,7 @@
 		{
 			name: 'Gate 16 OUT(19)Road & Building View',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_GATE_16_OUT19ROAD_BUILDING_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_GATE_16_OUT19ROAD_BUILDING_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_19.jpg'],
 			top: 6750,
 			left: 2030
@@ -146,7 +146,7 @@
 		{
 			name: 'MCC GATE IN(20)Parking view',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_MCC_GATE_IN20PARKING_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_MCC_GATE_IN20PARKING_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_20.jpg'],
 			top: 7200,
 			left: 2026
@@ -154,7 +154,7 @@
 		{
 			name: 'MCC GATE OUT(21)Road view',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_MCC_GATE_OUT21ROAD_VIEW',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_MCC_GATE_OUT21ROAD_VIEW',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.6_21.jpg'],
 			top: 7200,
 			left: 1600
@@ -162,7 +162,7 @@
 		{
 			name: 'AG RAM SING GATE1',
 			type: 'GATE CAMERA',
-			url: 'http://68.183.197.229:5010/#GATE_CAMERA_DETAILS_AG_RAM_SING_GATE1',
+			url: 'http://162.243.3.182:5010/#GATE_CAMERA_DETAILS_AG_RAM_SING_GATE1',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.2_8.jpg'],
 			top: 3600,
 			left: 2086
@@ -286,7 +286,7 @@
 		{
 			name: 'J STAND UPPER ENTRY15',
 			type: 'STAND ENTRY & EXIT CAMERA',
-			url: 'http://162.243.212.38:5010/#STAND_ENTRY_EXIT_CAMERA_J_STAND_UPPER_ENTRY15',
+			url: 'http://162.243.219.217:5010/#STAND_ENTRY_EXIT_CAMERA_J_STAND_UPPER_ENTRY15',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.4.4_15.jpg'],
 			top: 5100,
 			left: 2550
@@ -294,7 +294,7 @@
 		{
 			name: 'J STAND LOWER ENTRY16',
 			type: 'STAND ENTRY & EXIT CAMERA',
-			url: 'http://162.243.212.38:5010/#STAND_ENTRY_EXIT_CAMERA_J_STAND_LOWER_ENTRY16',
+			url: 'http://162.243.219.217:5010/#STAND_ENTRY_EXIT_CAMERA_J_STAND_LOWER_ENTRY16',
 			snapshot_urls: ['https://randomdev.blob.core.windows.net/ipl-snapshots/192.168.5.2_19.jpg'],
 			top: 5099,
 			left: 3173
@@ -634,7 +634,7 @@
 		{
 			name: 'STAND K-2UPPER Down to Up Right side show',
 			type: 'GALLERY CAMERA',
-			url: 'http://107.170.54.225:5010/#GALLERY_CAMERA_STAND_K2UPPER_DOWN_TO_UP_RIGHT_SIDE_SHOW',
+			url: 'http://107.170.8.107:5010/#GALLERY_CAMERA_STAND_K2UPPER_DOWN_TO_UP_RIGHT_SIDE_SHOW',
 			snapshot_urls: [
 				'https://randomdev.blob.core.windows.net/ipl-snapshot-all/192.168.4.4_27.jpg'
 			],
@@ -644,7 +644,7 @@
 		{
 			name: 'STAND K-3LOWER PTZ Left  view',
 			type: 'GALLERY CAMERA',
-			url: 'http://107.170.54.225:5010/#GALLERY_CAMERA_STAND_K3LOWER_PTZ_LEFT_VIEW',
+			url: 'http://107.170.8.107:5010/#GALLERY_CAMERA_STAND_K3LOWER_PTZ_LEFT_VIEW',
 			snapshot_urls: [
 				'https://randomdev.blob.core.windows.net/ipl-snapshot-all/192.168.4.4_28.jpg'
 			],
@@ -654,7 +654,7 @@
 		{
 			name: 'STAND K-4??',
 			type: 'GALLERY CAMERA',
-			url: 'http://107.170.54.225:5010/#GALLERY_CAMERA_STAND_K4',
+			url: 'http://107.170.8.107:5010/#GALLERY_CAMERA_STAND_K4',
 			snapshot_urls: [
 				'https://randomdev.blob.core.windows.net/ipl-snapshot-all/192.168.4.4_29.jpg'
 			],
@@ -664,7 +664,7 @@
 		{
 			name: 'STAND D LOWER3',
 			type: 'GALLERY CAMERA',
-			url: 'http://107.170.54.225:5010/#GALLERY_CAMERA_STAND_D_LOWER3',
+			url: 'http://107.170.8.107:5010/#GALLERY_CAMERA_STAND_D_LOWER3',
 			snapshot_urls: [
 				'https://randomdev.blob.core.windows.net/ipl-snapshot-all/192.168.4.7_23.jpg'
 			],
@@ -736,7 +736,7 @@
 		{
 			name: 'MEDIA ENTRY7',
 			type: 'CONCOURSE',
-			url: 'http://107.170.54.225:5010/#CONCOURSE_MEDIA_ENTRY7',
+			url: 'http://162.243.3.182:5010/#CONCOURSE_MEDIA_ENTRY7',
 			snapshot_urls: [
 				'https://randomdev.blob.core.windows.net/ipl-snapshot-all/192.168.5.2_23.jpg'
 			],
@@ -746,7 +746,7 @@
 		{
 			name: 'STAND  I -2PASSAGE 2',
 			type: 'CONCOURSE',
-			url: 'http://107.170.54.225:5010/#CONCOURSE_STAND_I_2PASSAGE_2',
+			url: 'http://162.243.3.182:5010/#CONCOURSE_STAND_I_2PASSAGE_2',
 			snapshot_urls: [
 				'https://randomdev.blob.core.windows.net/ipl-snapshot-all/192.168.4.4_11.jpg'
 			],

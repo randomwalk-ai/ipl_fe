@@ -24,7 +24,7 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 		// Create FormData to send to the backend
 		const formData = new FormData();
 		formData.append('image', blob, 'alerts-snapshot.png');
-		formData.append('chat_id', '-1002586863401'); // Using the chat_id from your example
+		formData.append('chat_id', '-1002362975139'); // Using the chat_id from your example
 
 		// Send to your backend service
 		const backendUrl = PUBLIC_NOTIFICATION_SERVICE_ENDPOINT;

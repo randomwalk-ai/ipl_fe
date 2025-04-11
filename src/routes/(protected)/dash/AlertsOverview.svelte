@@ -3,7 +3,7 @@
   import * as Dialog from '$lib/components/ui/dialog';
   import * as Switch from '$lib/components/ui/switch';
   import { alertItems as importedAlertItems } from '$lib/data/alertItems';
-  import { Loader2, Maximize2 } from '@lucide/svelte';
+  import { Loader2, Maximize2, RefreshCw, Send } from '@lucide/svelte';
   import html2canvas from 'html2canvas';
   
   let isDownloading = false;
@@ -38,6 +38,38 @@
       showNewOnly = currentShowNewOnly;
     }, 10);
   };
+
+  const resetAlerts = () => {
+			// Load from localstorage the unNotifiedAlertIds and set the db records accordingly
+			const unNotifiedAlertIds = JSON.parse(localStorage.getItem('unNotifiedAlertIds') || '{}');
+			console.log('unNotifiedAlertIds', unNotifiedAlertIds);
+			fetch('/api/update-alert-ids', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ unNotifiedAlertIds })
+			})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Failed to update alert ids');
+				}
+				return response.json();
+			})
+			.then(data => {
+				console.log('Alert ids updated successfully:', data);
+				// Clear localStorage after successful update
+				localStorage.removeItem('unNotifiedAlertIds');
+				// Directly call the refresh method on the component
+				if (alertCardsComponent) {
+					alertCardsComponent.refreshData();
+				}
+			})
+			.catch(error => {
+				console.error('Error updating alert ids:', error);
+			});
+
+  }
   
   const sendAlert = async () => {
 		if (isDownloading) return; // Prevent multiple clicks
@@ -52,6 +84,10 @@
 				return;
 			}
 
+			// Check if the content contains stat-cards-container
+			const hasStatCards = contentToCapture.querySelector('.stat-cards-container') !== null;
+			console.log('Has stat cards container:', hasStatCards);
+
 			// Create a temporary clone of the entire content
 			const tempContainer = document.createElement('div');
 			const clone = contentToCapture.cloneNode(true) as HTMLElement;
@@ -62,6 +98,32 @@
 			tempContainer.style.color = styles.color;
 			tempContainer.style.padding = styles.padding;
 			tempContainer.style.width = contentToCapture.offsetWidth + 'px';
+
+			// Apply light theme if stat-cards-container is present
+			if (hasStatCards) {
+				tempContainer.style.backgroundColor = '#C8E6C9';
+				tempContainer.style.color = '#000000';
+				
+				// Find all card elements and apply light theme
+				const cards = clone.querySelectorAll('.stat-cards-container .stat-card');
+				cards.forEach(card => {
+					(card as HTMLElement).style.backgroundColor = '#2E7D32';
+					(card as HTMLElement).style.borderColor = '#000000';
+					
+					// Find card headers and apply light theme
+					const headers = card.querySelectorAll('.bg-\\[\\#2E7D32\\]');
+					headers.forEach(header => {
+						(header as HTMLElement).style.backgroundColor = '#2E7D32';
+						(header as HTMLElement).style.color = '#fff';
+					});
+					
+					// Find text elements and ensure they're visible on light background
+					const texts = card.querySelectorAll('p, h1, h2, h3, span');
+					texts.forEach(text => {
+						(text as HTMLElement).style.color = '#000000';
+					});
+				});
+			}
 
 			// Append the clone to the temp container
 			tempContainer.appendChild(clone);
@@ -77,7 +139,7 @@
 				hour: '2-digit',
 				minute: '2-digit'
 			});
-			timestampHeader.innerHTML = `<div style="font-size: 14px; font-weight: bold; margin-bottom: 8px; text-align: center;">
+			timestampHeader.innerHTML = `<div style="font-size: 14px; font-weight: bold; margin-bottom: 8px; text-align: center; color: ${hasStatCards ? '#1e293b' : 'white'}">
 				Sent at ${formattedDate} ${formattedTime}
 			</div>`;
 			tempContainer.appendChild(timestampHeader);
@@ -171,7 +233,7 @@
 			
 			// Use html2canvas with the properly prepared clone
 			const canvas = await html2canvas(tempContainer, {
-				backgroundColor: window.getComputedStyle(document.body).backgroundColor,
+				backgroundColor: hasStatCards ? '#C8E6C9' : window.getComputedStyle(document.body).backgroundColor,
 				scale: 2,
 				logging: true,
 				useCORS: true,
@@ -195,7 +257,7 @@
 			link.download = `alerts-grid-${new Date().toISOString().slice(0, 10)}.png`;
 			link.href = canvas.toDataURL('image/png');
 
-      console.log("Sending image to notification service")
+      		console.log("Sending image to notification service", canvas.toDataURL('image/png'));
 			// Call an endpoint to send this image to notification service
 			fetch('/api/send-alerts-image', {
 				method: 'POST',
@@ -227,34 +289,6 @@
 			alert('Failed to download image. Please try again.');
 		} finally {
 			isDownloading = false;
-			// Load from localstorage the unNotifiedAlertIds and set the db records accordingly
-			const unNotifiedAlertIds = JSON.parse(localStorage.getItem('unNotifiedAlertIds') || '{}');
-			console.log('unNotifiedAlertIds', unNotifiedAlertIds);
-			fetch('/api/update-alert-ids', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ unNotifiedAlertIds })
-			})
-			.then(response => {
-				if (!response.ok) {
-					throw new Error('Failed to update alert ids');
-				}
-				return response.json();
-			})
-			.then(data => {
-				console.log('Alert ids updated successfully:', data);
-				// Clear localStorage after successful update
-				localStorage.removeItem('unNotifiedAlertIds');
-				// Directly call the refresh method on the component
-				if (alertCardsComponent) {
-					alertCardsComponent.refreshData();
-				}
-			})
-			.catch(error => {
-				console.error('Error updating alert ids:', error);
-			});
 		}
 	};
 </script>
@@ -264,7 +298,7 @@
   <div class="flex justify-between items-center bg-[#1E293B] p-4 rounded-t-lg text-white">
     <h1 class="text-2xl font-bold">Alerts Overview</h1>
     <!-- Filter controls -->
-    <div class="p-4 bg-muted/30 border-b flex flex-col sm:flex-row gap-4 items-center justify-between">
+    <div class="flex items-center gap-4">
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium">Show Recent</span>
         <Switch.Root 
@@ -274,29 +308,36 @@
           }}
         />
       </div>
-    </div>
-    <div class="flex items-center gap-2">
-      <button 
-        onclick={() => isModalOpen = true}
-        class="flex items-center gap-1 px-3 py-1.5 bg-muted/20 text-white rounded-md hover:bg-muted/30"
-        aria-label="Open in fullscreen modal"
-      >
-        <Maximize2 class="h-4 w-4" />
-      </button>
-      {#if showNewOnly}
-      <button 
-        onclick={sendAlert}
-        class="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-md disabled:opacity-50"
-        disabled={isDownloading}
-      >
-        {#if isDownloading}
-          <Loader2 class="h-4 w-4 animate-spin" />
-          <span>Processing...</span>
-        {:else}
-          <span>Send Alert</span>
-        {/if}
-      </button>
-      {/if}
+      <div class="flex items-center gap-2">
+        <button 
+          onclick={resetAlerts}
+          class="flex items-center justify-center w-9 h-9 bg-muted/20 text-white rounded-2xl hover:bg-primary/90 transition-colors"
+          aria-label="Reset alerts"
+        >
+          <RefreshCw class="h-4 w-4" />
+        </button>
+        <button 
+          onclick={() => isModalOpen = true}
+          class="flex items-center justify-center w-9 h-9 bg-muted/20 text-white rounded-2xl hover:bg-primary/90 transition-colors"
+          aria-label="Open in fullscreen modal"
+        >
+          <Maximize2 class="h-4 w-4" />
+        </button>
+        <!-- {#if showNewOnly} -->
+        <button 
+          onclick={sendAlert}
+          class="flex items-center justify-center w-9 h-9 text-white rounded-2xl disabled:opacity-50 hover:bg-primary/90 transition-colors"
+          disabled={isDownloading}
+          aria-label="Send alert"
+        >
+          {#if isDownloading}
+            <Loader2 class="h-4 w-4 animate-spin" />
+          {:else}
+            <Send class="h-4 w-4" />
+          {/if}
+        </button>
+        <!-- {/if} -->
+      </div>
     </div>
   </div>
   <div id="scroll-content" class="p-4 h-full">
@@ -313,14 +354,23 @@
   <Dialog.Content class="max-w-[95vw] max-h-[95vh] w-[95vw] h-[95vh] p-0 overflow-hidden">
     <Dialog.Header class="bg-[#1E293B] p-4 text-white flex justify-between items-center">
       <Dialog.Title>Alerts Overview</Dialog.Title>
-      <div class="flex items-center gap-2">
-        <span class="text-sm font-medium">Show Recent</span>
-        <Switch.Root 
-          checked={showNewOnly} 
-          onCheckedChange={(checked) => { 
-            showNewOnly = checked;
-          }}
-        />
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-medium">Show Recent</span>
+          <Switch.Root 
+            checked={showNewOnly} 
+            onCheckedChange={(checked) => { 
+              showNewOnly = checked;
+            }}
+          />
+        </div>
+        <button 
+          onclick={resetAlerts}
+          class="flex items-center justify-center w-9 h-9 bg-muted/20 text-white rounded-md hover:bg-muted/30 transition-colors"
+          aria-label="Reset alerts"
+        >
+          <RefreshCw class="h-4 w-4" />
+        </button>
       </div>
     </Dialog.Header>
     
@@ -333,7 +383,7 @@
     </div>
     
     <Dialog.Footer class="border-t p-4">
-      <Dialog.Close class="bg-muted px-3 py-1.5 rounded-md text-sm">Close</Dialog.Close>
+      <Dialog.Close class="bg-muted hover:bg-muted/80 px-3 py-1.5 rounded-md text-sm transition-colors">Close</Dialog.Close>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

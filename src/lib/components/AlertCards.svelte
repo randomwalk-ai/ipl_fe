@@ -260,7 +260,7 @@
     // Set up interval for periodic refreshes
     refreshInterval = window.setInterval(() => {
       fetchAlertData();
-    }, 5000);
+    }, 30000);
     
     // Clean up interval on component destruction
     return () => {

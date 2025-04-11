@@ -65,6 +65,22 @@
 
 			// Append the clone to the temp container
 			tempContainer.appendChild(clone);
+			// Add timestamp header
+			const timestampHeader = document.createElement('div');
+			const currentDate = new Date();
+			const formattedDate = currentDate.toLocaleDateString('en-US', {
+				month: 'short',
+				day: 'numeric',
+				year: 'numeric'
+			});
+			const formattedTime = currentDate.toLocaleTimeString('en-US', {
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+			timestampHeader.innerHTML = `<div style="font-size: 14px; font-weight: bold; margin-bottom: 8px; text-align: center;">
+				Sent at ${formattedDate} ${formattedTime}
+			</div>`;
+			tempContainer.appendChild(timestampHeader);
 
 			// Make the temp container temporarily visible but off-screen
 			tempContainer.style.position = 'absolute';

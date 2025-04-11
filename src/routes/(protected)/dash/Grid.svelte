@@ -5,15 +5,18 @@
 		BellIcon,
 		CameraIcon,
 		TrendingUpIcon,
-		TrendingDownIcon
+		TrendingDownIcon,
+		Loader2
 	} from '@lucide/svelte';
 	import type { AnalyticsData } from '../types';
+	import html2canvas from 'html2canvas';
 
 	type Props = {
 		data: AnalyticsData;
 	};
 
 	let { data }: Props = $props();
+	let isCapturing = false;
 
 	// let attendancePercentage = $derived.by(() => {
 	// 	if (data.attendance.prevTotal === 0) return 0;
@@ -46,9 +49,127 @@
 		// return num >= 1000 ? (num / 1000).toFixed(1) + 'K' : num.toString();
 		return new Intl.NumberFormat('en-IN').format(num);
 	};
+
+	// Function to capture and send the stats grid as an image
+	const sendStatsImage = async () => {
+		if (isCapturing) return; // Prevent multiple clicks
+		
+		isCapturing = true;
+		try {
+			// Find the stats grid container
+			const contentToCapture = document.querySelector('.main-statcards-grid') as HTMLElement;
+			console.log('contentToCapture', contentToCapture);
+			if (!contentToCapture) {
+				console.error('Stats grid element not found');
+				return;
+			}
+
+			// Create a temporary container
+			const tempContainer = document.createElement('div');
+			tempContainer.style.display = 'flex';
+			tempContainer.style.flexDirection = 'column';
+			tempContainer.style.gap = '8px';
+			tempContainer.style.width = '320px';
+			tempContainer.style.padding = '12px';
+			tempContainer.style.backgroundColor = window.getComputedStyle(document.body).backgroundColor;
+			
+			// Add timestamp header
+			const timestampHeader = document.createElement('div');
+			const currentDate = new Date();
+			const formattedDate = currentDate.toLocaleDateString('en-US', {
+				month: 'short',
+				day: 'numeric',
+				year: 'numeric'
+			});
+			const formattedTime = currentDate.toLocaleTimeString('en-US', {
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+			timestampHeader.innerHTML = `<div style="font-size: 14px; font-weight: bold; margin-bottom: 8px; text-align: center;">
+				Sent at ${formattedDate} ${formattedTime}
+			</div>`;
+			tempContainer.appendChild(timestampHeader);
+			
+			// Create a clone of the content
+			const clone = contentToCapture.cloneNode(true) as HTMLElement;
+
+			// Modify the clone to stack cards vertically
+			clone.style.display = 'flex';
+			clone.style.flexDirection = 'column';
+			clone.style.gap = '8px';
+			clone.style.width = '100%';
+			
+			// Make each card take full width
+			const cards = Array.from(clone.querySelectorAll('.p-4'));
+			cards.forEach(card => {
+				(card as HTMLElement).style.width = '100%';
+			});
+
+			// Append the clone to the temp container
+			tempContainer.appendChild(clone);
+
+			// Make the temp container temporarily visible but off-screen
+			tempContainer.style.position = 'absolute';
+			tempContainer.style.left = '-9999px';
+			tempContainer.style.top = '-9999px';
+			document.body.appendChild(tempContainer);
+
+			// Remove all buttons and interactive elements
+			const buttons = Array.from(tempContainer.querySelectorAll('button'));
+			buttons.forEach(button => button.remove());
+
+			// Use html2canvas with the properly prepared container
+			const canvas = await html2canvas(tempContainer, {
+				backgroundColor: window.getComputedStyle(document.body).backgroundColor,
+				scale: 2,
+				logging: true,
+				useCORS: true,
+				allowTaint: true,
+				width: 320, // Fixed width for notification
+				height: tempContainer.scrollHeight,
+				imageTimeout: 0
+			});
+			console.log("Canvas created successfully");
+
+			// Clean up the temporary elements
+			document.body.removeChild(tempContainer);
+
+			console.log("Sending stats image to notification service");
+			// Call an endpoint to send this image to notification service
+			fetch('/api/send-alerts-image', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ 
+					image: canvas.toDataURL('image/png'),
+					title: 'Stadium Stats Overview'
+				})
+			})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Failed to send stats image');
+				}
+				return response.json();
+			})
+			.then(data => {
+				console.log('Stats image sent successfully:', data);
+			})
+			.catch(error => {
+				console.error('Error sending stats image:', error);
+			});
+
+		} catch (error) {
+			console.error('Error capturing stats grid:', error);
+			// Show error notification if desired
+			alert('Failed to capture stats image. Please try again.');
+		} finally {
+			isCapturing = false;
+		}
+	};
 </script>
 
-<div class="grid grid-cols-1 gap-4 md:grid-cols-4 lg:grid-cols-4">
+<div class="grid grid-cols-1 gap-4 md:grid-cols-4 lg:grid-cols-4 main-statcards-grid">
 	<!-- Attendance Card -->
 	<Card class="p-4">
 		<div class="flex flex-col gap-2">
@@ -149,4 +270,23 @@
             <span class="text-xs text-muted-foreground">vs. past hour</span>
 		</div>
 	</Card>
+</div>
+
+<!-- Change the button position to fixed top right -->
+<div class="fixed top-4 right-4 z-10">
+	<button 
+		onclick={sendStatsImage}
+		class="flex items-center justify-center w-10 h-10 text-primary-foreground rounded-md disabled:opacity-50 shadow-md"
+		disabled={isCapturing}
+		aria-label="Send stats overview"
+	>
+		{#if isCapturing}
+			<Loader2 class="h-5 w-5 animate-spin" />
+		{:else}
+			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send">
+				<path d="m22 2-7 20-4-9-9-4Z"/>
+				<path d="M22 2 11 13"/>
+			</svg>
+		{/if}
+	</button>
 </div>

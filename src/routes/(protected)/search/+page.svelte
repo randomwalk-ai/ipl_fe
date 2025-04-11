@@ -705,7 +705,7 @@
 			({searchResults.length})
 		</h2>
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-			{#each searchResults as result (result.id)}
+			{#each searchResults as result}
                  {@const baseUrl = normalizeBaseUrl(result.source_instance)}
                 {@const snapshotUrl =
                     baseUrl && result.has_snapshot ? `${baseUrl}/api/events/${result.id}/snapshot.jpg` : result.search_source === 'semantic' && result.thumbnail ? result.thumbnail : null}

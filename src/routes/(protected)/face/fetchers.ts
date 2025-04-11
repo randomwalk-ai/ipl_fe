@@ -187,6 +187,25 @@ export async function searchByImage(
     }
 
     // Type assertion is okay here if we trust the backend adheres to the contract
-    return response.json() as Promise<SearchResponse>;
+    return (response.json() as Promise<SearchResponse>).then((data) => {
+        // Remap thumbnail URLs for faces
+        data.matches = data.matches.map((match) => {
+            if ('thumbnail_url' in match && match.thumbnail_url) {
+                return {
+                    ...match,
+                    thumbnail_url: `${PUBLIC_SERVICE_ENDPOINT}/face_thumbnails/${match.source_snapshot_filename}`
+                };
+            }
+            if ('representative_thumbnail_url' in match && match.representative_thumbnail_url) {
+                return {
+                    ...match,
+                    representative_thumbnail_url: `${PUBLIC_SERVICE_ENDPOINT}/cluster_images/${match.cluster_id}.jpg`
+                };
+            }
+            return match;
+        });
+        return data;
+    }
+    );
 }
 

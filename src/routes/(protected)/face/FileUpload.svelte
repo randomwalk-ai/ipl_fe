@@ -281,7 +281,7 @@
 >
 	<Dialog.Content class="max-w-4xl border-gray-700 bg-background sm:max-w-5xl lg:max-w-6xl">
 		<Dialog.Header>
-			<Dialog.Title class="text-xl font-semibold">Image Search Results</Dialog.Title>
+			<Dialog.Title class="text-xl font-semibold">Suspect Face Search</Dialog.Title>
 			{#if !searchLoading}
 				<Dialog.Description>Showing matches for the uploaded image.</Dialog.Description>
 			{/if}

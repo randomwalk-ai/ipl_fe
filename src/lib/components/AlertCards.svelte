@@ -298,7 +298,14 @@
   function formatTimestamp(timestamp: string): string {
     if (!timestamp) return 'N/A';
     try {
-      return format(new Date(timestamp), 'MMM dd, yyyy HH:mm:ss');
+      const date = new Date(timestamp);
+      const istOffset = 5 * 60 * 60 * 1000; 
+      const istDate = new Date(date.getTime() + istOffset + 30 * 60 * 1000); 
+      // Check if the IST date is greater than the current date
+      if (istDate > new Date()) {
+        return format(timestamp, 'MMM dd, yyyy HH:mm:ss'); // Use the usual timestamp
+      }
+      return format(istDate, 'MMM dd, yyyy HH:mm:ss');
     } catch (e) {
       return timestamp;
     }

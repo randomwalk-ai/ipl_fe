@@ -77,7 +77,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	);
 
 	// Banner Slogans
-	const bannerSlogansKeywords = ['person waving black flag', 'people holding placards'];
+	const bannerSlogansKeywords = ['person waving black flag','person carrying banners','person carrying bottles','person carrying posters', 'people holding placards'];
 	const bannerSlogansData = uniquesearchAlertData.filter((alert) =>
 		bannerSlogansKeywords.includes(alert.query as string)
 	);
@@ -85,7 +85,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	// Get only unique records based on res_id
 
 	// Animals
-	const animalsKeywords = ['dogs'];
+	const animalsKeywords = ['dogs','dog'];
 	const animalsData = uniquesearchAlertData.filter((alert) =>
 		animalsKeywords.includes(alert.query as string)
 	);

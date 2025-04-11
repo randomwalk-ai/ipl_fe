@@ -15,7 +15,16 @@ export default async function getAllClusters() {
     if (!response.ok) {
         throw new Error('Network response was not ok');
     }
-    return response.json() as Promise<Cluster[]>;
+    return (response.json() as Promise<Cluster[]>).then((e) => {
+        // remap representative_thumbnail_url
+        return e.map((cluster) => {
+            return {
+                ...cluster,
+                representative_thumbnail_url: `${PUBLIC_SERVICE_ENDPOINT}/cluster_images/${cluster.cluster_id}.jpg`
+            }
+        })
+    });
+    // remap representative_thumbnail_url
 }
 export interface Face {
     embedding_id: string
@@ -35,7 +44,16 @@ export async function getClusterFaces(cluster_id: string) {
     if (!response.ok) {
         throw new Error('Network response was not ok');
     }
-    return response.json() as Promise<Face[]>;
+    return (response.json() as Promise<Face[]>).then((e) => {
+        // remap representative_thumbnail_url
+        return e.map((face) => {
+            return {
+                ...face,
+                thumbnail_url: `${PUBLIC_SERVICE_ENDPOINT}/face_thumbnails/${face.source_snapshot_filename}`
+            }
+        })
+    }
+    );
 }
 
 export interface FaceSearchResult {

@@ -169,24 +169,36 @@ export const formatDate = (dateString: string) => {
 
 export const frigateInstances = [
 	{
-		name: 'galleries', url: 'http://107.170.8.107:5010', semanticUrl: "http://107.170.8.107:8089"
+		name: 'Galleries',
+		url: 'http://107.170.8.107:5010',
+		semanticUrl: 'http://107.170.8.107:8089'
 	},
 	{
-		name: 'external', url: 'http://107.170.29.114:5010', semanticUrl: "http://107.170.29.114:8089"
+		name: 'External Roadside',
+		url: 'http://107.170.29.114:5010',
+		semanticUrl: 'http://107.170.29.114:8089'
 	},
 	{
-		name: 'gate-concourse', url: 'http://162.243.3.182:5010', semanticUrl: "http://162.243.3.182:8089"
+		name: 'Gates and Concourse',
+		url: 'http://162.243.3.182:5010',
+		semanticUrl: 'http://162.243.3.182:8089'
 	},
 	{
-		name: 'Hospitality', url: 'http://162.243.248.150:5010', semanticUrl: "http://162.243.248.150:8089"
+		name: 'Hospitality and Offices',
+		url: 'http://162.243.248.150:5010',
+		semanticUrl: 'http://162.243.248.150:8089'
 	},
 	{
-		name: 'Foodstalls', url: 'http://162.243.253.121:5010', semanticUrl: "http://162.243.253.121:8089"
+		name: 'Foodstalls',
+		url: 'http://162.243.253.121:5010',
+		semanticUrl: 'http://162.243.253.121:8089'
 	},
 	{
-		name: 'ipl-frigate-6', url: 'http://162.243.219.217:5010', semanticUrl: "http://162.243.219.217:8089"
+		name: 'Stands Entry/Exit',
+		url: 'http://162.243.219.217:5010',
+		semanticUrl: 'http://162.243.219.217:8089'
 	}
-]
+];
 
 export const ipl_players_lookup: {
 	[key: string]: string;

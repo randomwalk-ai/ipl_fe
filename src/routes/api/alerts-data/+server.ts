@@ -48,7 +48,7 @@ export const GET: RequestHandler = async ({ url }) => {
 				camera_id, 				
 				object_class || ' found loitering' AS query,
 				${PUBLIC_LOITERING_ENDPOINT} || '/snapshot/' || snapshot_path AS thumb_path,
-				(loitering_start_time AT TIME ZONE 'Asia/Kolkata') AT TIME ZONE 'UTC' AS start_timestamp,
+				loitering_start_time AT TIME ZONE 'UTC' AS start_timestamp,
 				created_at AT TIME ZONE 'UTC' AS end_timestamp,
 				is_notified
 			FROM loitering
@@ -61,8 +61,8 @@ export const GET: RequestHandler = async ({ url }) => {
 			id,
 			camera_id,
 			'Missing Police Personnel' AS query,
-			from_timestamp as start_timestamp,
-			to_timestamp as end_timestamp,
+			from_timestamp AT TIME ZONE 'UTC' AS start_timestamp,
+			to_timestamp AT TIME ZONE 'UTC' AS end_timestamp,
 			missing_duration as duration,
 			${PUBLIC_POLICE_MONITORING_ENDPOINT} || '/snapshot/' || snapshot_path AS thumb_path,
 			${PUBLIC_POLICE_MONITORING_ENDPOINT} || '/clip/' || clip_path AS clip_path,

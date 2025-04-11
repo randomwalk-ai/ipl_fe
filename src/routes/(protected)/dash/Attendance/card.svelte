@@ -21,7 +21,7 @@
 	const formatNumber = (num: number) => new Intl.NumberFormat('en-IN').format(num);
 </script>
 
-<Card class="flex flex-col w-full h-1/2 min-h-0 dark:bg-background dark:text-white">
+<Card class="flex flex-col w-full h-full min-h-0 dark:bg-background dark:text-white">
 	<CardHeader class="flex-none h-14 flex flex-row items-center justify-between rounded-t-md bg-secondary p-4">
 		<div class="flex items-center gap-2">
 			<UsersIcon class="h-5 w-5" />

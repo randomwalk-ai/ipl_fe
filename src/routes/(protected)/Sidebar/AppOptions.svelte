@@ -1,6 +1,15 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { LayoutDashboard, MessagesSquare, BellRing, Users, Hash, Eye, Search } from '@lucide/svelte';
+	import {
+		LayoutDashboard,
+		MessagesSquare,
+		BellRing,
+		Users,
+		Hash,
+		Eye,
+		Search,
+		UserSearch
+	} from '@lucide/svelte';
 	import { goto, beforeNavigate, afterNavigate } from '$app/navigation';
 
 	let isNavigating = $state(false);
@@ -49,6 +58,15 @@
 		</Sidebar.MenuItem>
 		<Sidebar.MenuItem>
 			<Sidebar.MenuButton
+				onclick={(e) => goto('/face')}
+				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
+			>
+				<UserSearch />
+				<span>{'Face Recognition'}</span>
+			</Sidebar.MenuButton>
+		</Sidebar.MenuItem>
+		<Sidebar.MenuItem>
+			<Sidebar.MenuButton
 				onclick={(e) => goto('/social')}
 				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
 			>
@@ -90,6 +108,24 @@
 			>
 				<Users />
 				<span>{'Crowd Monitor'}</span>
+			</Sidebar.MenuButton>
+		</Sidebar.MenuItem>
+		<!-- <Sidebar.MenuItem>
+			<Sidebar.MenuButton
+				onclick={(e) => goto('/topview')}
+				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
+			>
+				<Eye />
+				<span>{'Top View'}</span>
+			</Sidebar.MenuButton>
+		</Sidebar.MenuItem> -->
+		<Sidebar.MenuItem>
+			<Sidebar.MenuButton
+				onclick={(e) => goto('/view')}
+				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
+			>
+				<Eye />
+				<span>{'Stadium View'}</span>
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
 	</Sidebar.Menu>

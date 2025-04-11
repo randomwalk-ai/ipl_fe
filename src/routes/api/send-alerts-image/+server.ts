@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { PUBLIC_NOTIFICATION_SERVICE_ENDPOINT } from '$env/static/public';
+import { PUBLIC_NOTIFICATION_SERVICE_ENDPOINT, PUBLIC_TELEGRAM_CHAT_ID } from '$env/static/public';
 
 export const POST: RequestHandler = async ({ request, fetch }) => {
 	try {
@@ -24,7 +24,7 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 		// Create FormData to send to the backend
 		const formData = new FormData();
 		formData.append('image', blob, 'alerts-snapshot.png');
-		formData.append('chat_id', '-1002362975139'); // Using the chat_id from your example
+		formData.append('chat_id', PUBLIC_TELEGRAM_CHAT_ID);
 
 		// Send to your backend service
 		const backendUrl = PUBLIC_NOTIFICATION_SERVICE_ENDPOINT;

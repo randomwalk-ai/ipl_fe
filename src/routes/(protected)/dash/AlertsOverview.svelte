@@ -84,6 +84,10 @@
 				return;
 			}
 
+			// Check if the content contains stat-cards-container
+			const hasStatCards = contentToCapture.querySelector('.stat-cards-container') !== null;
+			console.log('Has stat cards container:', hasStatCards);
+
 			// Create a temporary clone of the entire content
 			const tempContainer = document.createElement('div');
 			const clone = contentToCapture.cloneNode(true) as HTMLElement;
@@ -94,6 +98,32 @@
 			tempContainer.style.color = styles.color;
 			tempContainer.style.padding = styles.padding;
 			tempContainer.style.width = contentToCapture.offsetWidth + 'px';
+
+			// Apply light theme if stat-cards-container is present
+			if (hasStatCards) {
+				tempContainer.style.backgroundColor = '#C8E6C9';
+				tempContainer.style.color = '#000000';
+				
+				// Find all card elements and apply light theme
+				const cards = clone.querySelectorAll('.stat-cards-container .stat-card');
+				cards.forEach(card => {
+					(card as HTMLElement).style.backgroundColor = '#2E7D32';
+					(card as HTMLElement).style.borderColor = '#000000';
+					
+					// Find card headers and apply light theme
+					const headers = card.querySelectorAll('.bg-\\[\\#2E7D32\\]');
+					headers.forEach(header => {
+						(header as HTMLElement).style.backgroundColor = '#2E7D32';
+						(header as HTMLElement).style.color = '#fff';
+					});
+					
+					// Find text elements and ensure they're visible on light background
+					const texts = card.querySelectorAll('p, h1, h2, h3, span');
+					texts.forEach(text => {
+						(text as HTMLElement).style.color = '#000000';
+					});
+				});
+			}
 
 			// Append the clone to the temp container
 			tempContainer.appendChild(clone);
@@ -109,7 +139,7 @@
 				hour: '2-digit',
 				minute: '2-digit'
 			});
-			timestampHeader.innerHTML = `<div style="font-size: 14px; font-weight: bold; margin-bottom: 8px; text-align: center;">
+			timestampHeader.innerHTML = `<div style="font-size: 14px; font-weight: bold; margin-bottom: 8px; text-align: center; color: ${hasStatCards ? '#1e293b' : 'white'}">
 				Sent at ${formattedDate} ${formattedTime}
 			</div>`;
 			tempContainer.appendChild(timestampHeader);
@@ -203,7 +233,7 @@
 			
 			// Use html2canvas with the properly prepared clone
 			const canvas = await html2canvas(tempContainer, {
-				backgroundColor: window.getComputedStyle(document.body).backgroundColor,
+				backgroundColor: hasStatCards ? '#C8E6C9' : window.getComputedStyle(document.body).backgroundColor,
 				scale: 2,
 				logging: true,
 				useCORS: true,

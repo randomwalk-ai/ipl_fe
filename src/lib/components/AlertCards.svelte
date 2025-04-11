@@ -399,10 +399,10 @@
 <div class="flex flex-col gap-3 p-2 h-full">
 
   {#if showCards}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 {isFullscreen ? 'xl:grid-cols-4 2xl:grid-cols-5' : 'xl:grid-cols-2'} gap-3">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 {isFullscreen ? 'xl:grid-cols-4 2xl:grid-cols-5' : 'xl:grid-cols-2'} gap-3 stat-cards-container">
       {#each alertsWithCounts.length ? alertsWithCounts : alertItems as alert}
         <Card.Root 
-          class="overflow-hidden {alert.count ? 'cursor-pointer hover:shadow-md transition-shadow' : 'opacity-30'}"
+          class="stat-card overflow-hidden {alert.count ? 'cursor-pointer hover:shadow-md transition-shadow' : 'opacity-30'}"
           onclick={() => alert.count && handleCardClick(alert.id)}
         >
           <Card.Header class="p-0 flex flex-row items-center justify-between">

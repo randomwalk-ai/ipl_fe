@@ -14,26 +14,27 @@ export const GET: RequestHandler = async ({ url }) => {
 	// console.log('API params:', { newOnly, limit });
 
 	const searchAlertData = await db.execute(sql`
-		SELECT 
-		* , 'data:image/png;base64,' || thumbnail AS thumbnail
-		FROM 
-		(SELECT 
-			DISTINCT 
-			alert_notifications.id AS id,
-			alert_notifications.query AS query,
-			result_elem ->> 'id' AS res_id,
-			result_elem ->> 'camera' AS camera_id,
-			result_elem ->> 'img_url' AS img_url,
-			result_elem ->> 'thumb_path' AS thumb_path,
-			TO_TIMESTAMP((result_elem ->> 'start_time')::DOUBLE PRECISION) AS start_timestamp,
-			TO_TIMESTAMP((result_elem ->> 'end_time')::DOUBLE PRECISION) AS end_timestamp,
-			result_elem ->> 'thumbnail' AS thumbnail,
-			alert_notifications.is_notified
-
-		FROM alert_notifications,
-		LATERAL jsonb_array_elements(alert_notifications.results -> 'results') AS result_elem
-		ORDER BY end_timestamp DESC
-		)
+			SELECT 
+				*, 
+				'data:image/png;base64,' || thumbnail AS thumbnail
+			FROM 
+			(
+				SELECT 
+					DISTINCT 
+					alert_notifications.id AS id,
+					alert_notifications.query AS query,
+					result_elem ->> 'id' AS res_id,
+					result_elem ->> 'camera' AS camera_id,
+					result_elem ->> 'img_url' AS img_url,
+					result_elem ->> 'thumb_path' AS thumb_path,
+					TO_TIMESTAMP((result_elem ->> 'start_time')::DOUBLE PRECISION) AT TIME ZONE 'UTC' AS start_timestamp,
+					TO_TIMESTAMP((result_elem ->> 'end_time')::DOUBLE PRECISION) AT TIME ZONE 'UTC' AS end_timestamp,
+					result_elem ->> 'thumbnail' AS thumbnail,
+					alert_notifications.is_notified
+				FROM alert_notifications,
+				LATERAL jsonb_array_elements(alert_notifications.results -> 'results') AS result_elem
+				ORDER BY end_timestamp DESC
+		) AS sub
 		;
 		`);
 

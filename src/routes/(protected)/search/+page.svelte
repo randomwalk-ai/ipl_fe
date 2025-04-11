@@ -421,7 +421,7 @@
 							title="Select an image for similarity search"
 						>
 							<ImagePlusIcon class="size-4" />
-							Image Search
+							Suspect Face Search
 						</Button>
 						<input
 							type="file"

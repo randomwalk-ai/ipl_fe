@@ -41,6 +41,7 @@
     id: string;
     count: number;
     details: AlertDetail[];
+    dbIds: any[];
   };
 
   type AlertItem = {
@@ -152,9 +153,7 @@
 
       const cachedAlertItems: { [key: string]: string[] } = {};
       alertsData.forEach((item) => {
-        cachedAlertItems[item.id] = item.details
-          .filter((detail: AlertDetail) => detail.is_notified === false)
-          .map((detail: AlertDetail) => detail.id);
+        cachedAlertItems[item.id] = item.dbIds
       });
       localStorage.setItem('unNotifiedAlertIds', JSON.stringify(cachedAlertItems));
       applyFilters();

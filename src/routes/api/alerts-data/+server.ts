@@ -71,14 +71,21 @@ export const GET: RequestHandler = async ({ url }) => {
 		ORDER BY start_timestamp DESC;
 	`);
 
+	const uniquesearchAlertData = searchAlertData.filter(
+		(alert, index, self) => index === self.findIndex((t) => t.res_id === alert.res_id)
+	);
+
 	// Banner Slogans
 	const bannerSlogansKeywords = ['person waving black flag', 'people holding placards'];
-	const bannerSlogansData = searchAlertData.filter((alert) =>
+	const bannerSlogansData = uniquesearchAlertData.filter((alert) =>
 		bannerSlogansKeywords.includes(alert.query as string)
 	);
+
+	// Get only unique records based on res_id
+
 	// Animals
 	const animalsKeywords = ['dogs'];
-	const animalsData = searchAlertData.filter((alert) =>
+	const animalsData = uniquesearchAlertData.filter((alert) =>
 		animalsKeywords.includes(alert.query as string)
 	);
 
@@ -86,22 +93,37 @@ export const GET: RequestHandler = async ({ url }) => {
 		{
 			id: 'banners-slogans',
 			count: bannerSlogansData.length,
-			details: bannerSlogansData
+			details: bannerSlogansData,
+			dbIds: searchAlertData
+				.filter(
+					(alert) =>
+						bannerSlogansKeywords.includes(alert.query as string) && alert.is_notified === false
+				)
+				.map((alert) => alert.id)
 		},
 		{
 			id: 'animals',
 			count: animalsData.length,
-			details: animalsData
+			details: animalsData,
+			dbIds: searchAlertData
+				.filter(
+					(alert) => animalsKeywords.includes(alert.query as string) && alert.is_notified === false
+				)
+				.map((alert) => alert.id)
 		},
 		{
 			id: 'loitering',
 			count: loiteringData.length,
-			details: loiteringData
+			details: loiteringData,
+			dbIds: loiteringData.filter((alert) => alert.is_notified === false).map((alert) => alert.id)
 		},
 		{
 			id: 'missing-police',
 			count: policeMonitoringData.length,
-			details: policeMonitoringData
+			details: policeMonitoringData,
+			dbIds: policeMonitoringData
+				.filter((alert) => alert.is_notified === false)
+				.map((alert) => alert.id)
 		},
 		{ id: 'prohibited-items', count: 0, details: [] },
 		{ id: 'stampede-risk', count: 0, details: [] },

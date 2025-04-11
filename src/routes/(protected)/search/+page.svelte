@@ -32,7 +32,7 @@
 	let { data } = $props();
 	let PageState = getPageState();
 
-	PageState.title = 'Frigate Event Search';
+	PageState.title = 'Universal Search';
 
 	// --- State ---
 	let isLoading = $state(false);

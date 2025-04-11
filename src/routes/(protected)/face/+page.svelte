@@ -42,7 +42,7 @@
 				No clusters found. Start by uploading images or connecting cameras.
 			</div>
 		{/if}
-		{#each data.clusters as cluster (cluster.cluster_id)}
+		{#each data.clusters.slice(0, 20) as cluster (cluster.cluster_id)}
 			<Dialog.Root>
 				<Dialog.Trigger>
 					{#snippet child({ props: triggerProps })}
@@ -64,19 +64,19 @@
 								{/if}
 							</div>
 							<!-- Cluster Info -->
-							<div class="space-y-2 p-3 text-sm">
-								<div class="flex items-center justify-between">
+							<div class="space-y-5 p-2 text-sm">
+								<div class="flex items-center justify-between text-gray-200">
 									<div class="flex items-center gap-1" title="Members in Cluster">
-										<UsersIcon class="h-4 w-4" />
-										<span>{cluster.member_count}</span>
+										<UsersIcon class="h-3 w-3" />
+										<span class="text-xs">{cluster.member_count}</span>
 									</div>
 									<div class="flex items-center gap-1" title="Highest Quality Score">
-										<StarIcon class="h-4 w-4" />
-										<span>{((cluster.max_recorded_quality ?? 0) * 100).toFixed(1) ?? 'N/A'}%</span>
+										<StarIcon class="h-3 w-3" />
+										<span class="text-xs">{((cluster.max_recorded_quality ?? 0) * 100).toFixed(1) ?? 'N/A'}%</span>
 									</div>
 								</div>
-								<div class="text-xs text-gray-400">
-									<p>Updated: {formatDate(cluster.last_updated_at)}</p>
+								<div class="text-[10px] text-gray-400">
+									<p>{formatDate(cluster.last_updated_at)}</p>
 								</div>
 							</div>
 						</div>

@@ -1,12 +1,21 @@
 <script lang="ts">
-	import { BellRingIcon } from '@lucide/svelte';
+	import { BellRingIcon, SettingsIcon, BarChartIcon } from '@lucide/svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
-	import type { Alert as AlertType, AnomalyType, LoiteringData } from '../types';
+	import type {
+		Alert as AlertType,
+		AnomalyType,
+		LoiteringData,
+		PoliceMonitoringType
+	} from '../types';
 	import { onMount, onDestroy } from 'svelte';
 	import { fly } from 'svelte/transition'; // Import a transition
 	import SimpleDialog from './SimpleDialog.svelte';
 	import { addHoursToDate, parseUtcToIstTime, timeAgo } from '$lib/utils';
+	import { ArrowLeftIcon } from '@lucide/svelte';
+	import BannersAndSlogans from './BannersAndSlogans.svelte';
+	import PoliceMonitoring from './PoliceMonitoring.svelte';
+	import { PUBLIC_POLICE_MONITORING_ENDPOINT } from '$env/static/public';
 
 	// Define a unified type for the combined list
 	interface CombinedAlertItem {
@@ -31,6 +40,171 @@
 	let loitering: LoiteringData[] | null = $state(null);
 	let refreshInterval: ReturnType<typeof setInterval>;
 
+	// State for view management
+	let showingFilteredView = $state(false);
+	let selectedQuery = $state('');
+
+	// Time range filter settings
+	let showTimeRangeSettings = $state(false);
+	let fromDate = $state(new Date(Date.now() - 5 * 60 * 1000).toISOString().slice(0, 16)); // Default: 5 minutes ago
+	let toDate = $state(new Date().toISOString().slice(0, 16)); // Default: now
+
+	// Analytics view state
+	let showingAnalytics = $state(false);
+
+	let showAllAlerts = $state(false);
+	// Add a key to force re-render when data changes
+	let dataKey = $state(0);
+
+	// banner and slogans config
+	const bannerAndSlogansConfig = {
+		mainTitle: 'Banners & Slogans',
+		alertTitle: ['person waving black flag', 'people holding placards'],
+		description: 'Detection of unauthorized banners, posters, or slogans in restricted areas.'
+	};
+	const alertsWithThumbnails = [
+		{
+			mainTitle: 'Banners & Slogans',
+			alertTitle: ['person waving black flag', 'people holding placards'],
+			description: 'Detection of unauthorized banners, posters, or slogans in restricted areas.'
+		},
+		{
+			mainTitle: 'Animals',
+			alertTitle: ['dogs'],
+			description: 'Detection of Animals in the stadium areas.'
+		}
+	];
+	// State for police monitoring view
+	let showingPoliceView = $state(false);
+
+	// Additional alert cards
+	const additionalAlertCards = [
+		{
+			mainTitle: 'Animals',
+			alertTitle: 'dogs',
+			icon: 'PawPrintIcon',
+			description: 'Detection of animals in restricted areas.'
+		},
+		{
+			mainTitle: 'Loitering',
+			alertTitle: 'motorcycle',
+			icon: 'FootprintsIcon',
+			description: 'Detection of suspicious loitering in specific areas.'
+		},
+		{
+			mainTitle: 'Prohibited Items',
+			alertTitle: 'Prohibited Items',
+			icon: 'BanIcon',
+			description: 'Detection of items not allowed in the premises.'
+		},
+
+		{
+			mainTitle: 'Stampede Risk',
+			alertTitle: 'stampede risk',
+			icon: 'UsersIcon',
+			description: 'Detection of crowd conditions that may lead to stampede.'
+		},
+		{
+			mainTitle: 'Fire & Smoke',
+			alertTitle: 'fire & smoke',
+			icon: 'FlameIcon',
+			description: 'Detection of fire or smoke in monitored areas.'
+		},
+		{
+			mainTitle: 'Suspect Alert',
+			alertTitle: 'suspect',
+			icon: 'AlertTriangleIcon',
+			description: 'Detection of known suspects or persons of interest.'
+		},
+
+		{
+			mainTitle: 'Unattended Baggage',
+			alertTitle: 'unattended baggage',
+			icon: 'PackageIcon',
+			description: 'Detection of bags or packages left unattended.'
+		},
+		{
+			mainTitle: 'Weapons',
+			alertTitle: 'weapons',
+			icon: 'SwordIcon',
+			description: 'Detection of potential weapons in monitored areas.'
+		}
+	];
+
+	// State for banner alerts view
+	let showingBannerAlertsView = $state(false);
+	let selectedCamera = $state('');
+	let showingBannerQueriesView = $state(false);
+	let selectedBannerQuery = $state('');
+
+	// Organized alerts grouped by query and camera
+	let organized_grouped_alerts = $derived.by(() => {
+		if (!alerts) return [];
+
+		// Create a map to organize by query
+		const queryMap = new Map<
+			string,
+			{
+				query: string;
+				cameras: Map<
+					string,
+					{
+						cameraName: string;
+						alerts: Array<{
+							redirectURL: string;
+							thumbnail: string;
+							id: string;
+							end_time: string;
+						}>;
+					}
+				>;
+			}
+		>();
+		// Process each alert
+		alerts.forEach((alert) => {
+			const query = alert.query;
+
+			// Initialize query group if it doesn't exist
+			if (!queryMap.has(query)) {
+				queryMap.set(query, {
+					query,
+					cameras: new Map()
+				});
+			}
+
+			// Process each result in the alert
+			if (alert.results && alert.results.results) {
+				alert.results.results.forEach((result) => {
+					if (result.camera) {
+						const cameraName = result.camera;
+						const queryGroup = queryMap.get(query)!;
+
+						// Initialize camera group if it doesn't exist
+						if (!queryGroup.cameras.has(cameraName)) {
+							queryGroup.cameras.set(cameraName, {
+								cameraName,
+								alerts: []
+							});
+						}
+
+						// Add alert details to camera group
+						queryGroup.cameras.get(cameraName)!.alerts.push({
+							redirectURL: alert.results.redirect_url || '',
+							thumbnail: result.thumbnail || '',
+							id: alert.id,
+							end_time: alert.createdAt
+						});
+					}
+				});
+			}
+		});
+		// Convert maps to arrays for easier iteration in the template
+		return Array.from(queryMap.values()).map((queryGroup) => ({
+			query: queryGroup.query,
+			cameras: Array.from(queryGroup.cameras.values())
+		}));
+	});
+	let policeMonitoring = $state<PoliceMonitoringType[]>([]);
 	// Derive combined and sorted data
 	let combinedData = $derived.by(() => {
 		const mappedAlerts: CombinedAlertItem[] = (alerts ?? []).map((item) => ({
@@ -57,9 +231,8 @@
 			media_url: item.filePath, // Store the relative path
 			cameraName: item.camera?.name
 		}));
-		console.log(loitering)
+
 		const mappedLoitering: CombinedAlertItem[] = (loitering ?? []).map((item) => ({
-			
 			id: `loitering-${item.id}`, // Prefix ID
 			query: item.label || 'Loitering Detected',
 			time: item.timestampEntry, // Use entry time as the event time
@@ -67,14 +240,55 @@
 			type: 'loitering',
 			redirect_url: undefined,
 			media_url: item.clipFilename || undefined, // Store relative path if available
-			snapshot_filename: item.snapshotFilename || undefined,
+			snapshot_filename: item.snapshotFilename as string | undefined,
 			cameraName: item.cameraId!
 		}));
-
 		// Combine, sort by time (most recent first), and return
 		return [...mappedAlerts, ...mappedAnomalies, ...mappedLoitering].sort(
 			(a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
 		);
+	});
+
+	// Filtered data based on selected query
+	let filteredData = $derived.by(() => {
+		if (!showingFilteredView || !selectedQuery) return [];
+		return combinedData.filter((item) => item.query === selectedQuery);
+	});
+
+	// Group data by query with time range filter
+	let groupedData = $derived.by(() => {
+		const groups = new Map<
+			string,
+			{ total: number; recent: number; uniqueCameras: Set<string>; items: CombinedAlertItem[] }
+		>();
+		const fromTimestamp = new Date(fromDate).getTime();
+		const toTimestamp = new Date(toDate).getTime();
+
+		combinedData.forEach((item) => {
+			if (!groups.has(item.query)) {
+				groups.set(item.query, { total: 0, recent: 0, uniqueCameras: new Set(), items: [] });
+			}
+
+			const group = groups.get(item.query)!;
+			group.total++;
+			group.items.push(item);
+
+			const itemTime = new Date(item.time).getTime();
+			if (itemTime >= fromTimestamp && itemTime <= toTimestamp) {
+				group.recent++;
+				if (item.cameraName) {
+					group.uniqueCameras.add(item.cameraName);
+				}
+			}
+		});
+
+		return Array.from(groups.entries()).map(([query, data]) => ({
+			query,
+			total: data.total,
+			recent: data.recent,
+			uniqueCamerasCount: data.uniqueCameras.size,
+			items: data.items
+		}));
 	});
 
 	// Modal state for Alert iframe
@@ -87,18 +301,47 @@
 	let selectedMediaUrl = $state('');
 	let selectedMediaTitle = $state('');
 
+	// Function to toggle time range settings
+	function toggleTimeRangeSettings() {
+		showTimeRangeSettings = !showTimeRangeSettings;
+	}
+
+	// Function to toggle analytics view
+	function toggleAnalyticsView() {
+		showingAnalytics = !showingAnalytics;
+	}
+
+	// Function to apply time range filter
+	function applyTimeRangeFilter() {
+		// The filter is automatically applied through the reactive $derived.by
+		showTimeRangeSettings = false;
+	}
+
+	// Function to show filtered view for a specific query
+	function showFilteredView(query: string) {
+		selectedQuery = query;
+		showingFilteredView = true;
+	}
+
+	// Function to go back to the grouped view
+	function backToGroupedView() {
+		showingFilteredView = false;
+		selectedQuery = '';
+		showingBannerAlertsView = false;
+		showingBannerQueriesView = false;
+		showingPoliceView = false;
+		selectedCamera = '';
+		selectedBannerQuery = '';
+	}
+
 	// Function to open the appropriate modal
 	function openModal(item: CombinedAlertItem) {
-		// console.log(item);
 		if (item.type === 'alert' && item.redirect_url) {
 			selectedAlertUrl = item.redirect_url;
 			selectedAlertTitle = item.query || 'Alert Details';
 			showAlertModal = true;
 		} else if ((item.type === 'anomaly' || item.type === 'loitering') && item.snapshot_filename) {
 			// Construct the full media URL here
-			// The slice(6) was specific to the previous anomaly path structure, adjust if needed for both types
-			// If media_url is already absolute or needs different prefixing, change this logic.
-			// Assuming relative path like '/media/...' for both
 			let fullUrl = '';
 			if (item.snapshot_filename.startsWith('/media/')) {
 				// Example adjustment based on common patterns
@@ -108,9 +351,9 @@
 				fullUrl = MEDIA_BASE_URL + item.media_url;
 			}
 			if (item.type === 'loitering') {
-				// fullUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_clips/"+item.media_url;
-				fullUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_snapshots/"+item.snapshot_filename;
-
+				fullUrl =
+					'https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_snapshots/' +
+					item.snapshot_filename;
 			}
 
 			selectedMediaUrl = fullUrl;
@@ -118,10 +361,10 @@
 				item.query || (item.type === 'anomaly' ? 'Anomaly Details' : 'Loitering Details');
 			showMediaModal = true;
 		} else if (item.type === 'loitering' && !item.media_url) {
-			selectedMediaUrl = "https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_snapshots/"+item.snapshot_filename;
-
-		} 
-		 else {
+			selectedMediaUrl =
+				'https://29eu3i0mi1l4hg-8090.proxy.runpod.net/mtqq_handlers/loitering_snapshots/' +
+				item.snapshot_filename;
+		} else {
 			console.warn('No suitable URL found for item:', item);
 			// Optionally show a feedback message to the user
 		}
@@ -136,9 +379,9 @@
 	}
 
 	// Function to fetch all data types
-	async function fetchAllData() {
+	async function fetchAllData(showAllAlerts: boolean = false) {
 		try {
-			const res = await fetch('/api/alert-notifications');
+			const res = await fetch(`/api/alert-notifications?showAllAlerts=${showAllAlerts}`);
 			if (!res.ok) {
 				throw new Error(`API request failed with status ${res.status}`);
 			}
@@ -146,8 +389,10 @@
 				alertsData: AlertType[];
 				anomaliesData: AnomalyType[];
 				loiteringData: LoiteringData[];
+				policeMonitoringData: PoliceMonitoringType[];
 			};
-
+			// console.log('data', data);
+			policeMonitoring = data.policeMonitoringData ?? [];
 			// Process fetched data
 			alerts = data.alertsData ?? [];
 			anomalies = (data.anomaliesData ?? []).map((a) => ({
@@ -161,6 +406,9 @@
 				updatedAt: l.updatedAt ? addHoursToDate(l.updatedAt) : null,
 				insertedAt: l.insertedAt ? addHoursToDate(l.insertedAt) : null
 			}));
+			
+			// Increment the key to force re-render
+			dataKey++;
 		} catch (error) {
 			console.error('Failed to fetch notification data:', error);
 			// Optionally reset data or show error state
@@ -170,63 +418,497 @@
 		}
 	}
 
+	// Watch for changes to showAllAlerts and re-fetch data
+	$effect(() => {
+		if (showAllAlerts !== undefined) {
+			console.log('showAllAlerts changed:', showAllAlerts);
+			fetchAllData(showAllAlerts);
+		}
+	});
+
 	onMount(() => {
-		fetchAllData();
-		refreshInterval = setInterval(fetchAllData, 30000); // Refresh every 30 seconds
+		console.log('showAllAlerts in onMount', showAllAlerts);
+		fetchAllData(showAllAlerts);
+		refreshInterval = setInterval(() => fetchAllData(showAllAlerts), 30000); // Refresh every 30 seconds
 	});
 
 	onDestroy(() => {
 		if (refreshInterval) clearInterval(refreshInterval);
 	});
+
+	// Function to show banner queries view
+	function showBannerQueriesView() {
+		showingBannerQueriesView = true;
+		showingBannerAlertsView = false;
+		selectedCamera = '';
+	}
+
+	// Function to show banner alerts for a specific camera
+	function showBannerAlertsView(camera: string) {
+		selectedCamera = camera;
+		showingBannerAlertsView = true;
+		showingBannerQueriesView = false;
+	}
+
+	// Function to go back from banner alerts view
+	function backFromBannerAlertsView() {
+		showingBannerAlertsView = false;
+		selectedCamera = '';
+	}
+
+	// Function to show alerts for a specific query
+	function showBannerQueryAlerts(query: string) {
+		selectedBannerQuery = query;
+		showingBannerQueriesView = false;
+		showingFilteredView = true;
+		selectedQuery = query;
+	}
+
+	// Derived data for banner alerts
+	let bannerAlertsData = $derived.by(() => {
+		// Filter alerts related to banners and slogans
+		const bannerAlerts = combinedData.filter((item) =>
+			bannerAndSlogansConfig.alertTitle.some((title) =>
+				item.query.toLowerCase().includes(title.toLowerCase())
+			)
+		);
+
+		// Group by camera
+		const cameraGroups = new Map<string, CombinedAlertItem[]>();
+
+		bannerAlerts.forEach((alert) => {
+			if (alert.cameraName) {
+				if (!cameraGroups.has(alert.cameraName)) {
+					cameraGroups.set(alert.cameraName, []);
+				}
+				cameraGroups.get(alert.cameraName)!.push(alert);
+			}
+		});
+
+		// Sort alerts within each camera group by time (most recent first)
+		cameraGroups.forEach((alerts, camera) => {
+			cameraGroups.set(
+				camera,
+				alerts.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+			);
+		});
+
+		return {
+			allAlerts: bannerAlerts,
+			byCameras: Array.from(cameraGroups.entries()).map(([camera, alerts]) => ({
+				camera,
+				alerts,
+				latestAlert: alerts[0],
+				count: alerts.length
+			}))
+		};
+	});
+
+	// Get banner queries from organized_grouped_alerts
+	let bannerQueries = $derived.by(() => {
+		return organized_grouped_alerts.filter((group) =>
+			bannerAndSlogansConfig.alertTitle.some((title) =>
+				group.query.toLowerCase().includes(title.toLowerCase())
+			)
+		);
+	});
+
+	// Filtered banner alerts for a specific camera
+	let filteredBannerAlerts = $derived.by(() => {
+		if (!showingBannerAlertsView || !selectedCamera) return [];
+		return bannerAlertsData.allAlerts.filter((item) => item.cameraName === selectedCamera);
+	});
+
+	// Function to show police monitoring view
+	function showPoliceView() {
+		showingPoliceView = true;
+	}
+	import html2canvas from 'html2canvas';
+	import { Switch } from '$lib/components/ui/switch';
+
+	// Declare a reference to the ScrollArea
+	let scrollAreaRef;
+
+	// Your existing code and imports here...
+
+	// Function to download the ScrollArea content
+	const downloadScrollAreaContent = async () => {
+		try {
+			// Find the scroll content element
+			const scrollContent = document.getElementById('scroll-content');
+
+			if (!scrollContent) {
+				console.error('Scroll content element not found');
+				return;
+			}
+
+			// Create a temporary clone of the scroll content for better rendering
+			const tempContainer = document.createElement('div');
+			const clone = scrollContent.cloneNode(true);
+
+			// Explicitly set the grid styles on the clone to ensure the layout is preserved
+			if (
+				!showingFilteredView &&
+				!showingBannerQueriesView &&
+				!showingBannerAlertsView &&
+				!showingPoliceView &&
+				!showingAnalytics
+			) {
+				// Find the grid container in the clone
+				const gridElement = clone.querySelector('.grid') as HTMLElement;
+				if (gridElement) {
+					// Force the grid to maintain 3 columns
+					gridElement.style.display = 'grid';
+					gridElement.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
+					gridElement.style.gap = '1rem';
+					gridElement.style.width = '100%';
+				}
+			}
+
+			// Apply original styles to make sure the clone looks the same
+			const styles = window.getComputedStyle(scrollContent);
+			tempContainer.style.backgroundColor = styles.backgroundColor;
+			tempContainer.style.color = styles.color;
+			tempContainer.style.padding = styles.padding;
+			tempContainer.style.width = scrollContent.offsetWidth + 'px';
+
+			// Append the clone to the temp container
+			tempContainer.appendChild(clone);
+
+			// Make the temp container temporarily visible but off-screen
+			tempContainer.style.position = 'absolute';
+			tempContainer.style.left = '-9999px';
+			tempContainer.style.top = '-9999px';
+			document.body.appendChild(tempContainer);
+
+			// Wait for all images to load in the clone
+			const imagePromises = Array.from(tempContainer.querySelectorAll('img')).map((img) => {
+				if (img.complete) return Promise.resolve();
+				return new Promise((resolve) => {
+					img.onload = resolve;
+					img.onerror = resolve;
+				});
+			});
+
+			await Promise.all(imagePromises);
+
+			// Use html2canvas with the properly prepared clone
+			const canvas = await html2canvas(tempContainer, {
+				backgroundColor: window.getComputedStyle(document.body).backgroundColor,
+				scale: 2, // Higher quality
+				logging: false,
+				useCORS: true,
+				allowTaint: true,
+				width: scrollContent.offsetWidth,
+				height: Math.max(tempContainer.scrollHeight, scrollContent.scrollHeight),
+				onclone: (clonedDoc, clonedElement) => {
+					// Additional modifications to the cloned document if needed
+				}
+			});
+
+			// Clean up the temporary elements
+			document.body.removeChild(tempContainer);
+
+			// Create a download link
+			const link = document.createElement('a');
+			link.download = `alerts-grid-${new Date().toISOString().slice(0, 10)}.png`;
+			link.href = canvas.toDataURL('image/png');
+			// Call an endpoint to send this image to notification service
+			fetch('/api/send-alerts-image', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ image: canvas.toDataURL('image/png') })
+			})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Failed to send alert image');
+				}
+				return response.json();
+			})
+			.then(data => {
+				console.log('Alert image sent successfully:', data);
+			})
+			.catch(error => {
+				console.error('Error sending alert image:', error);
+			});
+
+			// Trigger download
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		} catch (error) {
+			console.error('Error downloading scroll area content:', error);
+			// Show error notification if desired
+			alert('Failed to download image. Please try again.');
+		}
+	};
 </script>
 
 <Card class="flex h-full w-full flex-col dark:bg-background dark:text-white">
 	<CardHeader class="flex h-14 flex-row items-center justify-between rounded-t-md bg-secondary p-4">
 		<div class="flex items-center gap-2">
-			<BellRingIcon class="h-5 w-5" />
-			<h3 class="font-medium">Recent Alerts & Events</h3>
-		</div>
-	</CardHeader>
-	<ScrollArea class="flex-1">
-		<CardContent class="grid gap-4 p-4">
-			{#if combinedData.length === 0}
-				<p class="text-center text-gray-500 dark:text-gray-400">No recent events</p>
-			{:else}
-				{#each combinedData as item (item.id)}
-					<div
-						class="grid cursor-pointer gap-1 rounded-md p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-						role="button"
-						tabindex="0"
-						onclick={() => openModal(item)}
-						onkeydown={(e) => e.key === 'Enter' && openModal(item)}
-						in:fly={{ y: 10, duration: 200, delay: 50 }}
-						out:fly={{ y: -10, duration: 200 }}
-					>
-						<div class="flex items-center justify-between gap-2">
-							<!-- Maybe add an icon based on type? -->
-							<!-- Example: {#if item.type === 'anomaly'} <Icon.../> {/if} -->
-							<div class="flex grow flex-col gap-1">
-								<div
-									class="text-md flex w-full items-center justify-between font-medium leading-none"
-								>
-									<span class="truncate pr-2">
-										Detected {item.query}
-										{#if item.cameraName}
-											at {item.cameraName}
-										{/if}
-									</span>
-									<span class="flex-shrink-0 text-sm text-muted-foreground">
-										{timeAgo(item.time)}
-									</span>
-								</div>
-								<span class="text-xs leading-tight text-muted-foreground">
-									{item.description}
-								</span>
-							</div>
-						</div>
-					</div>
-				{/each}
+			{#if showingFilteredView || showingBannerAlertsView || showingBannerQueriesView || showingPoliceView}
+				<button
+					class="flex items-center gap-1 text-sm hover:text-primary"
+					on:click={backToGroupedView}
+				>
+					<ArrowLeftIcon class="h-4 w-4" />
+					<span>Back</span>
+				</button>
+
+				<span class="mx-2">|</span>
 			{/if}
+
+			<BellRingIcon class="h-5 w-5" />
+			<h3 class="font-medium truncate max-w-[30ch]">
+				{#if showingFilteredView}
+					{selectedQuery} Alerts
+				{:else if showingAnalytics}
+					Alert Analytics
+				{:else if showingBannerQueriesView}
+					Banner & Slogan Queries
+				{:else if showingBannerAlertsView}
+					Banner & Slogan Alerts - {selectedCamera}
+				{:else if showingPoliceView}
+					No Police Alerts
+				{:else}
+					Recent Alerts & Events
+				{/if}
+			</h3>
+		</div>
+		{#if !showingFilteredView && !showingBannerAlertsView && !showingBannerQueriesView}
+			<div class="flex items-center gap-2">
+				<button
+					class="flex items-center gap-1 text-sm hover:text-primary"
+					on:click={toggleAnalyticsView}
+					aria-label="Analytics view"
+				>
+					<BarChartIcon class="h-4 w-4" />
+				</button>
+
+				<button
+					class="flex items-center gap-1 text-sm hover:text-primary"
+					on:click={toggleTimeRangeSettings}
+					aria-label="Time range settings"
+				>
+					<SettingsIcon class="h-4 w-4" />
+				</button>
+			</div>
+		{/if}
+
+		<button on:click={downloadScrollAreaContent}>
+			<img src="/export.png" alt="Camera Lens" class="h-5 w-5" />
+		</button>
+		<!-- Add a switch component to toggle between all alerts and unnotified alerts-->
+		 <div>	
+			<div class="text-sm">Show All Alerts</div>
+			 <Switch
+				 bind:checked={showAllAlerts}
+			 >
+			 </Switch>
+		 </div>
+	</CardHeader>
+
+	{#if showTimeRangeSettings}
+		<div class="border-b bg-secondary/50 p-4 dark:border-gray-700">
+			<div class="flex flex-col items-end gap-4 sm:flex-row">
+				<div class="flex flex-1 flex-col gap-1">
+					<label for="from-date" class="text-sm font-medium">From</label>
+					<input
+						id="from-date"
+						type="datetime-local"
+						bind:value={fromDate}
+						class="rounded-md border border-gray-300 bg-background p-2 text-sm dark:border-gray-700"
+					/>
+				</div>
+				<div class="flex flex-1 flex-col gap-1">
+					<label for="to-date" class="text-sm font-medium">To</label>
+					<input
+						id="to-date"
+						type="datetime-local"
+						bind:value={toDate}
+						class="rounded-md border border-gray-300 bg-background p-2 text-sm dark:border-gray-700"
+					/>
+				</div>
+				<button
+					class="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground"
+					on:click={applyTimeRangeFilter}
+				>
+					Apply
+				</button>
+			</div>
+		</div>
+	{/if}
+
+	<ScrollArea class="flex-1" bind:this={scrollAreaRef}>
+		<CardContent class="p-4" id="scroll-content">
+			{#key dataKey}
+				{#if showingAnalytics}
+					<!-- Analytics View -->
+					<div></div>
+				{:else if showingFilteredView}
+					<!-- Filtered view showing specific alerts -->
+					{#if filteredData.length === 0}
+						<p class="text-center text-gray-500 dark:text-gray-400">
+							No alerts found for "{selectedQuery}"
+						</p>
+					{:else}
+						<div class="grid gap-4">
+							{#each filteredData as item (item.id)}
+								<div
+									class="grid cursor-pointer gap-1 rounded-md p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+									role="button"
+									tabindex="0"
+									on:click={() => openModal(item)}
+									on:keydown={(e) => e.key === 'Enter' && openModal(item)}
+									in:fly={{ y: 10, duration: 200, delay: 50 }}
+									out:fly={{ y: -10, duration: 200 }}
+								>
+									<div class="flex items-center justify-between gap-2">
+										<div class="flex grow flex-col gap-1">
+											<div
+												class="text-md flex w-full items-center justify-between font-medium leading-none"
+											>
+												<span class="truncate pr-2">
+													{#if item.cameraName}
+														at {item.cameraName}
+													{:else}
+														Alert Details
+													{/if}
+												</span>
+												<span class="flex-shrink-0 text-sm text-muted-foreground">
+													{timeAgo(item.time)}
+												</span>
+											</div>
+											<span class="text-xs leading-tight text-muted-foreground">
+												{item.description}
+											</span>
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				{:else if showingBannerQueriesView || showingBannerAlertsView}
+					<!-- Use the new BannersAndSlogans component -->
+					<BannersAndSlogans
+						{bannerAndSlogansConfig}
+						{organized_grouped_alerts}
+						{bannerAlertsData}
+						{bannerQueries}
+						{MEDIA_BASE_URL}
+						{filteredBannerAlerts}
+						{showingBannerQueriesView}
+						{showingBannerAlertsView}
+						{selectedCamera}
+						{selectedBannerQuery}
+						{showBannerQueriesView}
+						{showBannerAlertsView}
+						{showBannerQueryAlerts}
+						{backToGroupedView}
+						{openModal}
+					/>
+				{:else if showingPoliceView}
+					<!-- Police Monitoring View -->
+					<PoliceMonitoring
+						policeMonitoringData={policeMonitoring}
+						showingPoliceView={true}
+						{showPoliceView}
+						{backToGroupedView}
+						MEDIA_BASE_URL={PUBLIC_POLICE_MONITORING_ENDPOINT}
+					/>
+				{:else if groupedData.length === 0}
+					<p class="text-center text-gray-500 dark:text-gray-400">No recent events</p>
+				{:else}
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+						<!-- Banner & Slogans Card -->
+						<BannersAndSlogans
+							{bannerAndSlogansConfig}
+							{organized_grouped_alerts}
+							{bannerAlertsData}
+							{bannerQueries}
+							{MEDIA_BASE_URL}
+							{filteredBannerAlerts}
+							{showingBannerQueriesView}
+							{showingBannerAlertsView}
+							{selectedCamera}
+							{selectedBannerQuery}
+							{showBannerQueriesView}
+							{showBannerAlertsView}
+							{showBannerQueryAlerts}
+							{backToGroupedView}
+							{openModal}
+						/>
+
+						<!-- Police Monitoring Card -->
+						<PoliceMonitoring
+							policeMonitoringData={policeMonitoring}
+							{showingPoliceView}
+							{showPoliceView}
+							{backToGroupedView}
+							MEDIA_BASE_URL="https://1020-49-207-184-66.ngrok-free.app/clip"
+						/>
+
+						<!-- Additional Alert Cards -->
+						{#each additionalAlertCards as card}
+							<div
+								class="flex cursor-pointer flex-col items-center justify-center rounded-md border p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700"
+								role="button"
+								tabindex="0"
+								on:click={() => showFilteredView(card.alertTitle)}
+								on:keydown={(e) => e.key === 'Enter' && showFilteredView(card.alertTitle)}
+								in:fly={{ y: 10, duration: 200, delay: 50 }}
+							>
+								<h4 class="mb-2 text-lg font-semibold">{card.mainTitle}</h4>
+								<div class="mt-auto grid grid-cols-3 items-center justify-center gap-2 text-sm">
+									{#if groupedData.find((group) => group.query === card.alertTitle)}
+										{#each [groupedData.find((group) => group.query === card.alertTitle)] as matchedGroup}
+											{#if matchedGroup && matchedGroup.recent > 0}
+												<div class="col-span-3 flex flex-col items-center justify-center">
+													<div class="mt-auto grid flex-grow grid-cols-3 gap-2 text-sm">
+														<div
+															class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
+														>
+															<span class="font-medium">{matchedGroup.total}</span>
+															<span class="text-xs text-muted-foreground">Total</span>
+														</div>
+														<div
+															class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
+														>
+															<span class="font-medium">{matchedGroup.recent}</span>
+															<span class="text-xs text-muted-foreground">In Range</span>
+														</div>
+														<div
+															class="flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
+														>
+															<span class="font-medium">{matchedGroup.uniqueCamerasCount}</span>
+															<span class="text-xs text-muted-foreground">Cameras</span>
+														</div>
+													</div>
+												</div>
+											{:else if matchedGroup}
+												<div class="col-span-3 flex flex-col items-center justify-center">
+													<span class="text-2xl font-medium">{matchedGroup.total}</span>
+													<span class="text-xs text-muted-foreground">Total</span>
+												</div>
+											{/if}
+										{/each}
+									{:else}
+										<div
+											class="col-span-3 flex flex-col items-center rounded-md bg-gray-100 p-2 dark:bg-gray-800"
+										>
+											<span class="font-medium">0</span>
+											<span class="text-xs text-muted-foreground">Total</span>
+										</div>
+									{/if}
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			{/key}
 		</CardContent>
 	</ScrollArea>
 </Card>

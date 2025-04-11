@@ -54,7 +54,7 @@
 	let minImageQuality = $state<number | undefined>(undefined);
 	let minClusterQuality = $state<number | undefined>(undefined);
 	let minClusterSize = $state<number | undefined>(undefined);
-	let similarityThreshold = $state<number | undefined>(65); // For similarity-based search
+	let similarityThreshold = $state<number | undefined>(30); // For similarity-based search
 	let maxDistance = $derived.by(() => {
 		// Calculate max distance based on similarity threshold
 		return similarityThreshold !== undefined ? 1 - similarityThreshold / 100 : undefined;
@@ -179,7 +179,7 @@
 		searchError = null;
 		searchResults = null; // Clear previous results on *new* upload
 		queryFaceFound = true;
-		similarityThreshold = 65; // Reset to default
+		similarityThreshold = 30; // Reset to default
 		isInitialSearchComplete = false; // Reset initial search flag
 
 		// Clean up previous object URL if any
@@ -281,7 +281,7 @@
 >
 	<Dialog.Content class="max-w-4xl border-gray-700 bg-background sm:max-w-5xl lg:max-w-6xl">
 		<Dialog.Header>
-			<Dialog.Title class="text-xl font-semibold">Image Search Results</Dialog.Title>
+			<Dialog.Title class="text-xl font-semibold">Suspect Face Search</Dialog.Title>
 			{#if !searchLoading}
 				<Dialog.Description>Showing matches for the uploaded image.</Dialog.Description>
 			{/if}
@@ -439,7 +439,7 @@
 						class="w-full"
 						placeholder="0-100"
 					/>
-					<p class="mt-1 text-xs">Lower values yield more results. Default: 65</p>
+					<p class="mt-1 text-xs">Lower values yield more results. Default: 30</p>
 				</div>
 			</div>
 

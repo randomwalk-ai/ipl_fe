@@ -2633,6 +2633,11 @@
 			});
 		};
 	});
+	function handlePolygonClick(standName) {
+		console.log('Clicked stand:', standName);
+		// You can add any other logic here, like opening a modal,
+		// navigating, or updating component state.
+	}
 </script>
 
 <!-- Use a unique ID for the container -->
@@ -2642,40 +2647,32 @@
 	style="position: relative; width: 100%; max-width: {imageWidth}px; aspect-ratio: {imageWidth /
 		imageHeight};"
 >
-<div class="p-4 font-sans">
-	<!-- Flex container for h1 and legend in single line -->
-	<div class="flex flex-col items-center justify-between gap-4 md:flex-row md:gap-6 lg:gap-8">
-	  <h1 class=" text-black text-2xl font-bold">
-		Stadium Overview Presence
-	  </h1>
-  
-	  <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 md:gap-8">
-		<!-- Legend Item 1: Less than 30% -->
-		<div class="flex items-center gap-2">
-		  <div class="h-6 w-6 flex-shrink-0 rounded-md bg-yellow-400"></div>
-		  <span class="text-sm text-black md:text-base">
-			0 - 30%
-		  </span>
+	<div class="p-4 font-sans">
+		<!-- Flex container for h1 and legend in single line -->
+		<div class="flex flex-col items-center justify-between gap-4 md:flex-row md:gap-6 lg:gap-8">
+			<h1 class=" text-2xl font-bold text-black">Stadium Overview Presence</h1>
+
+			<div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 md:gap-8">
+				<!-- Legend Item 1: Less than 30% -->
+				<div class="flex items-center gap-2">
+					<div class="h-6 w-6 flex-shrink-0 rounded-md bg-yellow-400"></div>
+					<span class="text-sm text-black md:text-base"> 0 - 30% </span>
+				</div>
+
+				<!-- Legend Item 2: 30% to 70% -->
+				<div class="flex items-center gap-2">
+					<div class="h-6 w-6 flex-shrink-0 rounded-md bg-orange-400"></div>
+					<span class="text-sm text-black md:text-base"> 30% - 70% </span>
+				</div>
+
+				<!-- Legend Item 3: More than 70% -->
+				<div class="flex items-center gap-2">
+					<div class="h-6 w-6 flex-shrink-0 rounded-md bg-orange-500"></div>
+					<span class="text-sm text-black md:text-base"> 70% - 100% </span>
+				</div>
+			</div>
 		</div>
-  
-		<!-- Legend Item 2: 30% to 70% -->
-		<div class="flex items-center gap-2">
-		  <div class="h-6 w-6 flex-shrink-0 rounded-md bg-orange-400"></div>
-		  <span class="text-sm text-black md:text-base">
-			30% - 70%
-		  </span>
-		</div>
-  
-		<!-- Legend Item 3: More than 70% -->
-		<div class="flex items-center gap-2">
-		  <div class="h-6 w-6 flex-shrink-0 rounded-md bg-orange-500"></div>
-		  <span class="text-sm text-black md:text-base">
-			70% - 100%
-		  </span>
-		</div>
-	  </div>
 	</div>
-  </div>
 	<!-- Removed the separate img tag -->
 
 	<svg
@@ -2763,6 +2760,8 @@
 					data-stand-id={stand.id}
 					data-stand-name={stand.name}
 					data-occupancy={info.percentage}
+					on:click={() => handlePolygonClick(stand.name)}
+					style="cursor: pointer;"
 				>
 					<!-- Native SVG tooltip (simpler, less customizable) -->
 					<title>{stand.name} - Occupancy: {info.percentage}%</title>
@@ -2799,14 +2798,6 @@
 		box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 		background-color: #f5f5f5; /* Shows behind SVG if image loads slow */
 		position: relative; /* Keep for absolute tooltip */
-	}
-
-	.stadium-overlay {
-		/* display: block; */ /* Good practice for SVG */
-		/* width: 100%; */
-		/* height: 100%; */
-		/* No longer needs absolute positioning */
-		/* pointer-events: none; */ /* Remove this, polygons need events */
 	}
 
 	.stadium-overlay image {

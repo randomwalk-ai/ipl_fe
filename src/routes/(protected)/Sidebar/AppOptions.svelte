@@ -128,5 +128,14 @@
 				<span>{'Stadium View'}</span>
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
+		<Sidebar.MenuItem>
+			<Sidebar.MenuButton
+				onclick={(e) => goto('/seatview')}
+				class={`${isNavigating ? 'cursor-default opacity-50' : ''}`}
+			>
+				<Eye />
+				<span>{'Seat View'}</span>
+			</Sidebar.MenuButton>
+		</Sidebar.MenuItem>
 	</Sidebar.Menu>
 </Sidebar.Group>

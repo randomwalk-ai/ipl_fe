@@ -1,61 +1,3 @@
-<script context="module">
-	// Optional: Add interactive JavaScript for dynamic tooltip
-	// This will run in the browser when the component is mounted
-	if (typeof window !== 'undefined') {
-		window.addEventListener('DOMContentLoaded', () => {
-			// Query within the specific component instance if possible, or use unique IDs
-			const mapContainer = document.querySelector('.stadium-map-container'); // Or add a unique ID
-			if (!mapContainer) return;
-
-			const polygons = mapContainer.querySelectorAll('.stand-polygon');
-			const tooltip = mapContainer.querySelector('.stand-tooltip');
-
-			if (polygons && tooltip) {
-				polygons.forEach((polygon) => {
-					polygon.addEventListener('mouseenter', (e) => {
-						// Get stand info directly from the polygon's data attributes
-						const standId = polygon.getAttribute('data-stand-id');
-						const occupancy = polygon.getAttribute('data-occupancy');
-						const standName = polygon.getAttribute('data-stand-name') || standId; // Added name
-
-						const headerContent = standName;
-						const detailContent = `Occupancy: ${occupancy}%`;
-
-						const tooltipHeader = tooltip.querySelector('.tooltip-header');
-						const tooltipContent = tooltip.querySelector('.tooltip-content');
-
-						if (tooltipHeader) tooltipHeader.textContent = headerContent;
-						if (tooltipContent) tooltipContent.textContent = detailContent;
-
-						tooltip.style.display = 'block';
-
-						// Position the tooltip near the mouse - adjusted for container offset
-						const updateTooltipPosition = (mouseevent) => {
-							const containerRect = mapContainer.getBoundingClientRect();
-							// Use clientX/clientY relative to viewport, adjust by container scroll/offset
-							// For simplicity here, using pageX/pageY but consider clientX/Y + scroll offsets for more complex layouts
-							tooltip.style.left = `${mouseevent.pageX - containerRect.left - window.scrollX + 15}px`; // Offset slightly from cursor
-							tooltip.style.top = `${mouseevent.pageY - containerRect.top - window.scrollY - 10}px`; // Offset slightly above cursor
-						};
-
-						updateTooltipPosition(e);
-						// Use mousemove on the container for smoother tracking if needed,
-						// but polygon is usually sufficient
-						polygon.addEventListener('mousemove', updateTooltipPosition);
-
-						const leaveListener = () => {
-							tooltip.style.display = 'none';
-							polygon.removeEventListener('mousemove', updateTooltipPosition);
-							polygon.removeEventListener('mouseleave', leaveListener); // Clean up listener
-						};
-						polygon.addEventListener('mouseleave', leaveListener);
-					});
-				});
-			}
-		});
-	}
-</script>
-
 <script>
 	import { onMount } from 'svelte'; // Import onMount if needed for JS initialization
 
@@ -2700,7 +2642,40 @@
 	style="position: relative; width: 100%; max-width: {imageWidth}px; aspect-ratio: {imageWidth /
 		imageHeight};"
 >
-	<h1 class="flex items-center justify-center font-bold">Stadium OverView Presence</h1>
+<div class="p-4 font-sans">
+	<!-- Flex container for h1 and legend in single line -->
+	<div class="flex flex-col items-center justify-between gap-4 md:flex-row md:gap-6 lg:gap-8">
+	  <h1 class=" text-black text-2xl font-bold">
+		Stadium Overview presence
+	  </h1>
+  
+	  <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 md:gap-8">
+		<!-- Legend Item 1: Less than 30% -->
+		<div class="flex items-center gap-2">
+		  <div class="h-6 w-6 flex-shrink-0 rounded-md bg-yellow-400"></div>
+		  <span class="text-sm text-black md:text-base">
+			0 - 30%
+		  </span>
+		</div>
+  
+		<!-- Legend Item 2: 30% to 70% -->
+		<div class="flex items-center gap-2">
+		  <div class="h-6 w-6 flex-shrink-0 rounded-md bg-orange-400"></div>
+		  <span class="text-sm text-black md:text-base">
+			30% - 70%
+		  </span>
+		</div>
+  
+		<!-- Legend Item 3: More than 70% -->
+		<div class="flex items-center gap-2">
+		  <div class="h-6 w-6 flex-shrink-0 rounded-md bg-orange-500"></div>
+		  <span class="text-sm text-black md:text-base">
+			70% - 100%
+		  </span>
+		</div>
+	  </div>
+	</div>
+  </div>
 	<!-- Removed the separate img tag -->
 
 	<svg

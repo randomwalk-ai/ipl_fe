@@ -2646,7 +2646,7 @@
 	<!-- Flex container for h1 and legend in single line -->
 	<div class="flex flex-col items-center justify-between gap-4 md:flex-row md:gap-6 lg:gap-8">
 	  <h1 class=" text-black text-2xl font-bold">
-		Stadium Overview presence
+		Stadium Overview Presence
 	  </h1>
   
 	  <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 md:gap-8">

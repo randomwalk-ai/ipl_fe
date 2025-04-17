@@ -2700,6 +2700,7 @@
 	style="position: relative; width: 100%; max-width: {imageWidth}px; aspect-ratio: {imageWidth /
 		imageHeight};"
 >
+	<h1 class="flex items-center justify-center font-bold">Stadium OverView Presence</h1>
 	<!-- Removed the separate img tag -->
 
 	<svg
